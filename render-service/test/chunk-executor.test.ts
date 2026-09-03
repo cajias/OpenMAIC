@@ -264,6 +264,38 @@ describe('local bounded chunk executor', () => {
     expect(calls).toBe(1);
   });
 
+  it.each([
+    { writeAudio: true, description: 'present', expected: (planDir: string) => join(planDir, 'audio.aac') },
+    { writeAudio: false, description: 'absent', expected: () => null },
+  ])(
+    'passes the narration audio track to the assembler when audio.aac is $description',
+    async ({ writeAudio, expected }) => {
+      const paths = setup();
+      await materializeProject(paths.projectDir);
+      let receivedAudioPath: string | null | undefined;
+      const dependencies = deps({
+        plan: async (...args) => {
+          const plan = await fakePlan(...args);
+          if (writeAudio) await writeFile(join(plan.planDir, 'audio.aac'), 'narration');
+          return plan;
+        },
+        assemble: async (planDir, paths, audio, outputPath) => {
+          receivedAudioPath = audio;
+          await writeFile(
+            outputPath,
+            (await Promise.all(paths.map((path) => readFile(path)))).join(''),
+          );
+          return { outputPath, durationMs: 1, framesEncoded: 90, fileSize: 1 };
+        },
+      });
+      await executeRenderChunks(
+        { ...paths, options, chunkCount: 3, maxParallelChunks: 2 },
+        dependencies,
+      );
+      expect(receivedAudioPath).toBe(expected(paths.planDir));
+    },
+  );
+
   it('does not reuse a plan created for a different requested fan-out', async () => {
     const paths = setup();
     await materializeProject(paths.projectDir);
