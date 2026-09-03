@@ -37,6 +37,42 @@ function slideScene(
   } as unknown as Scene;
 }
 
+const TTS_ENV_PREFIXES = [
+  'TTS_OPENAI',
+  'TTS_AZURE',
+  'TTS_GLM',
+  'TTS_QWEN',
+  'TTS_VOXCPM',
+  'TTS_DOUBAO',
+  'TTS_ELEVENLABS',
+  'TTS_MINIMAX',
+  'TTS_LEMONADE',
+  'TTS_BROWSER_NATIVE',
+];
+
+function stubOnlyLemonadeTTS(models?: string) {
+  for (const prefix of TTS_ENV_PREFIXES) {
+    vi.stubEnv(`${prefix}_API_KEY`, '');
+    vi.stubEnv(`${prefix}_BASE_URL`, '');
+    vi.stubEnv(`${prefix}_MODELS`, '');
+    vi.stubEnv(`${prefix}_ENABLED`, '');
+  }
+  vi.stubEnv('TTS_LEMONADE_BASE_URL', 'http://tts.local/v1');
+  if (models !== undefined) vi.stubEnv('TTS_LEMONADE_MODELS', models);
+}
+
+function ttsScene() {
+  return {
+    id: 'scene_1',
+    stageId: 'stage_1',
+    type: 'slide',
+    title: 'Scene',
+    order: 1,
+    content: { type: 'slide' },
+    actions: [{ id: 'speech_1', type: 'speech', text: 'Hello class' }],
+  } as unknown as Scene;
+}
+
 describe('classroom media placeholder replacement', () => {
   test('preserves direct video src when mediaRef is also present', () => {
     const scene = slideScene([
@@ -97,6 +133,53 @@ describe('classroom media placeholder replacement', () => {
       canvas: { elements: Array<{ src?: string }> };
     };
     expect(content.canvas.elements[0].src).toBe('gen_img_preview123');
+  });
+});
+
+describe('generateTTSForClassroom model resolution', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  test('uses the server-pinned TTS model when TTS_<PREFIX>_MODELS is set', async () => {
+    stubOnlyLemonadeTTS('kokoro');
+    vi.resetModules();
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'audio/wav' },
+      arrayBuffer: async () => new ArrayBuffer(8),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-pinned', 'http://localhost');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.model).toBe('kokoro');
+  });
+
+  test('falls back to the catalog TTS model when the server pins no models', async () => {
+    stubOnlyLemonadeTTS();
+    vi.resetModules();
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'audio/wav' },
+      arrayBuffer: async () => new ArrayBuffer(8),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-fallback', 'http://localhost');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.model).toBe('kokoro-v1');
   });
 });
 
