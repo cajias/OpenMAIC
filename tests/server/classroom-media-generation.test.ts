@@ -37,6 +37,35 @@ function slideScene(
   } as unknown as Scene;
 }
 
+function clearTtsEnv() {
+  for (const key of Object.keys(process.env).filter((key) => key.startsWith('TTS_'))) {
+    vi.stubEnv(key, '');
+  }
+}
+
+function stubOnlyLemonadeTTS(models?: string) {
+  clearTtsEnv();
+  vi.stubEnv('TTS_LEMONADE_BASE_URL', 'http://tts.local/v1');
+  if (models !== undefined) vi.stubEnv('TTS_LEMONADE_MODELS', models);
+}
+
+function stubOnlyQwenTTS() {
+  clearTtsEnv();
+  vi.stubEnv('TTS_QWEN_API_KEY', 'sk-qwen');
+}
+
+function ttsScene() {
+  return {
+    id: 'scene_1',
+    stageId: 'stage_1',
+    type: 'slide',
+    title: 'Scene',
+    order: 1,
+    content: { type: 'slide' },
+    actions: [{ id: 'speech_1', type: 'speech', text: 'Hello class' }],
+  } as unknown as Scene;
+}
+
 describe('classroom media placeholder replacement', () => {
   test('preserves direct video src when mediaRef is also present', () => {
     const scene = slideScene([
@@ -97,6 +126,91 @@ describe('classroom media placeholder replacement', () => {
       canvas: { elements: Array<{ src?: string }> };
     };
     expect(content.canvas.elements[0].src).toBe('gen_img_preview123');
+  });
+});
+
+describe('generateTTSForClassroom model resolution', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.doUnmock('@/lib/server/provider-config');
+    vi.doUnmock('@/lib/audio/tts-providers');
+    vi.restoreAllMocks();
+    vi.resetModules();
+  });
+
+  test('uses the server-pinned TTS model when TTS_<PREFIX>_MODELS is set', async () => {
+    stubOnlyLemonadeTTS('kokoro');
+    vi.resetModules();
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'audio/wav' },
+      arrayBuffer: async () => new ArrayBuffer(8),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-pinned', 'http://localhost');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.model).toBe('kokoro');
+  });
+
+  test('falls back to the catalog TTS model when the server pins no models', async () => {
+    stubOnlyLemonadeTTS();
+    vi.resetModules();
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: { get: () => 'audio/wav' },
+      arrayBuffer: async () => new ArrayBuffer(8),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-fallback', 'http://localhost');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.model).toBe('kokoro-v1');
+  });
+
+  test('passes the Qwen catalog voice into TTS model resolution', async () => {
+    stubOnlyQwenTTS();
+    vi.resetModules();
+
+    const resolveTTSModel = vi.fn(() => 'qwen3-tts-flash');
+    const generateTTS = vi.fn().mockResolvedValue({
+      audio: new Uint8Array([1]),
+      format: 'wav',
+    });
+
+    vi.doMock('@/lib/server/provider-config', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@/lib/server/provider-config')>();
+      return { ...actual, resolveTTSModel };
+    });
+    vi.doMock('@/lib/audio/tts-providers', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@/lib/audio/tts-providers')>();
+      return { ...actual, generateTTS };
+    });
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-qwen', 'http://localhost');
+
+    expect(resolveTTSModel).toHaveBeenCalledWith('qwen-tts', 'qwen3-tts-flash', 'Cherry');
+    expect(generateTTS).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerId: 'qwen-tts',
+        modelId: 'qwen3-tts-flash',
+        voice: 'Cherry',
+      }),
+      'Hello class',
+    );
   });
 });
 
