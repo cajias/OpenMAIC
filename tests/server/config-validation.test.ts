@@ -55,6 +55,7 @@ function clearConfigEnv() {
   delete process.env.MODEL_ROUTES;
   delete process.env.DEFAULT_MODEL;
   delete process.env.OPENMAIC_AGENT_RUNTIME_ENABLED;
+  delete process.env.NEXT_PUBLIC_PRO_WORKBENCH_ENABLED;
   delete process.env.DATABASE_URL;
   for (const prefix of LLM_ENV_PREFIXES) {
     delete process.env[`${prefix}_API_KEY`];
@@ -62,6 +63,16 @@ function clearConfigEnv() {
     delete process.env[`${prefix}_MODELS`];
   }
   delete process.env.BEDROCK_REGION;
+}
+
+function stubValidAgentRuntimeDriverRoute() {
+  vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+  vi.stubEnv(
+    'MODEL_ROUTES',
+    JSON.stringify({
+      'maic-agent-driver': { model: 'openai:gpt-5.6-luna', api: 'openai-completions' },
+    }),
+  );
 }
 
 describe('validateServerConfig — warning matrix', () => {
@@ -235,6 +246,7 @@ describe('validateServerConfig — warning matrix', () => {
   describe('agent runtime configuration', () => {
     it('warns when the runtime flag is set without DATABASE_URL', async () => {
       vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      stubValidAgentRuntimeDriverRoute();
       const { validateServerConfig } = await import('@/lib/server/config-validation');
       validateServerConfig();
       expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -246,6 +258,7 @@ describe('validateServerConfig — warning matrix', () => {
     it('warns when the runtime flag is set and DATABASE_URL is blank', async () => {
       vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
       vi.stubEnv('DATABASE_URL', '   ');
+      stubValidAgentRuntimeDriverRoute();
       const { validateServerConfig } = await import('@/lib/server/config-validation');
       validateServerConfig();
       expect(warnSpy).toHaveBeenCalledTimes(1);
@@ -255,9 +268,137 @@ describe('validateServerConfig — warning matrix', () => {
     it('does not warn when the runtime flag is set with DATABASE_URL present', async () => {
       vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
       vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      stubValidAgentRuntimeDriverRoute();
       const { validateServerConfig } = await import('@/lib/server/config-validation');
       validateServerConfig();
       expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('warns when Pro Workbench is built on but the runtime flag is off', async () => {
+      vi.stubEnv('NEXT_PUBLIC_PRO_WORKBENCH_ENABLED', 'true');
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = String(warnSpy.mock.calls[0][0]);
+      expect(message).toContain('NEXT_PUBLIC_PRO_WORKBENCH_ENABLED');
+      expect(message).toContain('OPENMAIC_AGENT_RUNTIME_ENABLED');
+    });
+
+    it('warns when the runtime is enabled without the dedicated driver route', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('must explicitly configure');
+    });
+
+    it('warns when the dedicated driver route omits api/dialect', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({ 'maic-agent-driver': { model: 'openai:gpt-5.6-luna' } }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('unsupported pi api/dialect undefined');
+    });
+
+    it('warns when the dedicated driver route uses an unsupported api/dialect', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'openai:gpt-5.6-luna', api: 'anthropic-messages' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('unsupported pi api/dialect');
+    });
+
+    it('warns when the dedicated driver route uses a bare model id', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'gpt-5.6-luna', api: 'openai-completions' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('explicit provider prefix');
+    });
+
+    it('emits the generic deprecation warning for a bare driver route when the runtime is off', async () => {
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'gpt-5.6-luna', api: 'openai-completions' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain(BARE_MODEL_ID_DEPRECATION_MSG);
+    });
+
+    it('warns when the dedicated driver route uses an unknown provider prefix', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'opnai:gpt-5.6-luna', api: 'openai-completions' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('Unknown provider');
+    });
+
+    it('warns when the dedicated driver route provider has no API key configured', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'openai:gpt-5.6-luna', api: 'openai-completions' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('has no API key configured');
+    });
+
+    it('warns when the dedicated driver route sets thinking.effort', async () => {
+      vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
+      vi.stubEnv('DATABASE_URL', 'postgres://runtime');
+      vi.stubEnv('OPENAI_API_KEY', 'sk-test');
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': {
+            model: 'openai:gpt-5.6-luna',
+            api: 'openai-completions',
+            thinking: { effort: 'medium' },
+          },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('must not set thinking.effort');
     });
 
     it('does not warn when the runtime flag is off even without DATABASE_URL', async () => {
