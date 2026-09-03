@@ -308,6 +308,7 @@ export async function generateTTSForClassroom(
               resolveTTSModel(
                 providerId,
                 DEFAULT_TTS_MODELS[providerId as keyof typeof DEFAULT_TTS_MODELS],
+                voice,
               ) || '',
             apiKey,
             baseUrl: ttsBaseUrl,

@@ -47,18 +47,27 @@ const TTS_ENV_PREFIXES = [
   'TTS_ELEVENLABS',
   'TTS_MINIMAX',
   'TTS_LEMONADE',
-  'TTS_BROWSER_NATIVE',
 ];
 
-function stubOnlyLemonadeTTS(models?: string) {
+function clearTtsEnv() {
   for (const prefix of TTS_ENV_PREFIXES) {
     vi.stubEnv(`${prefix}_API_KEY`, '');
     vi.stubEnv(`${prefix}_BASE_URL`, '');
     vi.stubEnv(`${prefix}_MODELS`, '');
     vi.stubEnv(`${prefix}_ENABLED`, '');
   }
+  vi.stubEnv('TTS_QWEN_VOICE_CLONE_MODEL', '');
+}
+
+function stubOnlyLemonadeTTS(models?: string) {
+  clearTtsEnv();
   vi.stubEnv('TTS_LEMONADE_BASE_URL', 'http://tts.local/v1');
   if (models !== undefined) vi.stubEnv('TTS_LEMONADE_MODELS', models);
+}
+
+function stubOnlyQwenTTS() {
+  clearTtsEnv();
+  vi.stubEnv('TTS_QWEN_API_KEY', 'sk-qwen');
 }
 
 function ttsScene() {
@@ -140,6 +149,10 @@ describe('generateTTSForClassroom model resolution', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    vi.doUnmock('@/lib/server/provider-config');
+    vi.doUnmock('@/lib/audio/tts-providers');
+    vi.restoreAllMocks();
+    vi.resetModules();
   });
 
   test('uses the server-pinned TTS model when TTS_<PREFIX>_MODELS is set', async () => {
@@ -180,6 +193,40 @@ describe('generateTTSForClassroom model resolution', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.model).toBe('kokoro-v1');
+  });
+
+  test('passes the Qwen catalog voice into TTS model resolution', async () => {
+    stubOnlyQwenTTS();
+    vi.resetModules();
+
+    const resolveTTSModel = vi.fn(() => 'qwen3-tts-flash');
+    const generateTTS = vi.fn().mockResolvedValue({
+      audio: new Uint8Array([1]),
+      format: 'wav',
+    });
+
+    vi.doMock('@/lib/server/provider-config', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@/lib/server/provider-config')>();
+      return { ...actual, resolveTTSModel };
+    });
+    vi.doMock('@/lib/audio/tts-providers', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@/lib/audio/tts-providers')>();
+      return { ...actual, generateTTS };
+    });
+
+    const { generateTTSForClassroom } = await import('@/lib/server/classroom-media-generation');
+
+    await generateTTSForClassroom([ttsScene()], 'cls-tts-qwen', 'http://localhost');
+
+    expect(resolveTTSModel).toHaveBeenCalledWith('qwen-tts', 'qwen3-tts-flash', 'Cherry');
+    expect(generateTTS).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerId: 'qwen-tts',
+        modelId: 'qwen3-tts-flash',
+        voice: 'Cherry',
+      }),
+      'Hello class',
+    );
   });
 });
 
