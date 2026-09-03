@@ -69,10 +69,15 @@ function routeModel(value: unknown): string | undefined {
  * only key that can be used — from unrouted sites like DEFAULT_MODEL, where a
  * client-supplied key still works and a missing server key is only a note.
  */
-function checkModelString(model: string, where: string, routed: boolean): void {
+function checkModelString(
+  model: string,
+  where: string,
+  routed: boolean,
+  quietBareId = false,
+): void {
   const colonIndex = model.indexOf(':');
   if (colonIndex <= 0) {
-    warnBareModelIdDeprecation(model, where);
+    if (!quietBareId) warnBareModelIdDeprecation(model, where);
     return;
   }
   const providerId = model.slice(0, colonIndex);
@@ -121,12 +126,11 @@ function validateModelRoutes(): void {
     }
     const model = routeModel(value);
     if (!model) continue; // no model string; model-routes warns about bad values at request time
-    // When the runtime is enabled, validateAgentRuntime validates the driver
-    // route contract in full; the generic checker has nothing useful to add.
-    if (key === AGENT_DRIVER_STAGE && isAgentRuntimeEnabled()) {
-      continue;
-    }
-    checkModelString(model, `MODEL_ROUTES stage "${key}"`, true);
+    // A bare driver-route model id is already reported by validateAgentRuntime
+    // via assertAgentDriverRouteConfig; suppress only that duplicate while
+    // keeping the provider registration and API-key checks below.
+    const quietBareId = key === AGENT_DRIVER_STAGE && isAgentRuntimeEnabled();
+    checkModelString(model, `MODEL_ROUTES stage "${key}"`, true, quietBareId);
   }
 }
 
