@@ -1600,6 +1600,7 @@ function getCompatThinkingBodyParams(
   providerId: ProviderId,
   modelId: string,
   config: ThinkingConfig,
+  modelInfo?: ModelInfo,
 ): Record<string, unknown> | undefined {
   // This model is served through an OpenAI-compatible gateway even when the
   // deployment uses the `openai` provider slot. The gateway's chat template
@@ -1612,7 +1613,8 @@ function getCompatThinkingBodyParams(
       : { chat_template_kwargs: { thinking: mode === 'enabled' } };
   }
 
-  const capability = getCatalogThinkingCapability(providerId, modelId);
+  const capability =
+    modelInfo?.capabilities?.thinking ?? getCatalogThinkingCapability(providerId, modelId);
   if (!capability || capability.control === 'none') return undefined;
 
   const mode = getThinkingMode(config);
@@ -2108,7 +2110,12 @@ export function getModel(config: ModelConfig): ModelWithInfo {
               ? getDefaultThinkingConfig(getCatalogThinkingCapability(providerId, config.modelId))
               : undefined);
           if (thinking && init?.body && typeof init.body === 'string') {
-            const extra = getCompatThinkingBodyParams(providerId, config.modelId, thinking);
+            const extra = getCompatThinkingBodyParams(
+              providerId,
+              config.modelId,
+              thinking,
+              config.modelInfo,
+            );
             if (extra) {
               try {
                 const body = JSON.parse(init.body);
@@ -2312,7 +2319,20 @@ export function getModel(config: ModelConfig): ModelWithInfo {
   }
 
   // Look up model info from the provider registry
-  const modelInfo = findModelById(config.providerId, provider?.models, config.modelId) ?? null;
+  const catalogModelInfo = findModelById(config.providerId, provider?.models, config.modelId);
+  const modelInfo = config.modelInfo
+    ? catalogModelInfo
+      ? {
+          ...catalogModelInfo,
+          capabilities: {
+            ...catalogModelInfo.capabilities,
+            ...config.modelInfo.capabilities,
+            thinking:
+              config.modelInfo.capabilities?.thinking ?? catalogModelInfo.capabilities?.thinking,
+          },
+        }
+      : config.modelInfo
+    : (catalogModelInfo ?? null);
 
   return { model, modelInfo };
 }

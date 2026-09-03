@@ -144,6 +144,17 @@ You can also configure providers via `server-providers.yml`:
 providers:
   openai:
     apiKey: sk-...
+    # Gateway-only model metadata can declare capabilities unavailable in
+    # the static catalog.
+    models:
+      - gpt-5.5
+      - id: claude-sonnet-5
+        vision: true
+        thinking:
+          control: effort
+          requestAdapter: openai
+          effortValues: [low, medium, high]
+          defaultEffort: medium
   azure:
     apiKey: ...
     baseUrl: https://YOUR-RESOURCE.openai.azure.com/openai

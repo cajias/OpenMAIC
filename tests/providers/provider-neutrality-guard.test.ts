@@ -164,7 +164,7 @@ function groupedDebt(
 const TEMPORARY_VENDOR_DEBT: readonly AllowedVendorDebt[] = [
   ...groupedDebt(
     'lib/server/provider-config.ts',
-    'Temporary: provider configuration is still a mixed catalog and resolver composition root.',
+    'Temporary: provider configuration is still a mixed catalog and resolver composition root; the Bedrock count includes three repeated BEDROCK_PROVIDER_ID references in its existing composition block.',
     [
       ['qwen', 20],
       ['openai', 23],
@@ -185,7 +185,7 @@ const TEMPORARY_VENDOR_DEBT: readonly AllowedVendorDebt[] = [
       ['xiaomi', 3],
       ['ollama', 3],
       ['lemonade', 12],
-      ['bedrock', 29],
+      ['bedrock', 32],
       ['voxcpm', 3],
       ['elevenlabs', 2],
       ['whisper', 1],

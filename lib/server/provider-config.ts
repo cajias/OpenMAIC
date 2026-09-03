@@ -15,6 +15,11 @@ import {
   isQwenVoiceCloneModel,
   TTS_PROVIDERS,
 } from '@/lib/audio/constants';
+import type { ModelInfo } from '@/lib/types/provider';
+import {
+  type DeclaredModelCapabilities,
+  parseModelCapabilities,
+} from './provider-capability-schema';
 
 const log = createLogger('ServerProviderConfig');
 
@@ -26,6 +31,7 @@ interface ServerProviderEntry {
   apiKey: string;
   baseUrl?: string;
   models?: string[];
+  modelCapabilities?: DeclaredModelCapabilities[];
   proxy?: string;
   /** Aliyun AccessKey ID (AliDocMind — uses AK/SK instead of a single apiKey). */
   accessKeyId?: string;
@@ -38,6 +44,10 @@ interface ServerProviderEntry {
    */
   enabled?: boolean;
 }
+
+type YamlProviderEntry = Omit<Partial<ServerProviderEntry>, 'models' | 'modelCapabilities'> & {
+  models?: unknown;
+};
 
 interface ServerConfig {
   providers: Record<string, ServerProviderEntry>;
@@ -195,7 +205,7 @@ const YAML_SECTION_KEY: Record<CapabilitySection, keyof YamlData> = {
 // ---------------------------------------------------------------------------
 
 type YamlData = Partial<{
-  providers: Record<string, Partial<ServerProviderEntry>>;
+  providers: Record<string, YamlProviderEntry>;
   tts: Record<string, Partial<ServerProviderEntry>>;
   asr: Record<string, Partial<ServerProviderEntry>>;
   pdf: Record<string, Partial<ServerProviderEntry>>;
@@ -222,6 +232,10 @@ function loadYamlFile(filename: string): YamlData {
 // Env-var helpers
 // ---------------------------------------------------------------------------
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 /**
  * Normalize a configured model list the same way the env-var path does:
  * trim whitespace and drop empty entries. The YAML path stores model arrays
@@ -229,22 +243,67 @@ function loadYamlFile(filename: string): YamlData {
  * truthy pin (its first entry, an empty string). Returns undefined when
  * nothing survives normalization ("no models configured").
  */
-function normalizeModelList(models: string[] | undefined): string[] | undefined {
-  const parsed = models?.map((model) => model.trim()).filter(Boolean);
+function normalizeModelList(models: unknown, allowCapabilities = false): string[] | undefined {
+  if (!Array.isArray(models)) return undefined;
+  const parsed = models
+    .flatMap((model) => {
+      if (typeof model === 'string') return model.trim();
+      if (!allowCapabilities) return [];
+      return isRecord(model) && typeof model.id === 'string' ? model.id.trim() : [];
+    })
+    .filter(Boolean);
   return parsed && parsed.length > 0 ? parsed : undefined;
+}
+
+function getModelCapabilities(
+  models: unknown,
+  providerId: string,
+): DeclaredModelCapabilities[] | undefined {
+  if (!Array.isArray(models)) return undefined;
+  const parsed = models.flatMap((model) => {
+    if (typeof model === 'string') return [];
+    const result = parseModelCapabilities(model);
+    if (result.success) {
+      return 'vision' in result.data || result.data.thinking !== undefined ? result.data : [];
+    }
+    log.warn(
+      `[config] providers.${providerId}.models contains an invalid capability declaration; ignoring it: ${result.error.issues.map((issue) => issue.message).join(', ')}`,
+    );
+    return [];
+  });
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function retainModelCapabilities(
+  providerId: string,
+  capabilities: DeclaredModelCapabilities[] | undefined,
+  models: string[] | undefined,
+): DeclaredModelCapabilities[] | undefined {
+  if (!capabilities || !models) return capabilities;
+  const allowed = new Set(models);
+  const retained = capabilities.filter((model) => allowed.has(model.id));
+  const discarded = capabilities.filter((model) => !allowed.has(model.id));
+  if (discarded.length > 0) {
+    log.warn(
+      `[config] ${providerId} model capability declarations discarded because they are absent from the environment model allowlist: ${discarded.map((model) => model.id).join(', ')}`,
+    );
+  }
+  return retained.length > 0 ? retained : undefined;
 }
 
 function loadEnvSection(
   envMap: Record<string, string>,
-  yamlSection: Record<string, Partial<ServerProviderEntry>> | undefined,
+  yamlSection: Record<string, YamlProviderEntry> | undefined,
   {
     requiresBaseUrl = false,
     keylessProviders = new Set<string>(),
     baseUrlOptionalProviders = new Set<string>(),
+    allowModelCapabilities = false,
   }: {
     requiresBaseUrl?: boolean;
     keylessProviders?: Set<string>;
     baseUrlOptionalProviders?: Set<string>;
+    allowModelCapabilities?: boolean;
   } = {},
 ): Record<string, ServerProviderEntry> {
   const result: Record<string, ServerProviderEntry> = {};
@@ -262,7 +321,10 @@ function loadEnvSection(
         result[id] = {
           apiKey: entry.apiKey || '',
           baseUrl: entry.baseUrl,
-          models: normalizeModelList(entry.models),
+          models: normalizeModelList(entry.models, allowModelCapabilities),
+          modelCapabilities: allowModelCapabilities
+            ? getModelCapabilities(entry.models, id)
+            : undefined,
           proxy: entry.proxy,
         };
       }
@@ -274,18 +336,20 @@ function loadEnvSection(
     const envApiKey = process.env[`${prefix}_API_KEY`] || undefined;
     const envBaseUrl = process.env[`${prefix}_BASE_URL`] || undefined;
     const envModelsStr = process.env[`${prefix}_MODELS`];
-    const envModels = envModelsStr
-      ? envModelsStr
-          .split(',')
-          .map((m) => m.trim())
-          .filter(Boolean)
-      : undefined;
+    const envModels = normalizeModelList(envModelsStr?.split(','));
 
     if (result[providerId]) {
       // YAML entry exists — env vars override individual fields
       if (envApiKey) result[providerId].apiKey = envApiKey;
       if (envBaseUrl) result[providerId].baseUrl = envBaseUrl;
-      if (envModels) result[providerId].models = envModels;
+      if (envModels) {
+        result[providerId].models = envModels;
+        result[providerId].modelCapabilities = retainModelCapabilities(
+          providerId,
+          result[providerId].modelCapabilities,
+          envModels,
+        );
+      }
       continue;
     }
 
@@ -455,18 +519,18 @@ function applyOpenAIImageFallback(
 }
 
 function splitModels(models: string | undefined): string[] | undefined {
-  const parsed = models
-    ?.split(',')
-    .map((model) => model.trim())
-    .filter(Boolean);
-  return parsed && parsed.length > 0 ? parsed : undefined;
+  return normalizeModelList(models?.split(','));
 }
 
 function applyBedrockProviderConfig(
   providers: Record<string, ServerProviderEntry>,
-  yamlProviders: Record<string, Partial<ServerProviderEntry>> | undefined,
+  yamlProviders: Record<string, YamlProviderEntry> | undefined,
 ): Record<string, ServerProviderEntry> {
   const yamlBedrock = yamlProviders?.[BEDROCK_PROVIDER_ID];
+  const yamlModels = yamlBedrock?.models;
+  const yamlCapabilities =
+    providers[BEDROCK_PROVIDER_ID]?.modelCapabilities ??
+    getModelCapabilities(yamlModels, BEDROCK_PROVIDER_ID);
   const envApiKey = process.env.BEDROCK_API_KEY || undefined;
   const envBaseUrl = process.env.BEDROCK_BASE_URL || undefined;
   const envRegion = process.env.BEDROCK_REGION?.trim() || undefined;
@@ -489,7 +553,8 @@ function applyBedrockProviderConfig(
   providers[BEDROCK_PROVIDER_ID] = {
     apiKey: envApiKey || yamlBedrock?.apiKey || providers[BEDROCK_PROVIDER_ID]?.apiKey || '',
     baseUrl: envBaseUrl || yamlBedrock?.baseUrl || providers[BEDROCK_PROVIDER_ID]?.baseUrl,
-    models: envModels || yamlBedrock?.models || providers[BEDROCK_PROVIDER_ID]?.models,
+    models: envModels || normalizeModelList(yamlModels) || providers[BEDROCK_PROVIDER_ID]?.models,
+    modelCapabilities: retainModelCapabilities(BEDROCK_PROVIDER_ID, yamlCapabilities, envModels),
     proxy: yamlBedrock?.proxy || providers[BEDROCK_PROVIDER_ID]?.proxy,
   };
 
@@ -506,6 +571,7 @@ function buildConfig(yamlData: YamlData): ServerConfig {
   const providers = applyBedrockProviderConfig(
     loadEnvSection(LLM_ENV_MAP, yamlData.providers, {
       keylessProviders: new Set(['ollama', 'lemonade', BEDROCK_PROVIDER_ID]),
+      allowModelCapabilities: true,
     }),
     yamlData.providers,
   );
@@ -637,6 +703,22 @@ export function getServerProviders(): Record<string, { models?: string[] }> {
     if (entry.models && entry.models.length > 0) result[id].models = entry.models;
   }
   return result;
+}
+
+/** Return operator-declared metadata for a server-pinned model, if any. */
+export function getServerModelInfo(providerId: string, modelId: string): ModelInfo | undefined {
+  const model = getConfig().providers[providerId]?.modelCapabilities?.find(
+    (entry) => entry.id === modelId,
+  );
+  if (!model || (!('vision' in model) && !model.thinking)) return undefined;
+  return {
+    id: model.id,
+    name: model.id,
+    capabilities: {
+      ...('vision' in model ? { vision: model.vision } : {}),
+      ...(model.thinking ? { thinking: model.thinking } : {}),
+    },
+  };
 }
 
 /** Resolve API key. Managed provider ⇒ server key; otherwise client key. */

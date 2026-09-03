@@ -13,6 +13,7 @@ import {
   resolveApiKey,
   resolveBaseUrl,
   resolveProxy,
+  getServerModelInfo,
 } from '@/lib/server/provider-config';
 import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
 import { getStageRoute, type LlmStage } from '@/lib/server/model-routes';
@@ -118,6 +119,7 @@ export async function resolveModel(params: {
     baseUrl,
     proxy,
     providerType: clientProviderType as ProviderType | undefined,
+    modelInfo: getServerModelInfo(providerId, modelId),
   });
 
   // Thinking arbitration mirrors model routing — the route carries a full
