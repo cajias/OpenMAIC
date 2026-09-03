@@ -338,6 +338,19 @@ describe('validateServerConfig — warning matrix', () => {
       expect(String(warnSpy.mock.calls[0][0])).toContain('explicit provider prefix');
     });
 
+    it('emits the generic deprecation warning for a bare driver route when the runtime is off', async () => {
+      vi.stubEnv(
+        'MODEL_ROUTES',
+        JSON.stringify({
+          'maic-agent-driver': { model: 'gpt-5.6-luna', api: 'openai-completions' },
+        }),
+      );
+      const { validateServerConfig } = await import('@/lib/server/config-validation');
+      validateServerConfig();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain(BARE_MODEL_ID_DEPRECATION_MSG);
+    });
+
     it('warns when the dedicated driver route sets thinking.effort', async () => {
       vi.stubEnv('OPENMAIC_AGENT_RUNTIME_ENABLED', 'true');
       vi.stubEnv('DATABASE_URL', 'postgres://runtime');
