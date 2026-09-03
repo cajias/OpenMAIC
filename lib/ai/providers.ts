@@ -2319,8 +2319,20 @@ export function getModel(config: ModelConfig): ModelWithInfo {
   }
 
   // Look up model info from the provider registry
-  const modelInfo =
-    config.modelInfo ?? findModelById(config.providerId, provider?.models, config.modelId) ?? null;
+  const catalogModelInfo = findModelById(config.providerId, provider?.models, config.modelId);
+  const modelInfo = config.modelInfo
+    ? catalogModelInfo
+      ? {
+          ...catalogModelInfo,
+          capabilities: {
+            ...catalogModelInfo.capabilities,
+            ...config.modelInfo.capabilities,
+            thinking:
+              config.modelInfo.capabilities?.thinking ?? catalogModelInfo.capabilities?.thinking,
+          },
+        }
+      : config.modelInfo
+    : (catalogModelInfo ?? null);
 
   return { model, modelInfo };
 }

@@ -279,6 +279,50 @@ providers:
       });
     });
 
+    it('retains YAML declarations whose IDs remain in an environment allowlist', async () => {
+      yamlOverride = `
+providers:
+  openai:
+    apiKey: gateway-key
+    models:
+      - id: claude-sonnet-5
+        vision: true
+      - id: omitted-model
+        vision: true
+`;
+      vi.stubEnv('OPENAI_MODELS', 'claude-sonnet-5,qwen3-next-80b');
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { getServerModelInfo, getServerProviders } =
+        await import('@/lib/server/provider-config');
+
+      expect(getServerProviders().openai.models).toEqual(['claude-sonnet-5', 'qwen3-next-80b']);
+      expect(getServerModelInfo('openai', 'claude-sonnet-5')).toMatchObject({
+        capabilities: { vision: true },
+      });
+      expect(getServerModelInfo('openai', 'omitted-model')).toBeUndefined();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('omitted-model'));
+    });
+
+    it('warns and drops malformed YAML capability declarations', async () => {
+      yamlOverride = `
+providers:
+  openai:
+    apiKey: gateway-key
+    models:
+      - id: broken-model
+        thinking:
+          control: efort
+          requestAdapter: openai
+`;
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { getServerModelInfo, getServerProviders } =
+        await import('@/lib/server/provider-config');
+
+      expect(getServerProviders().openai.models).toBeUndefined();
+      expect(getServerModelInfo('openai', 'broken-model')).toBeUndefined();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('invalid capability declaration'));
+    });
+
     it('lists multiple providers', async () => {
       vi.stubEnv('OPENAI_API_KEY', 'sk-openai');
       vi.stubEnv('ANTHROPIC_API_KEY', 'sk-anthropic');
@@ -397,6 +441,22 @@ providers:
         'us.anthropic.claude-sonnet-5',
         'us.anthropic.claude-opus-4-8',
       ]);
+    });
+
+    it('retains Bedrock declarations whose IDs remain in an environment allowlist', async () => {
+      yamlOverride = `
+providers:
+  bedrock:
+    models:
+      - id: us.anthropic.claude-sonnet-5
+        vision: true
+`;
+      vi.stubEnv('BEDROCK_MODELS', 'us.anthropic.claude-sonnet-5');
+      const { getServerModelInfo } = await import('@/lib/server/provider-config');
+
+      expect(getServerModelInfo('bedrock', 'us.anthropic.claude-sonnet-5')).toMatchObject({
+        capabilities: { vision: true },
+      });
     });
   });
 

@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
+import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
 import {
   DEFAULT_QWEN_TTS_VOICE_CLONE_MODEL,
@@ -48,8 +49,93 @@ interface ServerProviderEntry {
 }
 
 type YamlProviderEntry = Omit<Partial<ServerProviderEntry>, 'models' | 'modelCapabilities'> & {
-  models?: Array<string | ServerModel>;
+  models?: unknown;
 };
+
+const thinkingCapabilitySchema = z
+  .object({
+    control: z
+      .enum(['none', 'toggle', 'toggle-budget', 'effort', 'level', 'mode', 'budget-only'])
+      .optional(),
+    requestAdapter: z
+      .enum([
+        'none',
+        'openai',
+        'anthropic',
+        'google',
+        'qwen',
+        'deepseek',
+        'kimi',
+        'glm',
+        'siliconflow',
+        'doubao',
+        'openrouter',
+        'hunyuan',
+        'xiaomi',
+        'lemonade',
+      ])
+      .optional(),
+    defaultMode: z.enum(['default', 'disabled', 'enabled', 'auto']).optional(),
+    effortValues: z
+      .array(z.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']))
+      .optional(),
+    defaultEffort: z.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']).optional(),
+    levelValues: z.array(z.enum(['minimal', 'low', 'medium', 'high'])).optional(),
+    defaultLevel: z.enum(['minimal', 'low', 'medium', 'high']).optional(),
+    budgetRange: z
+      .object({
+        min: z.number(),
+        max: z.number(),
+        step: z.number().optional(),
+        allowDynamic: z.boolean().optional(),
+        disableValue: z.number().optional(),
+      })
+      .optional(),
+    defaultBudgetTokens: z.number().optional(),
+    anthropicThinking: z
+      .object({
+        type: z.enum(['adaptive', 'enabled']),
+        budgetByEffort: z
+          .partialRecord(
+            z.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']),
+            z.number(),
+          )
+          .optional(),
+      })
+      .optional(),
+    toggleable: z.boolean().optional(),
+    budgetAdjustable: z.boolean().optional(),
+    defaultEnabled: z.boolean().optional(),
+  })
+  .strict()
+  .refine((capability) => Object.keys(capability).length > 0, {
+    message: 'thinking must declare at least one capability field',
+  })
+  .superRefine((capability, ctx) => {
+    if (capability.defaultEffort && !capability.effortValues?.includes(capability.defaultEffort)) {
+      ctx.addIssue({ code: 'custom', message: 'defaultEffort must be in effortValues' });
+    }
+    if (capability.defaultLevel && !capability.levelValues?.includes(capability.defaultLevel)) {
+      ctx.addIssue({ code: 'custom', message: 'defaultLevel must be in levelValues' });
+    }
+    if (
+      capability.budgetRange &&
+      (capability.budgetRange.min > capability.budgetRange.max ||
+        (capability.defaultBudgetTokens !== undefined &&
+          (capability.defaultBudgetTokens < capability.budgetRange.min ||
+            capability.defaultBudgetTokens > capability.budgetRange.max)))
+    ) {
+      ctx.addIssue({ code: 'custom', message: 'budget values must be within budgetRange' });
+    }
+  });
+
+const serverModelSchema = z
+  .object({
+    id: z.string().trim().min(1),
+    vision: z.boolean().optional(),
+    thinking: thinkingCapabilitySchema.optional(),
+  })
+  .strict();
 
 interface ServerConfig {
   providers: Record<string, ServerProviderEntry>;
@@ -241,21 +327,48 @@ function loadYamlFile(filename: string): YamlData {
  * truthy pin (its first entry, an empty string). Returns undefined when
  * nothing survives normalization ("no models configured").
  */
-function normalizeModelList(models: Array<string | ServerModel> | undefined): string[] | undefined {
+function normalizeModelList(models: unknown, allowCapabilities = false): string[] | undefined {
+  if (!Array.isArray(models)) return undefined;
   const parsed = models
-    ?.map((model) => (typeof model === 'string' ? model : model.id).trim())
+    .flatMap((model) => {
+      if (typeof model === 'string') return model.trim();
+      if (!allowCapabilities) return [];
+      const parsed = serverModelSchema.safeParse(model);
+      return parsed.success ? parsed.data.id : [];
+    })
     .filter(Boolean);
   return parsed && parsed.length > 0 ? parsed : undefined;
 }
 
-function getModelCapabilities(
-  models: Array<string | ServerModel> | undefined,
-): ServerModel[] | undefined {
-  const parsed = models
-    ?.filter((model): model is ServerModel => typeof model !== 'string')
-    .map((model) => ({ ...model, id: model.id?.trim() }))
-    .filter((model): model is ServerModel => Boolean(model.id));
+function getModelCapabilities(models: unknown, providerId: string): ServerModel[] | undefined {
+  if (!Array.isArray(models)) return undefined;
+  const parsed = models.flatMap((model) => {
+    if (typeof model === 'string') return [];
+    const result = serverModelSchema.safeParse(model);
+    if (result.success) return result.data.vision || result.data.thinking ? result.data : [];
+    log.warn(
+      `[config] providers.${providerId}.models contains an invalid capability declaration; ignoring it: ${result.error.issues.map((issue) => issue.message).join(', ')}`,
+    );
+    return [];
+  });
   return parsed && parsed.length > 0 ? parsed : undefined;
+}
+
+function retainModelCapabilities(
+  providerId: string,
+  capabilities: ServerModel[] | undefined,
+  models: string[] | undefined,
+): ServerModel[] | undefined {
+  if (!capabilities || !models) return capabilities;
+  const allowed = new Set(models);
+  const retained = capabilities.filter((model) => allowed.has(model.id));
+  const discarded = capabilities.filter((model) => !allowed.has(model.id));
+  if (discarded.length > 0) {
+    log.warn(
+      `[config] ${providerId} model capability declarations discarded because they are absent from the environment model allowlist: ${discarded.map((model) => model.id).join(', ')}`,
+    );
+  }
+  return retained.length > 0 ? retained : undefined;
 }
 
 function loadEnvSection(
@@ -265,10 +378,12 @@ function loadEnvSection(
     requiresBaseUrl = false,
     keylessProviders = new Set<string>(),
     baseUrlOptionalProviders = new Set<string>(),
+    allowModelCapabilities = false,
   }: {
     requiresBaseUrl?: boolean;
     keylessProviders?: Set<string>;
     baseUrlOptionalProviders?: Set<string>;
+    allowModelCapabilities?: boolean;
   } = {},
 ): Record<string, ServerProviderEntry> {
   const result: Record<string, ServerProviderEntry> = {};
@@ -286,8 +401,10 @@ function loadEnvSection(
         result[id] = {
           apiKey: entry.apiKey || '',
           baseUrl: entry.baseUrl,
-          models: normalizeModelList(entry.models),
-          modelCapabilities: getModelCapabilities(entry.models),
+          models: normalizeModelList(entry.models, allowModelCapabilities),
+          modelCapabilities: allowModelCapabilities
+            ? getModelCapabilities(entry.models, id)
+            : undefined,
           proxy: entry.proxy,
         };
       }
@@ -307,7 +424,11 @@ function loadEnvSection(
       if (envBaseUrl) result[providerId].baseUrl = envBaseUrl;
       if (envModels) {
         result[providerId].models = envModels;
-        result[providerId].modelCapabilities = undefined;
+        result[providerId].modelCapabilities = retainModelCapabilities(
+          providerId,
+          result[providerId].modelCapabilities,
+          envModels,
+        );
       }
       continue;
     }
@@ -512,10 +633,12 @@ function applyBedrockProviderConfig(
       envModels ||
       normalizeModelList(yamlBedrock?.models) ||
       providers[BEDROCK_PROVIDER_ID]?.models,
-    modelCapabilities: envModels
-      ? undefined
-      : (getModelCapabilities(yamlBedrock?.models) ??
-        providers[BEDROCK_PROVIDER_ID]?.modelCapabilities),
+    modelCapabilities: retainModelCapabilities(
+      BEDROCK_PROVIDER_ID,
+      getModelCapabilities(yamlBedrock?.models, BEDROCK_PROVIDER_ID) ??
+        providers[BEDROCK_PROVIDER_ID]?.modelCapabilities,
+      envModels,
+    ),
     proxy: yamlBedrock?.proxy || providers[BEDROCK_PROVIDER_ID]?.proxy,
   };
 
@@ -532,6 +655,7 @@ function buildConfig(yamlData: YamlData): ServerConfig {
   const providers = applyBedrockProviderConfig(
     loadEnvSection(LLM_ENV_MAP, yamlData.providers, {
       keylessProviders: new Set(['ollama', 'lemonade', BEDROCK_PROVIDER_ID]),
+      allowModelCapabilities: true,
     }),
     yamlData.providers,
   );
@@ -670,12 +794,12 @@ export function getServerModelInfo(providerId: string, modelId: string): ModelIn
   const model = getConfig().providers[providerId]?.modelCapabilities?.find(
     (entry) => entry.id === modelId,
   );
-  if (!model || (!model.vision && !model.thinking)) return undefined;
+  if (!model || (!('vision' in model) && !model.thinking)) return undefined;
   return {
     id: model.id,
     name: model.id,
     capabilities: {
-      ...(model.vision ? { vision: true } : {}),
+      ...('vision' in model ? { vision: model.vision } : {}),
       ...(model.thinking ? { thinking: model.thinking } : {}),
     },
   };

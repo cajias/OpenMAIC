@@ -165,7 +165,7 @@ describe('OpenAI provider defaults', () => {
       modelInfo,
     });
 
-    expect(resolvedInfo).toBe(modelInfo);
+    expect(resolvedInfo).toStrictEqual(modelInfo);
     await expect(
       captureInjectedRequestBody(
         'openai',
@@ -175,6 +175,32 @@ describe('OpenAI provider defaults', () => {
         modelInfo,
       ),
     ).resolves.toMatchObject({ reasoning_effort: 'high' });
+  });
+
+  it('merges operator-declared capabilities with catalog model metadata', () => {
+    const catalogModel = getModelInfo('openai', 'gpt-5.6')!;
+    const { modelInfo } = getModel({
+      providerId: 'openai',
+      modelId: 'gpt-5.6',
+      apiKey: 'sk-test',
+      modelInfo: {
+        id: 'gpt-5.6',
+        name: 'gpt-5.6',
+        capabilities: { vision: false },
+      },
+    });
+
+    expect(modelInfo).toMatchObject({
+      name: catalogModel.name,
+      contextWindow: catalogModel.contextWindow,
+      outputWindow: catalogModel.outputWindow,
+      capabilities: {
+        streaming: true,
+        tools: true,
+        vision: false,
+        thinking: catalogModel.capabilities?.thinking,
+      },
+    });
   });
 
   it('includes GPT-5.5 as a built-in OpenAI model', () => {
