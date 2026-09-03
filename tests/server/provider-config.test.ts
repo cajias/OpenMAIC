@@ -318,9 +318,27 @@ providers:
       const { getServerModelInfo, getServerProviders } =
         await import('@/lib/server/provider-config');
 
-      expect(getServerProviders().openai.models).toBeUndefined();
+      expect(getServerProviders().openai.models).toEqual(['broken-model']);
       expect(getServerModelInfo('openai', 'broken-model')).toBeUndefined();
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('invalid capability declaration'));
+    });
+
+    it('preserves an explicit YAML vision false declaration', async () => {
+      yamlOverride = `
+providers:
+  openai:
+    apiKey: gateway-key
+    models:
+      - id: gpt-5.6
+        vision: false
+`;
+      const { getServerModelInfo, getServerProviders } =
+        await import('@/lib/server/provider-config');
+
+      expect(getServerProviders().openai.models).toEqual(['gpt-5.6']);
+      expect(getServerModelInfo('openai', 'gpt-5.6')).toMatchObject({
+        capabilities: { vision: false },
+      });
     });
 
     it('lists multiple providers', async () => {

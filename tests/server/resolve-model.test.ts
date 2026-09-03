@@ -30,6 +30,7 @@ vi.mock('@/lib/server/provider-config', () => ({
   resolveApiKey: (_id: string, clientKey: string) => clientKey || 'server-key',
   resolveBaseUrl: (_id: string, clientBaseUrl?: string) => clientBaseUrl,
   resolveProxy: () => undefined,
+  getServerModelInfo: () => undefined,
 }));
 
 vi.mock('@/lib/server/ssrf-guard', () => ({

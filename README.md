@@ -147,6 +147,7 @@ providers:
     # Gateway-only model metadata can declare capabilities unavailable in
     # the static catalog.
     models:
+      - gpt-5.5
       - id: claude-sonnet-5
         vision: true
         thinking:

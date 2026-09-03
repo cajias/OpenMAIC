@@ -132,6 +132,7 @@ providers:
   openai:
     apiKey: sk-...
     models:
+      - gpt-5.5
       - id: claude-sonnet-5
         vision: true
         thinking:

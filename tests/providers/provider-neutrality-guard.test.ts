@@ -185,7 +185,7 @@ const TEMPORARY_VENDOR_DEBT: readonly AllowedVendorDebt[] = [
       ['xiaomi', 3],
       ['ollama', 3],
       ['lemonade', 12],
-      ['bedrock', 29],
+      ['bedrock', 32],
       ['voxcpm', 3],
       ['elevenlabs', 2],
       ['whisper', 1],

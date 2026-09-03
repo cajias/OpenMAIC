@@ -264,6 +264,7 @@ providers:
     apiKey: sk-...
     baseUrl: https://api.openai.com/v1
     models:
+      - gpt-5.5
       - id: claude-sonnet-5
         vision: true
         thinking:
@@ -308,4 +309,4 @@ web-search:
 
 Environment variables override matching YAML provider fields one by one. Keys must use provider IDs registered in the code, such as `openai`, `doubao-tts`, `openai-whisper`, `mineru`, `alidocmind`, `seedream`, `seedance`, `exa`, `tavily`, or `searxng`. Unknown IDs cannot register custom LLM providers here.
 
-LLM `models` entries can remain bare IDs or declare `vision` and `thinking` capabilities for models outside the static catalog. A model declaration must use supported thinking values; invalid declarations are ignored with a configuration warning. When `<PREFIX>_MODELS` is set, declarations for IDs absent from that allowlist are ignored with a configuration warning.
+LLM `models` entries can remain bare IDs or declare `vision` and `thinking` capabilities for models outside the static catalog. A declaration must use supported thinking values; an invalid declaration is ignored with a configuration warning, but its valid model ID remains pinned. When `<PREFIX>_MODELS` is set, declarations for IDs absent from that allowlist are ignored with a configuration warning.
