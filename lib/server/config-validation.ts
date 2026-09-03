@@ -16,15 +16,21 @@
  *    (pinned models on an unconfigured provider — probably a typo);
  *  - the agent runtime flag set without a `DATABASE_URL` — the runtime is
  *    enabled but unusable, so its probe reports disabled and its routes
- *    answer 404 while the runner never starts.
+ *    answer 404 while the runner never starts;
+ *  - the agent runtime flag set without a valid `maic-agent-driver` route;
+ *  - the Pro Workbench public build flag set without the server runtime flag.
  *
  * Everything here is a warning, never a throw: operators with partial config
  * still get a running app, and the warnings name exactly what is broken.
  */
 
 import { getProvider, warnBareModelIdDeprecation } from '@/lib/ai/providers';
-import { isAgentRuntimeEnabled } from '@/lib/config/feature-flags';
-import { LLM_STAGES } from '@/lib/server/model-routes';
+import { isAgentRuntimeEnabled, isProWorkbenchEnabled } from '@/lib/config/feature-flags';
+import {
+  AGENT_DRIVER_STAGE,
+  assertAgentDriverRouteConfig,
+} from '@/lib/server/agent-runtime/agent-driver-model';
+import { getStageRoute, LLM_STAGES } from '@/lib/server/model-routes';
 import {
   isServerConfiguredProvider,
   LLM_ENV_MAP,
@@ -160,11 +166,23 @@ function validateModelsEnvPins(): void {
  * starts. One boot-time warning saves the whole debugging session.
  */
 function validateAgentRuntime(): void {
-  if (!isAgentRuntimeEnabled()) return;
+  if (!isAgentRuntimeEnabled()) {
+    if (isProWorkbenchEnabled()) {
+      warn(
+        'NEXT_PUBLIC_PRO_WORKBENCH_ENABLED is set but OPENMAIC_AGENT_RUNTIME_ENABLED is not — the Workbench UI is enabled but its agent runtime API routes answer 404. Set OPENMAIC_AGENT_RUNTIME_ENABLED or disable the public flag.',
+      );
+    }
+    return;
+  }
   if (!process.env.DATABASE_URL?.trim()) {
     warn(
       'OPENMAIC_AGENT_RUNTIME_ENABLED is set but DATABASE_URL is not — the agent runtime is enabled but unusable: its probe reports disabled, its routes answer 404, and no runner starts. Set DATABASE_URL or disable the flag.',
     );
+  }
+  try {
+    assertAgentDriverRouteConfig(getStageRoute(AGENT_DRIVER_STAGE));
+  } catch (err) {
+    warn(err instanceof Error ? err.message : String(err));
   }
 }
 
