@@ -37,26 +37,10 @@ function slideScene(
   } as unknown as Scene;
 }
 
-const TTS_ENV_PREFIXES = [
-  'TTS_OPENAI',
-  'TTS_AZURE',
-  'TTS_GLM',
-  'TTS_QWEN',
-  'TTS_VOXCPM',
-  'TTS_DOUBAO',
-  'TTS_ELEVENLABS',
-  'TTS_MINIMAX',
-  'TTS_LEMONADE',
-];
-
 function clearTtsEnv() {
-  for (const prefix of TTS_ENV_PREFIXES) {
-    vi.stubEnv(`${prefix}_API_KEY`, '');
-    vi.stubEnv(`${prefix}_BASE_URL`, '');
-    vi.stubEnv(`${prefix}_MODELS`, '');
-    vi.stubEnv(`${prefix}_ENABLED`, '');
+  for (const key of Object.keys(process.env).filter((key) => key.startsWith('TTS_'))) {
+    vi.stubEnv(key, '');
   }
-  vi.stubEnv('TTS_QWEN_VOICE_CLONE_MODEL', '');
 }
 
 function stubOnlyLemonadeTTS(models?: string) {
