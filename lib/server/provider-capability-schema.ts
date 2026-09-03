@@ -84,6 +84,9 @@ const thinkingCapabilitySchema = z
     }
   });
 
+const _schemaFitsType: ThinkingCapability = {} as z.infer<typeof thinkingCapabilitySchema>;
+const _typeFitsSchema: z.infer<typeof thinkingCapabilitySchema> = {} as ThinkingCapability;
+
 const modelCapabilitySchema = z
   .object({
     id: z.string().trim().min(1),

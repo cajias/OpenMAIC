@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ModelInfo } from '@/lib/types/provider';
 
 // Mock the heavy downstream of resolveModel so the test isolates the model
 // string *resolution order*: stage route > x-model > DEFAULT_MODEL > builtin.
@@ -12,6 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   getModelCalls: [] as Array<Record<string, unknown>>,
   serverManaged: false,
+  serverModelInfo: undefined as ModelInfo | undefined,
 }));
 
 vi.mock('@/lib/ai/providers', async (importOriginal) => {
@@ -20,7 +22,7 @@ vi.mock('@/lib/ai/providers', async (importOriginal) => {
     ...actual,
     getModel: (args: Record<string, unknown>) => {
       mocks.getModelCalls.push(args);
-      return { model: { id: args.modelId }, modelInfo: undefined };
+      return { model: { id: args.modelId }, modelInfo: args.modelInfo };
     },
   };
 });
@@ -30,7 +32,7 @@ vi.mock('@/lib/server/provider-config', () => ({
   resolveApiKey: (_id: string, clientKey: string) => clientKey || 'server-key',
   resolveBaseUrl: (_id: string, clientBaseUrl?: string) => clientBaseUrl,
   resolveProxy: () => undefined,
-  getServerModelInfo: () => undefined,
+  getServerModelInfo: () => mocks.serverModelInfo,
 }));
 
 vi.mock('@/lib/server/ssrf-guard', () => ({
@@ -42,6 +44,7 @@ describe('resolveModel — per-stage resolution order', () => {
     vi.resetModules();
     mocks.getModelCalls.length = 0;
     mocks.serverManaged = false;
+    mocks.serverModelInfo = undefined;
     delete process.env.MODEL_ROUTES;
     delete process.env.DEFAULT_MODEL;
   });
@@ -58,6 +61,19 @@ describe('resolveModel — per-stage resolution order', () => {
     const { resolveModel } = await import('@/lib/server/resolve-model');
     const r = await resolveModel({ stage: 'scene-content' });
     expect(r.modelString).toBe('openai:gpt-5.4-mini');
+  });
+
+  it('passes declared server model capabilities through resolution', async () => {
+    mocks.serverModelInfo = {
+      id: 'claude-sonnet-5',
+      name: 'claude-sonnet-5',
+      capabilities: { vision: true },
+    };
+    const { resolveModel } = await import('@/lib/server/resolve-model');
+    const result = await resolveModel({ modelString: 'openai:claude-sonnet-5' });
+
+    expect(result.modelInfo).toMatchObject({ capabilities: { vision: true } });
+    expect(mocks.getModelCalls.at(-1)?.modelInfo).toBe(mocks.serverModelInfo);
   });
 
   it('uses the stage route over DEFAULT_MODEL', async () => {

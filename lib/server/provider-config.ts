@@ -15,8 +15,11 @@ import {
   isQwenVoiceCloneModel,
   TTS_PROVIDERS,
 } from '@/lib/audio/constants';
-import type { ModelInfo, ThinkingCapability } from '@/lib/types/provider';
-import { parseModelCapabilities } from './provider-capability-schema';
+import type { ModelInfo } from '@/lib/types/provider';
+import {
+  type DeclaredModelCapabilities,
+  parseModelCapabilities,
+} from './provider-capability-schema';
 
 const log = createLogger('ServerProviderConfig');
 
@@ -24,17 +27,11 @@ const log = createLogger('ServerProviderConfig');
 // Types
 // ---------------------------------------------------------------------------
 
-interface ServerModel {
-  id: string;
-  vision?: boolean;
-  thinking?: ThinkingCapability;
-}
-
 interface ServerProviderEntry {
   apiKey: string;
   baseUrl?: string;
   models?: string[];
-  modelCapabilities?: ServerModel[];
+  modelCapabilities?: DeclaredModelCapabilities[];
   proxy?: string;
   /** Aliyun AccessKey ID (AliDocMind — uses AK/SK instead of a single apiKey). */
   accessKeyId?: string;
@@ -258,7 +255,10 @@ function normalizeModelList(models: unknown, allowCapabilities = false): string[
   return parsed && parsed.length > 0 ? parsed : undefined;
 }
 
-function getModelCapabilities(models: unknown, providerId: string): ServerModel[] | undefined {
+function getModelCapabilities(
+  models: unknown,
+  providerId: string,
+): DeclaredModelCapabilities[] | undefined {
   if (!Array.isArray(models)) return undefined;
   const parsed = models.flatMap((model) => {
     if (typeof model === 'string') return [];
@@ -271,14 +271,14 @@ function getModelCapabilities(models: unknown, providerId: string): ServerModel[
     );
     return [];
   });
-  return parsed;
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 function retainModelCapabilities(
   providerId: string,
-  capabilities: ServerModel[] | undefined,
+  capabilities: DeclaredModelCapabilities[] | undefined,
   models: string[] | undefined,
-): ServerModel[] | undefined {
+): DeclaredModelCapabilities[] | undefined {
   if (!capabilities || !models) return capabilities;
   const allowed = new Set(models);
   const retained = capabilities.filter((model) => allowed.has(model.id));
