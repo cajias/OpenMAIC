@@ -252,6 +252,33 @@ providers:
       expect((providers.openai as Record<string, unknown>).baseUrl).toBeUndefined();
     });
 
+    it('retains capability metadata for YAML-pinned gateway models server-side', async () => {
+      yamlOverride = `
+providers:
+  openai:
+    apiKey: gateway-key
+    models:
+      - id: claude-sonnet-5
+        vision: true
+        thinking:
+          control: effort
+          requestAdapter: openai
+          effortValues: [low, medium, high]
+          defaultEffort: medium
+`;
+      const { getServerModelInfo, getServerProviders } =
+        await import('@/lib/server/provider-config');
+
+      expect(getServerProviders().openai.models).toEqual(['claude-sonnet-5']);
+      expect(getServerModelInfo('openai', 'claude-sonnet-5')).toMatchObject({
+        id: 'claude-sonnet-5',
+        capabilities: {
+          vision: true,
+          thinking: { requestAdapter: 'openai', defaultEffort: 'medium' },
+        },
+      });
+    });
+
     it('lists multiple providers', async () => {
       vi.stubEnv('OPENAI_API_KEY', 'sk-openai');
       vi.stubEnv('ANTHROPIC_API_KEY', 'sk-anthropic');

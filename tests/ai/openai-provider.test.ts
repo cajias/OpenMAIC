@@ -21,13 +21,14 @@ vi.mock('@ai-sdk/azure', () => ({
 
 import { getModel, getModelInfo, getProvider } from '@/lib/ai/providers';
 import { normalizeAzureBaseUrl } from '@/lib/ai/azure';
-import type { ProviderId } from '@/lib/types/provider';
+import type { ModelInfo, ProviderId } from '@/lib/types/provider';
 
 async function captureInjectedRequestBody(
   providerId: ProviderId,
   modelId: string,
   thinkingConfig?: Record<string, unknown>,
   baseUrl?: string,
+  modelInfo?: ModelInfo,
 ) {
   const originalFetch = globalThis.fetch;
   const globalRecord = globalThis as Record<string, unknown>;
@@ -50,6 +51,7 @@ async function captureInjectedRequestBody(
       modelId,
       apiKey: 'sk-test',
       baseUrl,
+      modelInfo,
     });
 
     const lastCall = openAiMock.createOpenAI.mock.calls.at(-1);
@@ -139,6 +141,40 @@ describe('OpenAI provider defaults', () => {
 
   it('resolves GPT-5.6 Sol model info through the canonical built-in entry', () => {
     expect(getModelInfo('openai', 'gpt-5.6-sol')).toBe(getModelInfo('openai', 'gpt-5.6'));
+  });
+
+  it('uses operator-declared gateway metadata and injects its thinking effort', async () => {
+    const modelInfo: ModelInfo = {
+      id: 'claude-sonnet-5',
+      name: 'claude-sonnet-5',
+      capabilities: {
+        vision: true,
+        thinking: {
+          control: 'effort' as const,
+          requestAdapter: 'openai' as const,
+          effortValues: ['low', 'medium', 'high'],
+          defaultEffort: 'medium' as const,
+        },
+      },
+    };
+    const { modelInfo: resolvedInfo } = getModel({
+      providerId: 'openai',
+      modelId: 'claude-sonnet-5',
+      apiKey: 'sk-test',
+      baseUrl: 'https://gateway.example/v1',
+      modelInfo,
+    });
+
+    expect(resolvedInfo).toBe(modelInfo);
+    await expect(
+      captureInjectedRequestBody(
+        'openai',
+        'claude-sonnet-5',
+        { effort: 'high' },
+        'https://gateway.example/v1',
+        modelInfo,
+      ),
+    ).resolves.toMatchObject({ reasoning_effort: 'high' });
   });
 
   it('includes GPT-5.5 as a built-in OpenAI model', () => {

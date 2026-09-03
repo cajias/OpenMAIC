@@ -15,6 +15,7 @@ import {
   isQwenVoiceCloneModel,
   TTS_PROVIDERS,
 } from '@/lib/audio/constants';
+import type { ModelInfo, ThinkingCapability } from '@/lib/types/provider';
 
 const log = createLogger('ServerProviderConfig');
 
@@ -22,10 +23,17 @@ const log = createLogger('ServerProviderConfig');
 // Types
 // ---------------------------------------------------------------------------
 
+interface ServerModel {
+  id: string;
+  vision?: boolean;
+  thinking?: ThinkingCapability;
+}
+
 interface ServerProviderEntry {
   apiKey: string;
   baseUrl?: string;
   models?: string[];
+  modelCapabilities?: ServerModel[];
   proxy?: string;
   /** Aliyun AccessKey ID (AliDocMind — uses AK/SK instead of a single apiKey). */
   accessKeyId?: string;
@@ -38,6 +46,10 @@ interface ServerProviderEntry {
    */
   enabled?: boolean;
 }
+
+type YamlProviderEntry = Omit<Partial<ServerProviderEntry>, 'models' | 'modelCapabilities'> & {
+  models?: Array<string | ServerModel>;
+};
 
 interface ServerConfig {
   providers: Record<string, ServerProviderEntry>;
@@ -195,7 +207,7 @@ const YAML_SECTION_KEY: Record<CapabilitySection, keyof YamlData> = {
 // ---------------------------------------------------------------------------
 
 type YamlData = Partial<{
-  providers: Record<string, Partial<ServerProviderEntry>>;
+  providers: Record<string, YamlProviderEntry>;
   tts: Record<string, Partial<ServerProviderEntry>>;
   asr: Record<string, Partial<ServerProviderEntry>>;
   pdf: Record<string, Partial<ServerProviderEntry>>;
@@ -229,14 +241,26 @@ function loadYamlFile(filename: string): YamlData {
  * truthy pin (its first entry, an empty string). Returns undefined when
  * nothing survives normalization ("no models configured").
  */
-function normalizeModelList(models: string[] | undefined): string[] | undefined {
-  const parsed = models?.map((model) => model.trim()).filter(Boolean);
+function normalizeModelList(models: Array<string | ServerModel> | undefined): string[] | undefined {
+  const parsed = models
+    ?.map((model) => (typeof model === 'string' ? model : model.id).trim())
+    .filter(Boolean);
+  return parsed && parsed.length > 0 ? parsed : undefined;
+}
+
+function getModelCapabilities(
+  models: Array<string | ServerModel> | undefined,
+): ServerModel[] | undefined {
+  const parsed = models
+    ?.filter((model): model is ServerModel => typeof model !== 'string')
+    .map((model) => ({ ...model, id: model.id?.trim() }))
+    .filter((model): model is ServerModel => Boolean(model.id));
   return parsed && parsed.length > 0 ? parsed : undefined;
 }
 
 function loadEnvSection(
   envMap: Record<string, string>,
-  yamlSection: Record<string, Partial<ServerProviderEntry>> | undefined,
+  yamlSection: Record<string, YamlProviderEntry> | undefined,
   {
     requiresBaseUrl = false,
     keylessProviders = new Set<string>(),
@@ -263,6 +287,7 @@ function loadEnvSection(
           apiKey: entry.apiKey || '',
           baseUrl: entry.baseUrl,
           models: normalizeModelList(entry.models),
+          modelCapabilities: getModelCapabilities(entry.models),
           proxy: entry.proxy,
         };
       }
@@ -274,18 +299,16 @@ function loadEnvSection(
     const envApiKey = process.env[`${prefix}_API_KEY`] || undefined;
     const envBaseUrl = process.env[`${prefix}_BASE_URL`] || undefined;
     const envModelsStr = process.env[`${prefix}_MODELS`];
-    const envModels = envModelsStr
-      ? envModelsStr
-          .split(',')
-          .map((m) => m.trim())
-          .filter(Boolean)
-      : undefined;
+    const envModels = normalizeModelList(envModelsStr?.split(','));
 
     if (result[providerId]) {
       // YAML entry exists — env vars override individual fields
       if (envApiKey) result[providerId].apiKey = envApiKey;
       if (envBaseUrl) result[providerId].baseUrl = envBaseUrl;
-      if (envModels) result[providerId].models = envModels;
+      if (envModels) {
+        result[providerId].models = envModels;
+        result[providerId].modelCapabilities = undefined;
+      }
       continue;
     }
 
@@ -455,16 +478,12 @@ function applyOpenAIImageFallback(
 }
 
 function splitModels(models: string | undefined): string[] | undefined {
-  const parsed = models
-    ?.split(',')
-    .map((model) => model.trim())
-    .filter(Boolean);
-  return parsed && parsed.length > 0 ? parsed : undefined;
+  return normalizeModelList(models?.split(','));
 }
 
 function applyBedrockProviderConfig(
   providers: Record<string, ServerProviderEntry>,
-  yamlProviders: Record<string, Partial<ServerProviderEntry>> | undefined,
+  yamlProviders: Record<string, YamlProviderEntry> | undefined,
 ): Record<string, ServerProviderEntry> {
   const yamlBedrock = yamlProviders?.[BEDROCK_PROVIDER_ID];
   const envApiKey = process.env.BEDROCK_API_KEY || undefined;
@@ -489,7 +508,14 @@ function applyBedrockProviderConfig(
   providers[BEDROCK_PROVIDER_ID] = {
     apiKey: envApiKey || yamlBedrock?.apiKey || providers[BEDROCK_PROVIDER_ID]?.apiKey || '',
     baseUrl: envBaseUrl || yamlBedrock?.baseUrl || providers[BEDROCK_PROVIDER_ID]?.baseUrl,
-    models: envModels || yamlBedrock?.models || providers[BEDROCK_PROVIDER_ID]?.models,
+    models:
+      envModels ||
+      normalizeModelList(yamlBedrock?.models) ||
+      providers[BEDROCK_PROVIDER_ID]?.models,
+    modelCapabilities: envModels
+      ? undefined
+      : (getModelCapabilities(yamlBedrock?.models) ??
+        providers[BEDROCK_PROVIDER_ID]?.modelCapabilities),
     proxy: yamlBedrock?.proxy || providers[BEDROCK_PROVIDER_ID]?.proxy,
   };
 
@@ -637,6 +663,22 @@ export function getServerProviders(): Record<string, { models?: string[] }> {
     if (entry.models && entry.models.length > 0) result[id].models = entry.models;
   }
   return result;
+}
+
+/** Return operator-declared metadata for a server-pinned model, if any. */
+export function getServerModelInfo(providerId: string, modelId: string): ModelInfo | undefined {
+  const model = getConfig().providers[providerId]?.modelCapabilities?.find(
+    (entry) => entry.id === modelId,
+  );
+  if (!model || (!model.vision && !model.thinking)) return undefined;
+  return {
+    id: model.id,
+    name: model.id,
+    capabilities: {
+      ...(model.vision ? { vision: true } : {}),
+      ...(model.thinking ? { thinking: model.thinking } : {}),
+    },
+  };
 }
 
 /** Resolve API key. Managed provider ⇒ server key; otherwise client key. */
