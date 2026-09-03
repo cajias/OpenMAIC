@@ -9,7 +9,7 @@ export const UNKNOWN_MODEL_RESERVED_OUTPUT_TOKENS = 8_192;
 // contract: a resolvable provider prefix, no thinking effort, and an explicit
 // OpenAI-compatible pi api/dialect. The actual HTTP transport is selected by
 // lib/ai/providers.ts.
-export const OPENAI_PI_APIS = new Set<Api>(['openai-completions', 'openai-responses']);
+const OPENAI_PI_APIS = new Set<Api>(['openai-completions', 'openai-responses']);
 
 export function assertAgentDriverRouteConfig(route: StageRoute | undefined): string {
   if (!route) {

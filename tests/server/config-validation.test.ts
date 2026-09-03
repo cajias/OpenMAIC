@@ -334,11 +334,8 @@ describe('validateServerConfig — warning matrix', () => {
       );
       const { validateServerConfig } = await import('@/lib/server/config-validation');
       validateServerConfig();
-      const messages = warnSpy.mock.calls.map(([message]) => String(message));
-      expect(messages.some((message) => message.includes(BARE_MODEL_ID_DEPRECATION_MSG))).toBe(
-        true,
-      );
-      expect(messages.some((message) => message.includes('explicit provider prefix'))).toBe(true);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(String(warnSpy.mock.calls[0][0])).toContain('explicit provider prefix');
     });
 
     it('warns when the dedicated driver route sets thinking.effort', async () => {

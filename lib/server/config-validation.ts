@@ -121,6 +121,9 @@ function validateModelRoutes(): void {
     }
     const model = routeModel(value);
     if (!model) continue; // no model string; model-routes warns about bad values at request time
+    if (key === AGENT_DRIVER_STAGE && isAgentRuntimeEnabled() && model.indexOf(':') <= 0) {
+      continue;
+    }
     checkModelString(model, `MODEL_ROUTES stage "${key}"`, true);
   }
 }
