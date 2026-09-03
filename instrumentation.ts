@@ -94,6 +94,9 @@ export async function register(): Promise<void> {
     return shutdownPromise;
   };
 
-  process.once('SIGTERM', () => void shutdown());
-  process.once('SIGINT', () => void shutdown());
+  // Imported dynamically so the Edge bundle never pulls in `process.once`,
+  // which Turbopack's static Edge-runtime scan flags as an unsupported
+  // Node.js API even though this branch never runs there.
+  const { registerShutdownSignals } = await import('@/lib/server/register-shutdown-signals');
+  registerShutdownSignals(shutdown);
 }
