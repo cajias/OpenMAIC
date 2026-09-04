@@ -289,9 +289,17 @@ function selftest() {
 
   // Non-references stay invisible: no decision, no report.
   for (const t of [
-    'fd00:ec2::254', 'http://render-service:9000', '169.254.169.254', 'ipaddr.js@^2.5.0',
-    '2001:0000::/32', 'additionalProperties: false', 'el-<nanoid(8)>', 'lib/ai/providers.ts', '96/72',
-  ]) assert.equal(C(t), null, t);
+    'fd00:ec2::254',
+    'http://render-service:9000',
+    '169.254.169.254',
+    'ipaddr.js@^2.5.0',
+    '2001:0000::/32',
+    'additionalProperties: false',
+    'el-<nanoid(8)>',
+    'lib/ai/providers.ts',
+    '96/72',
+  ])
+    assert.equal(C(t), null, t);
 
   // Conversion 1 — a citation naming a file. The target is spelled from the repo
   // root, so the SAME dest comes out at every page depth: there is no prefix to
@@ -302,7 +310,10 @@ function selftest() {
     C('lib/server/ssrf-guard.ts:12', null, 'docs/appendix/research/s/f.md').dest,
     'lib/server/ssrf-guard.ts#L12',
   );
-  assert.equal(C('lib/server/ssrf-guard.ts:12', null, 'docs/x.md').dest, 'lib/server/ssrf-guard.ts#L12');
+  assert.equal(
+    C('lib/server/ssrf-guard.ts:12', null, 'docs/x.md').dest,
+    'lib/server/ssrf-guard.ts#L12',
+  );
   // Uppercase L, always: `#l12` resolves the path but loses the line in IDEA.
   assert.match(C('ssrf-guard.ts:12').dest, /#L12$/);
 
@@ -319,7 +330,10 @@ function selftest() {
   // An exact tracked path wins over its own suffix matches. `package.json` is a
   // suffix of every workspace package's manifest, so treating the bucket as
   // undifferentiated candidates reports the repo-root file ambiguous.
-  assert.deepEqual(index.get('package.json'), ['package.json', 'packages/@openmaic/dsl/package.json']);
+  assert.deepEqual(index.get('package.json'), [
+    'package.json',
+    'packages/@openmaic/dsl/package.json',
+  ]);
   assert.equal(C('package.json:52').dest, 'package.json#L52');
   assert.equal(C('nope/gone.ts:12').reason, 'unresolved');
   assert.equal(C('lib/server/ssrf-guard.ts:9-4').reason, 'inverted-range');
@@ -328,7 +342,13 @@ function selftest() {
   // Conversion 3 — a bare doc path is READ relative to the citing page and
   // TARGETED from the repo root, and takes no line anchor; a bare basename is
   // refused rather than resolved against the sibling.
-  const dp = classify(REPO_ROOT, index, 'docs/01-system-context/01-x.md', '../02-container-view/index.md', null);
+  const dp = classify(
+    REPO_ROOT,
+    index,
+    'docs/01-system-context/01-x.md',
+    '../02-container-view/index.md',
+    null,
+  );
   assert.deepEqual(dp, { dest: 'docs/02-container-view/index.md', kind: 'doc-path' });
   assert.equal(C('index.md').reason, 'bare-basename');
   assert.equal(C('../nope/gone.md').reason, 'unresolved');
@@ -416,7 +436,15 @@ const results = targets.map((t) => {
 });
 
 if (asJson) {
-  console.log(JSON.stringify(results.map(({ out, abs, ...r }) => r), null, 2));
+  // `out` (whole rewritten file) and `abs` are stripped: the JSON report is the
+  // decision log, not a copy of every file's contents.
+  console.log(
+    JSON.stringify(
+      results.map(({ out: _out, abs: _abs, ...r }) => r),
+      null,
+      2,
+    ),
+  );
 } else {
   for (const r of results) {
     const skips = r.decisions.filter((d) => d.action === 'skip' && d.reason !== 'already-linked');

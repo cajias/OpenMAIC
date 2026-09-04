@@ -109,7 +109,8 @@ export function convertText(root, docFile, src) {
         const d = retarget(root, docFile, m[1]);
         const entry = { line: i + 1, target: m[1] };
         if (!d.dest) {
-          if (d.reason !== 'not-a-path') decisions.push({ ...entry, action: 'skip', reason: d.reason });
+          if (d.reason !== 'not-a-path')
+            decisions.push({ ...entry, action: 'skip', reason: d.reason });
           continue;
         }
         if (d.dest === m[1]) {
@@ -152,7 +153,8 @@ function selftest() {
     'lib/ai/providers.ts#L412',
   );
   assert.equal(
-    R('docs/appendix/research/agent-runtime/00-overview.md', '../../../../lib/ai/providers.ts#L412').dest,
+    R('docs/appendix/research/agent-runtime/00-overview.md', '../../../../lib/ai/providers.ts#L412')
+      .dest,
     'lib/ai/providers.ts#L412',
   );
   // `./sibling` and a bare sibling both take the citing file's own directory.
@@ -185,7 +187,10 @@ function selftest() {
   assert.equal(R('docs/README.md', '../../..').reason, 'outside-repo');
   // Already converted: a fixed point, reported as `keep`, not rewritten.
   assert.equal(R('docs/README.md', 'lib/ai/providers.ts#L412').dest, 'lib/ai/providers.ts#L412');
-  assert.equal(R('docs/README.md', 'docs/02-container-view/index.md').dest, 'docs/02-container-view/index.md');
+  assert.equal(
+    R('docs/README.md', 'docs/02-container-view/index.md').dest,
+    'docs/02-container-view/index.md',
+  );
 
   // End to end over one buffer: the mask (fence, nested fence, indented block,
   // HTML comment, inline code span), link text preserved byte for byte, and
@@ -214,12 +219,22 @@ function selftest() {
     '[external](https://example.com/a) and [dead](../../nope/gone.ts#L1).',
   ].join('\n');
   const { out: once, decisions } = convertText(REPO_ROOT, doc, body);
-  assert.match(once, /^Guard \[`lib\/ai\/providers\.ts:412`\]\(lib\/ai\/providers\.ts#L412\) and$/m);
-  assert.match(once, /^\[conventions\]\(docs\/12-api-reference\/09-conventions\.md#size-limits\) and /m);
+  assert.match(
+    once,
+    /^Guard \[`lib\/ai\/providers\.ts:412`\]\(lib\/ai\/providers\.ts#L412\) and$/m,
+  );
+  assert.match(
+    once,
+    /^\[conventions\]\(docs\/12-api-reference\/09-conventions\.md#size-limits\) and /m,
+  );
   assert.match(once, /\[license\]\(README\.md#-license\)\.$/m);
   // Non-prose keeps whatever form it illustrates.
   for (const label of ['fenced', 'indented', 'commented', 'nested', 'spanned']) {
-    assert.match(once, new RegExp(`\\[${label}\\]\\(\\.\\./\\.\\./lib/ai/providers\\.ts#L412\\)`), label);
+    assert.match(
+      once,
+      new RegExp(`\\[${label}\\]\\(\\.\\./\\.\\./lib/ai/providers\\.ts#L412\\)`),
+      label,
+    );
   }
   // An unresolvable target is left exactly as written and reported.
   assert.match(once, /\[dead\]\(\.\.\/\.\.\/nope\/gone\.ts#L1\)\.$/m);
@@ -264,7 +279,15 @@ function main(argv) {
   });
 
   if (asJson) {
-    console.log(JSON.stringify(results.map(({ out, abs, ...r }) => r), null, 2));
+    // `out` (whole rewritten file) and `abs` are stripped: the JSON report is the
+    // decision log, not a copy of every file's contents.
+    console.log(
+      JSON.stringify(
+        results.map(({ out: _out, abs: _abs, ...r }) => r),
+        null,
+        2,
+      ),
+    );
     return;
   }
   const total = { convert: 0, keep: 0, skip: 0 };
