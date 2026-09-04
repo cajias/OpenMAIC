@@ -60,6 +60,13 @@ pnpm dev
 4. Run **all CI checks** before committing (see below).
 5. Open a **Pull Request** against `main`.
 
+### Documentation Changes
+
+The architecture documentation set under `docs/` has its own authoring contract —
+[`docs/CONTRIBUTING-DOCS.md`](docs/CONTRIBUTING-DOCS.md) — covering code
+citations, heading anchors, and when to link a fact rather than restate it. Run
+`node scripts/check-docs-links.mjs` before pushing a change under `docs/`.
+
 ### Environment Variable Changes
 
 When adding or renaming an operator-facing environment variable, update
