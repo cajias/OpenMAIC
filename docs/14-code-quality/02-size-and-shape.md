@@ -7,7 +7,7 @@ measures how often that is exceeded and whether the exceptions are the same ones
 time.
 
 **Sources:** `find`/`wc` census of the working tree at `c2c9553a`;
-[`../appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md`](../appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md).
+[`../appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md`](docs/appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md).
 
 ## Lines by tree
 
@@ -123,7 +123,7 @@ find app components lib packages/@openmaic/*/src render-service/src types \
 
 | Lines | Path | Kind | Size justified? |
 | --- | --- | --- | --- |
-| 6 574 | `packages/@openmaic/importer/src/shapes/presets.ts` | data | **Yes.** One `Map` of 154 OOXML preset geometry generators, populated from `:149`, plus overlay/accessor functions at `:4040`, `:4449`, `:6546`. Splitting it buys nothing; its real problem is test cover, not length ([05](./05-test-strategy.md)) |
+| 6 574 | `packages/@openmaic/importer/src/shapes/presets.ts` | data | **Yes.** One `Map` of 154 OOXML preset geometry generators, populated from `:149`, plus overlay/accessor functions at `:4040`, `:4449`, `:6546`. Splitting it buys nothing; its real problem is test cover, not length ([05](docs/14-code-quality/05-test-strategy.md)) |
 | 2 420 | `lib/ai/providers.ts` | registry + logic | **Partly.** The `PROVIDERS` record spans `:75`-`:1551` (1 477 lines, brace-matched from `:75`) — 61 % of the file is a declarative table. The remaining ~870 lines (`getModel` `:2033`, `parseModelString` `:2370`, deprecation handling `:2348`) are logic that could live beside it |
 | 2 298 | `components/workbench/workspace/WorkspaceRail.tsx` | React | **No.** 56 combined `useState`/`useEffect`/`useCallback`/`useMemo` occurrences in one component |
 | 2 286 | `components/chat/use-chat-sessions.ts` | React hook | **No.** 26 top-level exports from one hook module |
@@ -131,7 +131,7 @@ find app components lib packages/@openmaic/*/src render-service/src types \
 | 2 189 | `components/roundtable/index.tsx` | React | **Borderline.** Purely presentational with 57 props and 17 lines carrying `useState`/`useEffect`; the size follows from the prop count, which is the actual defect |
 | 2 173 | `lib/workbench/session-store.ts` | zustand store | **Argued.** Contains an 840-line pure `foldEvent` (`:913`-`:1752`) over 21 `case` labels and 22 distinct event literals. Purity is load-bearing for exact `Last-Event-ID` resumption, so keeping the fold in one function is defended; the *store* around it is what is large |
 | 1 931 | `packages/@openmaic/generation/src/scene-generator.ts` | generator | **No.** Six unrelated concerns: scene routing, DSL element repair, KaTeX rendering, an HTML attribute scraper (`:1289`-`:1564`), PBL fallback policy, four canned action lists |
-| 1 923 | `lib/server/agent-runtime/runner.ts` | server runtime | **Argued in-source.** `runSession` alone is `:889`-`:1858` = 970 lines, with the rationale at `:886`-`:888`: ~22 mutable closure cells pair with nested `finally` blocks. Seventeen pure helpers *were* extracted (`:129`, `:203`, `:269`, …). See [08](./08-complexity-hotspots.md) |
+| 1 923 | `lib/server/agent-runtime/runner.ts` | server runtime | **Argued in-source.** `runSession` alone is `:889`-`:1858` = 970 lines, with the rationale at `:886`-`:888`: ~22 mutable closure cells pair with nested `finally` blocks. Seventeen pure helpers *were* extracted (`:129`, `:203`, `:269`, …). See [08](docs/14-code-quality/08-complexity-hotspots.md) |
 | 1 896 | `app/page.tsx` | React page | **No.** 27 `useState` occurrences, 9 `useEffect`, 13 `useRef` in one client component that also hosts the Pro runtime probe, generation handoff, folder CRUD, search and thumbnail lifecycle |
 | 1 864 | `lib/pbl/v2/agents/instructor.ts` | agent | **Borderline.** Three-phase turn generator plus heavy output post-processing |
 | 1 848 | `components/edit/PlaybackChromeRoot.tsx` | React | **No.** 28 `useState`, 22 `useRef`, 11 `useEffect`, 31 `useCallback`; the scene-init effect spans `:655`-`:961` with an exhaustive-deps suppression at `:960` |
@@ -209,7 +209,7 @@ diffuse* rather than concentrated in the big files.
 
 Size, by contrast, does split by layer in the way the table suggests: `lib/` has 22
 files over 800 lines and its offenders are argued for in-source
-(`runner.ts:886-888`, `session-store.ts:490-510`); `components/` has 17 and its
+([`runner.ts:886-888`](lib/server/agent-runtime/runner.ts#L886-L888), [`session-store.ts:490-510`](lib/workbench/session-store.ts#L490-L510)); `components/` has 17 and its
 offenders are not argued for anywhere.
 
 ## Open questions

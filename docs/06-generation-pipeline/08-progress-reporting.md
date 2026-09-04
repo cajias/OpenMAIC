@@ -9,8 +9,8 @@ only the fact that progress happened?
 `lib/store/stage.ts`, `lib/hooks/use-scene-generator.ts`,
 `lib/server/{classroom-generation,classroom-job-store,classroom-storage}.ts`,
 `app/api/generate-classroom/**`, `app/api/stages/[id]/freshness/route.ts`;
-evidence: [`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md),
-[`02d-interfaces-wire-and-prompt.md`](../appendix/research/generation-pipeline/02d-interfaces-wire-and-prompt.md).
+evidence: [`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md),
+[`02d-interfaces-wire-and-prompt.md`](docs/appendix/research/generation-pipeline/02d-interfaces-wire-and-prompt.md).
 
 ## The four transports at a glance
 
@@ -95,15 +95,15 @@ Three properties that only exist because this is a stream:
 
 - **The heartbeat's own failure stops it.** `controller.enqueue` inside the interval is
   wrapped so an enqueue on a closed controller calls `stopHeartbeat()` rather than throwing
-  into the timer (`route.ts:468-472`).
-- **`controller.close()` is in a `finally` and inside a `try/catch`** (`route.ts:690-697`),
+  into the timer ([`route.ts:468-472`](app/api/generate/scene-outlines-stream/route.ts#L468-L472)).
+- **`controller.close()` is in a `finally` and inside a `try/catch`** ([`route.ts:690-697`](app/api/generate/scene-outlines-stream/route.ts#L690-L697)),
   because the controller may already be closed if the client disconnected.
 - **The `retry` event exists so the client can undo its own accumulation.** Without it the
   browser would show the failed attempt's outlines alongside the successful attempt's — see
-  [`./03b-outline-streaming.md`](./03b-outline-streaming.md#client-side-reduction-rules).
+  [`./03b-outline-streaming.md`](docs/06-generation-pipeline/03b-outline-streaming.md#client-side-reduction-rules).
 
 The preview page also drives a coarse step indicator alongside the stream:
-`getActiveSteps(session)` (`app/generation-preview/types.ts:135`) filters `ALL_STEPS` down to
+`getActiveSteps(session)` ([`app/generation-preview/types.ts:135`](app/generation-preview/types.ts#L135)) filters `ALL_STEPS` down to
 the six-step list this run will actually use, and `setCurrentStepIndex` moves through it.
 Step visibility is conditional:
 
@@ -123,7 +123,7 @@ because "Analyzing documents" would misdescribe a transcription.
 ## Transport 2: the Zustand store
 
 The browser scene loop has no wire protocol. It mutates `useStageStore` and React does the
-rest. The generation-relevant slice (`lib/store/stage.ts:299-331`):
+rest. The generation-relevant slice ([`lib/store/stage.ts:299-331`](lib/store/stage.ts#L299-L331)):
 
 | Field | Persisted? | Meaning |
 | --- | --- | --- |
@@ -137,9 +137,9 @@ rest. The generation-relevant slice (`lib/store/stage.ts:299-331`):
 
 Only the first two survive a reload. That is the whole resume contract: on mount, the loop
 diffs `outlines` against `scenes` by `order` and regenerates the difference
-(`use-scene-generator.ts:654-657`), unless `generationComplete` is set.
+([`use-scene-generator.ts:654-657`](lib/hooks/use-scene-generator.ts#L654-L657)), unless `generationComplete` is set.
 
-`isDeckComplete` (`lib/store/stage.ts:384`) is the completion predicate:
+`isDeckComplete` ([`lib/store/stage.ts:384`](lib/store/stage.ts#L384)) is the completion predicate:
 `outlines.length > 0 && failedOutlines.length === 0 && every outline has a scene with the
 same order`. It is what `markGenerationCompleteIfDone()` consults on the retry path.
 
@@ -156,7 +156,7 @@ stateDiagram-v2
 ```
 
 Alongside the store, four optional host callbacks give a mounting component a push signal
-without subscribing to the store (`use-scene-generator.ts:597-600`):
+without subscribing to the store ([`use-scene-generator.ts:597-600`](lib/hooks/use-scene-generator.ts#L597-L600)):
 
 ```ts
 onSceneGenerated?: (scene: Scene, index: number) => void;
@@ -173,7 +173,7 @@ loop is currently consuming.
 ## Transport 3: the polled job file
 
 `POST /api/generate-classroom` answers **202** immediately and schedules the work in
-Next's `after()` (`route.ts:48`), so `maxDuration = 30` bounds the *request*, not the job.
+Next's `after()` ([`route.ts:48`](app/api/generate-classroom/route.ts#L48)), so `maxDuration = 30` bounds the *request*, not the job.
 
 ```
 202 { jobId, status, step, message, pollUrl, pollIntervalMs: 5000 }
@@ -181,9 +181,9 @@ Next's `after()` (`route.ts:48`), so `maxDuration = 30` bounds the *request*, no
 
 The poll endpoint adds `progress`, `scenesGenerated`, `totalScenes`, `result`, `error`, and
 `done = status === 'succeeded' || status === 'failed'`
-(`app/api/generate-classroom/[jobId]/route.ts:31-44`). It declares
+([`app/api/generate-classroom/[jobId]/route.ts:31-44`](app/api/generate-classroom/[jobId]/route.ts#L31-L44)). It declares
 `dynamic = 'force-dynamic'` and validates the id against `/^[a-zA-Z0-9_-]+$/`
-(`classroom-job-store.ts:96`) before touching the filesystem.
+([`classroom-job-store.ts:96`](lib/server/classroom-job-store.ts#L96)) before touching the filesystem.
 
 ```mermaid
 sequenceDiagram
@@ -212,9 +212,9 @@ sequenceDiagram
 ```
 
 The store is a **JSON file per job** under `data/classroom-jobs/` (`CLASSROOM_JOBS_DIR`,
-`lib/server/classroom-storage.ts:7`), written atomically, with two mechanisms worth knowing:
+[`lib/server/classroom-storage.ts:7`](lib/server/classroom-storage.ts#L7)), written atomically, with two mechanisms worth knowing:
 
-- **An in-process per-job mutex.** `withJobLock` (`classroom-job-store.ts:60-74`) chains a
+- **An in-process per-job mutex.** `withJobLock` ([`classroom-job-store.ts:60-74`](lib/server/classroom-job-store.ts#L60-L74)) chains a
   promise per `jobId` so concurrent read-modify-write on the same file serialises. It is
   process-local: it does not protect against two server instances sharing the directory.
 - **A staleness sweep on read.** `markStaleIfNeeded` (`:79-94`) converts a `running` job with
@@ -223,7 +223,7 @@ The store is a **JSON file per job** under `data/classroom-jobs/` (`CLASSROOM_JO
   path for a job whose process died mid-run — `after()` work does not survive a restart.
 
 The `progress` numbers are fixed waypoints, not a computed fraction
-(`lib/server/classroom-generation.ts:186`–`:728`):
+([`lib/server/classroom-generation.ts:186`](lib/server/classroom-generation.ts#L186)–[`:728`](lib/server/classroom-generation.ts#L728)):
 
 | Step | Progress |
 | --- | --- |
@@ -238,12 +238,12 @@ The `progress` numbers are fixed waypoints, not a computed fraction
 | `completed` | 100 |
 
 Retries inside the scene loop surface as progress *messages* rather than a distinct state:
-`reportSceneRetry` (`classroom-generation.ts:572-586`) is wired as the `onRetry` handler on
+`reportSceneRetry` ([`classroom-generation.ts:572-586`](lib/server/classroom-generation.ts#L572-L586)) is wired as the `onRetry` handler on
 both `withGenerationRetry` calls and emits
 `Retrying scene 4/12 content (2/6): <title>` at the same progress value. So a client that
 only watches `progress` sees a stall; one that watches `message` sees why.
 
-`inputSummary` (`classroom-job-store.ts:47-55`) stores a 200-char requirement preview plus
+`inputSummary` ([`classroom-job-store.ts:47-55`](lib/server/classroom-job-store.ts#L47-L55)) stores a 200-char requirement preview plus
 PDF text length and image count — never the PDF text itself, and never the API keys from the
 request body.
 
@@ -283,7 +283,7 @@ sequenceDiagram
 ```
 
 Constants are exported so the client can share them
-(`app/api/stages/[id]/freshness/route.ts:38-42`): `STAGE_FRESHNESS_POLL_INTERVAL_MS = 5_000`,
+([`app/api/stages/[id]/freshness/route.ts:38-42`](app/api/stages/[id]/freshness/route.ts#L38-L42)): `STAGE_FRESHNESS_POLL_INTERVAL_MS = 5_000`,
 `STAGE_FRESHNESS_HEARTBEAT_MS = 25_000`, `STAGE_FRESHNESS_RETRY_MS = 3_000`.
 
 The route's header comment states the design contract explicitly (`:17-23`): **degradation is
@@ -296,7 +296,7 @@ reference woke this stream from a database trigger's `NOTIFY`, but the storage p
 exposes no `LISTEN`/`NOTIFY`, so this stream **polls** the owner-bound store for the same
 trigger-maintained revision. Correctness is unchanged; only the wakeup latency differs.
 
-The store side of the diff is `serverManifestByStage` (`lib/store/stage.ts:340`) — the
+The store side of the diff is `serverManifestByStage` ([`lib/store/stage.ts:340`](lib/store/stage.ts#L340)) — the
 manifest this browser has actually rendered — written by
 `lib/workbench/use-workbench-session.ts`, not by the generation loop.
 
@@ -322,12 +322,12 @@ headless job signals a waypoint per stage.
 ## Open questions
 
 - **Whether the two drivers should share a progress vocabulary.** `ClassroomGenerationStep`
-  (eight values, `lib/server/classroom-generation.ts:62`) and the browser's `ALL_STEPS`
-  (six ids, `app/generation-preview/types.ts:90`) describe the same pipeline with different
+  (eight values, [`lib/server/classroom-generation.ts:62`](lib/server/classroom-generation.ts#L62)) and the browser's `ALL_STEPS`
+  (six ids, [`app/generation-preview/types.ts:90`](app/generation-preview/types.ts#L90)) describe the same pipeline with different
   names and different granularity. Nothing maps one to the other.
 - **Whether the job file store is intended for multi-instance deployments.** `withJobLock` is
   process-local and the staleness sweep is the only crash recovery, so two instances sharing
   `data/classroom-jobs/` could interleave writes. Owner:
-  [`../17-deployment-view/index.md`](../17-deployment-view/index.md).
+  [`../17-deployment-view/index.md`](docs/17-deployment-view/index.md).
 - **Whether `onPhaseChange` is meant to be meaningful in parallel mode.** It fires per
   content fetch start, which in parallel mode is not the scene the serial loop is on.

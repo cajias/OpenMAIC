@@ -6,7 +6,7 @@ design — it is the half of video export the compiler's purity boundary keeps o
 
 ## 1. Export options and the in-flight mutex
 
-`lib/video-export-app/export-options.ts:4`, `:10`, `:13`, `:17`, `:20`, `:22`
+[`lib/video-export-app/export-options.ts:4`](lib/video-export-app/export-options.ts#L4), [`:10`](lib/video-export-app/export-options.ts#L10), [`:13`](lib/video-export-app/export-options.ts#L13), [`:17`](lib/video-export-app/export-options.ts#L17), [`:20`](lib/video-export-app/export-options.ts#L20), [`:22`](lib/video-export-app/export-options.ts#L22)
 
 ```ts
 export const VIDEO_RESOLUTIONS = {
@@ -28,7 +28,7 @@ export class NoScenesError extends Error {}
 export function sanitizeFilename(name: string): string; // [\\/:*?"<>|] → '_', empty → 'classroom'
 ```
 
-`lib/video-export-app/export-in-flight.ts:24`, `:31`
+[`lib/video-export-app/export-in-flight.ts:24`](lib/video-export-app/export-in-flight.ts#L24), [`:31`](lib/video-export-app/export-in-flight.ts#L31)
 
 ```ts
 export function acquireExport(): boolean;
@@ -41,7 +41,7 @@ in-app render path uses the render store's `status` as its equivalent guard.
 
 ## 2. The shared build prefix
 
-`lib/video-export-app/build-export-zip.ts:39`, `:125`, `:137`, `:184`, `:204`, `:209`
+[`lib/video-export-app/build-export-zip.ts:39`](lib/video-export-app/build-export-zip.ts#L39), [`:125`](lib/video-export-app/build-export-zip.ts#L125), [`:137`](lib/video-export-app/build-export-zip.ts#L137), [`:184`](lib/video-export-app/build-export-zip.ts#L184), [`:204`](lib/video-export-app/build-export-zip.ts#L204), [`:209`](lib/video-export-app/build-export-zip.ts#L209)
 
 ```ts
 export interface BuildExportZipResult {
@@ -90,7 +90,7 @@ import (`:28-37`): `NoScenesError`, `sanitizeFilename`, `VIDEO_FPS`,
 
 ## 3. DI implementations
 
-`lib/video-export-app/timeline-deps.ts:52`, `:63`, `:205`
+[`lib/video-export-app/timeline-deps.ts:52`](lib/video-export-app/timeline-deps.ts#L52), [`:63`](lib/video-export-app/timeline-deps.ts#L63), [`:205`](lib/video-export-app/timeline-deps.ts#L205)
 
 ```ts
 export interface VideoTimelineRecords {
@@ -131,7 +131,7 @@ const PROBE_CONCURRENCY = 6;
 
 ## 4. Byte collection and packaging
 
-`lib/video-export-app/collect.ts:42`, `:49`, `:68`, `:150`, `:326`
+[`lib/video-export-app/collect.ts:42`](lib/video-export-app/collect.ts#L42), [`:49`](lib/video-export-app/collect.ts#L49), [`:68`](lib/video-export-app/collect.ts#L68), [`:150`](lib/video-export-app/collect.ts#L150), [`:326`](lib/video-export-app/collect.ts#L326)
 
 ```ts
 export interface CollectOptions {
@@ -165,7 +165,7 @@ export async function collectVideoAssets(
 ): Promise<CollectResult>;
 ```
 
-`lib/video-export-app/package-zip.ts:19`, `:21`, `:53`
+[`lib/video-export-app/package-zip.ts:19`](lib/video-export-app/package-zip.ts#L19), [`:21`](lib/video-export-app/package-zip.ts#L21), [`:53`](lib/video-export-app/package-zip.ts#L53)
 
 ```ts
 /** Default location the app serves the vendored GSAP from (committed at public/vendor). */
@@ -187,7 +187,7 @@ export async function packageVideoZip(
 
 ## 5. Render lifecycle store
 
-`lib/store/video-render.ts:35`, `:38`, `:46`, `:48`, `:53`, `:64`, `:71`, `:80`, `:107`
+[`lib/store/video-render.ts:35`](lib/store/video-render.ts#L35), [`:38`](lib/store/video-render.ts#L38), [`:46`](lib/store/video-render.ts#L46), [`:48`](lib/store/video-render.ts#L48), [`:53`](lib/store/video-render.ts#L53), [`:64`](lib/store/video-render.ts#L64), [`:71`](lib/store/video-render.ts#L71), [`:80`](lib/store/video-render.ts#L80), [`:107`](lib/store/video-render.ts#L107)
 
 ```ts
 const POLL_INTERVAL_MS = 3000;
@@ -242,7 +242,7 @@ interface VideoRenderState {
 export const useVideoRenderStore; // zustand create<VideoRenderState>()
 ```
 
-React facades — `use-export-video.ts:34`, `use-render-video.ts:16`:
+React facades — [`use-export-video.ts:34`](lib/video-export-app/use-export-video.ts#L34), [`use-render-video.ts:16`](lib/video-export-app/use-render-video.ts#L16):
 
 ```ts
 export function useExportVideo(): {
@@ -262,7 +262,7 @@ export function useRenderVideo(): {
 
 ## 6. App-side render-service helpers
 
-`lib/server/render-service.ts:15`, `:21`, `:36`, `:47`
+[`lib/server/render-service.ts:15`](lib/server/render-service.ts#L15), [`:21`](lib/server/render-service.ts#L21), [`:36`](lib/server/render-service.ts#L36), [`:47`](lib/server/render-service.ts#L47)
 
 ```ts
 export function getRenderServiceUrl(): string | null;
@@ -271,7 +271,7 @@ export function resolveRenderServiceUrl(): { url: string } | { error: 'not_confi
 export async function checkRenderServiceHealth(): Promise<boolean>;
 ```
 
-Route-level constants — `app/api/export-video/render/route.ts:15`, `:18`, `:21`, `:33`:
+Route-level constants — [`app/api/export-video/render/route.ts:15`](app/api/export-video/render/route.ts#L15), [`:18`](app/api/export-video/render/route.ts#L18), [`:21`](app/api/export-video/render/route.ts#L21), [`:33`](app/api/export-video/render/route.ts#L33):
 
 ```ts
 export const maxDuration = 300;

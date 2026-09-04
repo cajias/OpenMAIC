@@ -4,13 +4,13 @@ The problem, the shape of the solution, and the one-paragraph architecture. Read
 this before any diagram in this set: everything downstream is a decomposition of
 the four moves described here.
 
-**Sources:** `README.md:72`, `package.json`, `app/page.tsx`, `app/generation-preview/page.tsx`,
+**Sources:** [`README.md:72`](README.md#-overview), `package.json`, `app/page.tsx`, `app/generation-preview/page.tsx`,
 `app/classroom/[id]/page.tsx`, `packages/@openmaic/generation/src/`,
 `packages/@openmaic/dsl/src/stage.ts`, `lib/playback/engine.ts`,
 `lib/export/`, `lib/video-export/compile.ts`, `render-service/src/main.ts`,
-`../appendix/research/generation-pipeline/00-overview.md`,
-`../appendix/research/classroom-runtime/00-overview.md`,
-`../appendix/research/dsl-renderer-editor/00-overview.md`.
+[`../appendix/research/generation-pipeline/00-overview.md`](docs/appendix/research/generation-pipeline/00-overview.md),
+[`../appendix/research/classroom-runtime/00-overview.md`](docs/appendix/research/classroom-runtime/00-overview.md),
+[`../appendix/research/dsl-renderer-editor/00-overview.md`](docs/appendix/research/dsl-renderer-editor/00-overview.md).
 
 ## The problem
 
@@ -20,7 +20,7 @@ the timing that binds narration to what appears on screen, *and* checks for
 understanding, *and* somebody to deliver it. Slide tools give you the first
 artefact and none of the rest. LLM chat gives you prose with no playable form.
 
-OpenMAIC's claim, stated at `README.md:72`, is that a topic string or an uploaded
+OpenMAIC's claim, stated at [`README.md:72`](README.md#-overview), is that a topic string or an uploaded
 document can be turned into a *playable* classroom: slides, quizzes, interactive
 HTML simulations and project-based-learning activities, delivered by synthetic
 teachers and classmates that speak, draw on a whiteboard, and hold a discussion
@@ -30,9 +30,9 @@ The architectural consequence of that claim is the thing worth internalising: th
 unit of persistence is not a slide deck, it is a **course document with an
 embedded playback script**. `packages/@openmaic/dsl/src/stage.ts` defines a
 `Stage` holding ordered `Scene`s; each scene carries a `type` discriminant
-(`'slide' | 'quiz' | 'interactive' | 'pbl'`, `stage.ts:22`) bound to its own
+(`'slide' | 'quiz' | 'interactive' | 'pbl'`, [`stage.ts:22`](packages/@openmaic/dsl/src/stage.ts#L22)) bound to its own
 content shape, plus a list of `Action`s. `Action` is a 21-variant union
-(`packages/@openmaic/dsl/src/action.ts:235-256`) whose members are playback
+([`packages/@openmaic/dsl/src/action.ts:235-256`](packages/@openmaic/dsl/src/action.ts#L235-L256)) whose members are playback
 verbs — `speech`, `wb_draw_latex`, `spotlight`, `discussion`, `play_video`,
 `widget_setState`. The document *is* the lesson plan, the deck, and the score.
 
@@ -87,35 +87,35 @@ flowchart TD
 The `Stage` document at the centre is why the four moves are separable. Move 2
 writes it, move 3 reads it and appends runtime records to it, move 4 reads it.
 No move reaches into another's internals; they communicate through one versioned
-contract (`DSL_VERSION = '0.3.0'`, `packages/@openmaic/dsl/src/version.ts:61`,
+contract (`DSL_VERSION = '0.3.0'`, [`packages/@openmaic/dsl/src/version.ts:61`](packages/@openmaic/dsl/src/version.ts#L61),
 with a second independent ladder `RUNTIME_DSL_VERSION = '0.1.0'` at
-`version.ts:276` for the runtime envelope).
+[`version.ts:276`](packages/@openmaic/dsl/src/version.ts#L276) for the runtime envelope).
 
 ## The one-paragraph architecture
 
-OpenMAIC is a single Next.js 16 App Router application (`package.json:119`) whose
+OpenMAIC is a single Next.js 16 App Router application ([`package.json:119`](package.json#L119)) whose
 domain logic lives in `lib/` and whose reusable contracts are hoisted into six
 publishable packages under `packages/@openmaic/` — `dsl` (4 847 lines) is the
 document contract, `generation` (8 199) the LLM pipeline, `storage` (14 904) the
 persistence primitives, `renderer` (5 003) the read-only canvas, `editor`
 (16 302) the edit kernel, `importer` (22 203) the `.pptx` reader; the one list is
-`scripts/openmaic-packages.mjs:34`. Its entire HTTP surface is 69 `route.ts`
+[`scripts/openmaic-packages.mjs:34`](scripts/openmaic-packages.mjs#L34). Its entire HTTP surface is 69 `route.ts`
 files with 86 exported method handlers totalling 9 435 lines, all on the Node
 runtime — no route declares `runtime = 'edge'`. Every external capability is a
-registry the operator populates: 19 LLM providers (`lib/ai/providers.ts:75`), 10
-TTS and 6 ASR providers (`lib/audio/types.ts:82,179`), 8 image and 6 video
-providers (`lib/media/types.ts:73,194`), 9 web-search backends
-(`lib/web-search/index.ts:1-9`), 5 document and 2 media extractors
+registry the operator populates: 19 LLM providers ([`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75)), 10
+TTS and 6 ASR providers ([`lib/audio/types.ts:82,179`](lib/audio/types.ts#L82)), 8 image and 6 video
+providers ([`lib/media/types.ts:73,194`](lib/media/types.ts#L73)), 9 web-search backends
+([`lib/web-search/index.ts:1-9`](lib/web-search/index.ts#L1-L9)), 5 document and 2 media extractors
 (`lib/document/extractors/manifest.ts`), and a persistence layer whose backends
 are browser IndexedDB, PostgreSQL, or S3 for asset bytes
 (`packages/@openmaic/storage/package.json` exports). Nothing is required except
 one LLM key; everything else degrades. Persistence defaults to the browser
 (IndexedDB + localStorage) and only becomes server-backed when
 `NEXT_PUBLIC_PERSISTENCE === '1'` flips the bootstrap at
-`lib/persistence/bootstrap.ts:15-68`. Two optional out-of-process pieces exist: a
+[`lib/persistence/bootstrap.ts:15-68`](lib/persistence/bootstrap.ts#L15-L68). Two optional out-of-process pieces exist: a
 PostgreSQL database (required for the Pro agent workbench and for server-backed
 storage) and an isolated `render-service` container that turns an export ZIP into
-an MP4 (`render-service/src/main.ts:229`).
+an MP4 ([`render-service/src/main.ts:229`](render-service/src/main.ts#L229)).
 
 ## Two authoring modes over one document
 
@@ -126,10 +126,10 @@ diagram that follows.
 | --- | --- | --- |
 | Entry | `/` then `/generation-preview` | `/workspace` |
 | Driver | A fixed 4-step pipeline the browser sequences | A durable LLM agent with 40 tools |
-| Server state | None; `sessionStorage` carries the handoff (`app/page.tsx:671`, `app/generation-preview/page.tsx:1040`) | PostgreSQL owns claims, leases, event order, cancellation |
+| Server state | None; `sessionStorage` carries the handoff ([`app/page.tsx:671`](app/page.tsx#L671), [`app/generation-preview/page.tsx:1040`](app/generation-preview/page.tsx#L1040)) | PostgreSQL owns claims, leases, event order, cancellation |
 | Survives a reload | No | Yes — the browser re-reads a durable event log by `Last-Event-ID` |
-| Gate | Always on | `isProWorkbenchEnabled() && isAgentRuntimeConfigured()` (`lib/workbench/entry-gate.ts:4`) |
-| Availability | Default | Off by default; needs `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED`, `OPENMAIC_AGENT_RUNTIME_ENABLED` **and** a non-empty `DATABASE_URL` (`lib/config/feature-flags.ts:23-34`) |
+| Gate | Always on | `isProWorkbenchEnabled() && isAgentRuntimeConfigured()` ([`lib/workbench/entry-gate.ts:4`](lib/workbench/entry-gate.ts#L4)) |
+| Availability | Default | Off by default; needs `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED`, `OPENMAIC_AGENT_RUNTIME_ENABLED` **and** a non-empty `DATABASE_URL` ([`lib/config/feature-flags.ts:23-34`](lib/config/feature-flags.ts#L23-L34)) |
 
 ```mermaid
 stateDiagram-v2
@@ -148,9 +148,9 @@ stateDiagram-v2
 ```
 
 The state names come from the `previewPhase` union declared at
-`app/generation-preview/types.ts:22`
+[`app/generation-preview/types.ts:22`](app/generation-preview/types.ts#L22)
 (`'preparing' | 'outline-ready' | 'review' | 'generating-content'`) and from the
-navigation at `app/generation-preview/page.tsx:1051`.
+navigation at [`app/generation-preview/page.tsx:1051`](app/generation-preview/page.tsx#L1051).
 
 ## What is deliberately absent
 
@@ -162,14 +162,14 @@ Naming the holes now saves you looking for them later.
 | Rate limiting | No limiter in `app/api/**` | Cost control is the operator's problem |
 | An OpenAPI artefact | none in the tree | The 69 route files are the contract |
 | Server-side session for the one-click path | `sessionStorage` only | Close the tab mid-generation and the run is gone |
-| `error.tsx` / `not-found.tsx` / `loading.tsx` anywhere under `app/` | `../appendix/research/app-shell-and-routing/00-overview.md:114-118` | A thrown render error surfaces as Next's default boundary |
+| `error.tsx` / `not-found.tsx` / `loading.tsx` anywhere under `app/` | [`../appendix/research/app-shell-and-routing/00-overview.md:114-118`](docs/appendix/research/app-shell-and-routing/00-overview.md#route-map) | A thrown render error surfaces as Next's default boundary |
 | Coverage measurement | no coverage provider in any of nine Vitest configs | Test coverage is unknowable, not low — unknown |
 
 ## Cross-links
 
-- Containers and their responsibilities: `../02-container-view/index.md`
-- The DSL contract itself: `../07-dsl-renderer-editor/index.md`
-- Move 1 and 2 in detail: `../06-generation-pipeline/index.md`
-- Move 3 in detail: `../08-classroom-runtime/index.md`
-- Move 4 in detail: `../09-media-and-export/index.md`
-- The agent authoring mode: `../05-agent-runtime/index.md`
+- Containers and their responsibilities: [`../02-container-view/index.md`](docs/02-container-view/index.md)
+- The DSL contract itself: [`../07-dsl-renderer-editor/index.md`](docs/07-dsl-renderer-editor/index.md)
+- Move 1 and 2 in detail: [`../06-generation-pipeline/index.md`](docs/06-generation-pipeline/index.md)
+- Move 3 in detail: [`../08-classroom-runtime/index.md`](docs/08-classroom-runtime/index.md)
+- Move 4 in detail: [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md)
+- The agent authoring mode: [`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md)

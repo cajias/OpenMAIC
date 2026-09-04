@@ -14,11 +14,11 @@ cover; which envelope a handler is expected to return and which families broke
 that expectation; and where periodic work is allowed to start.
 
 It does **not** enumerate endpoints — that is
-[`../12-api-reference/index.md`](../12-api-reference/index.md). It does not cover
+[`../12-api-reference/index.md`](docs/12-api-reference/index.md). It does not cover
 what the handlers delegate *to*; those are the subsystem topics
-([`../05-agent-runtime/index.md`](../05-agent-runtime/index.md),
-[`../06-generation-pipeline/index.md`](../06-generation-pipeline/index.md),
-[`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md)).
+([`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md),
+[`../06-generation-pipeline/index.md`](docs/06-generation-pipeline/index.md),
+[`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md)).
 
 ## Measured shape
 
@@ -106,22 +106,22 @@ Read directly: `middleware.ts`, `instrumentation.ts`,
 `lib/server/agent-runtime/route-response.ts`, `app/api/stages/[id]/route.ts`.
 
 Evidence packs:
-[`../appendix/research/app-shell-and-routing/`](../appendix/research/app-shell-and-routing/00-overview.md)
-and [`../appendix/research/api-surface/`](../appendix/research/api-surface/00-overview.md),
+[`../appendix/research/app-shell-and-routing/`](docs/appendix/research/app-shell-and-routing/00-overview.md)
+and [`../appendix/research/api-surface/`](docs/appendix/research/api-surface/00-overview.md),
 with cross-checks against
-[`../appendix/research/persistence-storage-state/`](../appendix/research/persistence-storage-state/00-overview.md).
+[`../appendix/research/persistence-storage-state/`](docs/appendix/research/persistence-storage-state/00-overview.md).
 
 ## Sections
 
 | File | Lines | Diagrams | What it covers |
 | --- | --- | --- | --- |
-| [`01-route-map.md`](./01-route-map.md) | 177 | 3 | Every user-facing route: component kind, rendering mode, subsystem driven, absent App Router convention files, the three `sessionStorage` handoffs, and the workbench gate derived in three places. |
-| [`02-layout-and-providers.md`](./02-layout-and-providers.md) | 192 | 3 | `app/layout.tsx`'s seven-child provider stack in order, what each provides, who consumes it, the three orderings that are load-bearing, and the two-mechanism font strategy. |
-| [`03-server-client-components.md`](./03-server-client-components.md) | 190 | 4 | Where the RSC boundary sits per surface, what crosses it (only `ReactNode` and one `string`), and the single Server Action in the repository. |
-| [`04-middleware.md`](./04-middleware.md) | 199 | 3 | `middleware.ts`: the two gates in fixed order, the matcher, the twin HMAC verifiers, ordering relative to handlers, and the nine things it does not do. |
-| [`05-instrumentation.md`](./05-instrumentation.md) | 224 | 4 | `instrumentation.ts` as process-scoped startup — **not** OpenTelemetry — the five-step drain, and the node-only shutdown-signal split with its Turbopack reason. |
-| [`06-api-layer-conventions.md`](./06-api-layer-conventions.md) | 280 | 4 | The API layer as a layer: measured helper adoption, the conventional handler skeleton, four error envelopes, hand-written validation, streaming conventions, and ten named deviations. |
-| [`07-request-lifecycle.md`](./07-request-lifecycle.md) | 239 | 4 | Two traced requests end to end — a plain JSON route and a streaming SSE route — browser through middleware, handler, `lib` domain, store, response. |
+| [`01-route-map.md`](docs/03-app-and-api/01-route-map.md) | 177 | 3 | Every user-facing route: component kind, rendering mode, subsystem driven, absent App Router convention files, the three `sessionStorage` handoffs, and the workbench gate derived in three places. |
+| [`02-layout-and-providers.md`](docs/03-app-and-api/02-layout-and-providers.md) | 192 | 3 | `app/layout.tsx`'s seven-child provider stack in order, what each provides, who consumes it, the three orderings that are load-bearing, and the two-mechanism font strategy. |
+| [`03-server-client-components.md`](docs/03-app-and-api/03-server-client-components.md) | 190 | 4 | Where the RSC boundary sits per surface, what crosses it (only `ReactNode` and one `string`), and the single Server Action in the repository. |
+| [`04-middleware.md`](docs/03-app-and-api/04-middleware.md) | 199 | 3 | `middleware.ts`: the two gates in fixed order, the matcher, the twin HMAC verifiers, ordering relative to handlers, and the nine things it does not do. |
+| [`05-instrumentation.md`](docs/03-app-and-api/05-instrumentation.md) | 224 | 4 | `instrumentation.ts` as process-scoped startup — **not** OpenTelemetry — the five-step drain, and the node-only shutdown-signal split with its Turbopack reason. |
+| [`06-api-layer-conventions.md`](docs/03-app-and-api/06-api-layer-conventions.md) | 280 | 4 | The API layer as a layer: measured helper adoption, the conventional handler skeleton, four error envelopes, hand-written validation, streaming conventions, and ten named deviations. |
+| [`07-request-lifecycle.md`](docs/03-app-and-api/07-request-lifecycle.md) | 239 | 4 | Two traced requests end to end — a plain JSON route and a streaming SSE route — browser through middleware, handler, `lib` domain, store, response. |
 
 26 Mermaid diagrams across the eight files, including this page.
 
@@ -148,11 +148,11 @@ with cross-checks against
 
 ## Related
 
-- [`../12-api-reference/index.md`](../12-api-reference/index.md) — the same surface
+- [`../12-api-reference/index.md`](docs/12-api-reference/index.md) — the same surface
   endpoint by endpoint: all 69 route files and all 86 handlers.
-- [`../18-decisions/02-no-schema-layer-at-the-http-edge.md`](../18-decisions/02-no-schema-layer-at-the-http-edge.md)
+- [`../18-decisions/02-no-schema-layer-at-the-http-edge.md`](docs/18-decisions/02-no-schema-layer-at-the-http-edge.md)
   — why point 4 above is a decision rather than an oversight, and what it costs.
-- [`../15-cross-cutting/05-auth-and-access-control.md`](../15-cross-cutting/05-auth-and-access-control.md)
+- [`../15-cross-cutting/05-auth-and-access-control.md`](docs/15-cross-cutting/05-auth-and-access-control.md)
   — the one middleware gate in its wider security context.
-- [`../glossary.md`](../glossary.md) — the canonical vocabulary.
-- [`../README.md`](../README.md) — the documentation set root.
+- [`../glossary.md`](docs/glossary.md) — the canonical vocabulary.
+- [`../README.md`](docs/README.md) — the documentation set root.

@@ -80,70 +80,70 @@ flowchart TD
 
 Registry order **is** the auto-selection order:
 `[textDocumentExtractorProvider, ...pdfDocumentExtractorProviders]`
-(`registry.ts:5`), where the PDF group follows `Object.keys(PDF_PROVIDERS)` —
-`unpdf`, `mineru`, `mineru-cloud`, `alidocmind` (`lib/pdf/constants.ts:14`). So a
+([`registry.ts:5`](lib/document/extractors/registry.ts#L5)), where the PDF group follows `Object.keys(PDF_PROVIDERS)` —
+`unpdf`, `mineru`, `mineru-cloud`, `alidocmind` ([`lib/pdf/constants.ts:14`](lib/pdf/constants.ts#L14)). So a
 `.txt`/`.md` upload resolves to `plain-text`, a PDF to `unpdf`, and a
 `.docx`/`.pptx` to `mineru` unless the caller pins a provider.
 
-The media registry (`extractors/media-registry.ts:24`) adds an **availability**
+The media registry ([`extractors/media-registry.ts:24`](lib/document/extractors/media-registry.ts#L24)) adds an **availability**
 probe: the cloud provider reports unavailable without AliDocMind credentials
-(`extractors/media.ts:24`), and selection walks supported providers until one is
-available (`media-registry.ts:67`), so a credential-less deployment falls
+([`extractors/media.ts:24`](lib/document/extractors/media.ts#L24)), and selection walks supported providers until one is
+available ([`media-registry.ts:67`](lib/document/extractors/media-registry.ts#L67)), so a credential-less deployment falls
 through to `local-ffmpeg`. The terminal error names both setup paths
-(`media-registry.ts:70`).
+([`media-registry.ts:70`](lib/document/extractors/media-registry.ts#L70)).
 
 `extractors/manifest.ts` is a **browser-safe mirror** of both registries: plain
 data only, so client pages can resolve the expected extractor id + version
 without pulling `sharp`, `@alicloud/*`, `child_process` or `fs` into the bundle
-(`manifest.ts:1-24`). Provider implementations spread their own manifest entry
-(`...pdfManifestEntry(id)`, `extractors/pdf.ts:26`;
-`...getDocumentExtractorManifestEntry('plain-text')!`, `extractors/text.ts:21`)
+([`manifest.ts:1-24`](lib/document/extractors/manifest.ts#L1-L24)). Provider implementations spread their own manifest entry
+(`...pdfManifestEntry(id)`, [`extractors/pdf.ts:26`](lib/document/extractors/pdf.ts#L26);
+`...getDocumentExtractorManifestEntry('plain-text')!`, [`extractors/text.ts:21`](lib/document/extractors/text.ts#L21))
 so drift is structurally impossible, and
-`selectDocumentExtractorManifestEntry` (`manifest.ts:195`) /
-`selectMediaExtractorManifestEntry` (`manifest.ts:235`) reimplement selection
+`selectDocumentExtractorManifestEntry` ([`manifest.ts:195`](lib/document/extractors/manifest.ts#L195)) /
+`selectMediaExtractorManifestEntry` ([`manifest.ts:235`](lib/document/extractors/manifest.ts#L235)) reimplement selection
 over the entries.
 
 ## The five document extractors
 
 | id | Backing service | Path | MIME set | Async |
 | --- | --- | --- | --- | --- |
-| `plain-text` | none (in-process `TextDecoder`, BOM-sniffed) | `extractors/text.ts:22` | `text/plain`, `text/markdown`, `text/x-markdown` (`mime.ts:158`) | no |
-| `unpdf` | `unpdf` npm + `sharp` | `lib/pdf/pdf-providers.ts:250` | `application/pdf` only | no |
-| `mineru` | self-hosted MinerU `POST /file_parse` | `pdf-providers.ts:620` | PDF + docx/pptx/xlsx + 6 image types (`mime.ts:141`) | no |
-| `mineru-cloud` | `https://mineru.net/api/v4` batch → poll → ZIP | `lib/pdf/mineru-cloud.ts:241` | self-host set + legacy `.doc/.ppt/.xls` (`mime.ts:150`) | yes |
-| `alidocmind` | Aliyun Document Mind (`@alicloud/docmind-api20220711`) | `lib/pdf/alidocmind-client.ts:100` | PDF + modern Office + png/jpeg/bmp/gif (`mime.ts:170`) | yes |
+| `plain-text` | none (in-process `TextDecoder`, BOM-sniffed) | [`extractors/text.ts:22`](lib/document/extractors/text.ts#L22) | `text/plain`, `text/markdown`, `text/x-markdown` ([`mime.ts:158`](lib/document/mime.ts#L158)) | no |
+| `unpdf` | `unpdf` npm + `sharp` | [`lib/pdf/pdf-providers.ts:250`](lib/pdf/pdf-providers.ts#L250) | `application/pdf` only | no |
+| `mineru` | self-hosted MinerU `POST /file_parse` | [`pdf-providers.ts:620`](lib/pdf/pdf-providers.ts#L620) | PDF + docx/pptx/xlsx + 6 image types ([`mime.ts:141`](lib/document/mime.ts#L141)) | no |
+| `mineru-cloud` | `https://mineru.net/api/v4` batch → poll → ZIP | [`lib/pdf/mineru-cloud.ts:241`](lib/pdf/mineru-cloud.ts#L241) | self-host set + legacy `.doc/.ppt/.xls` ([`mime.ts:150`](lib/document/mime.ts#L150)) | yes |
+| `alidocmind` | Aliyun Document Mind (`@alicloud/docmind-api20220711`) | [`lib/pdf/alidocmind-client.ts:100`](lib/pdf/alidocmind-client.ts#L100) | PDF + modern Office + png/jpeg/bmp/gif ([`mime.ts:170`](lib/document/mime.ts#L170)) | yes |
 
 `unpdf` detail: `extractText(pdf, { mergePages: true })`, then per page
 `extractImages` → `sharp(raw).png()` → `data:image/png;base64,…`, ids
 `img_1..N` echoed into `metadata.imageMapping` and `metadata.pdfImages`
-(`pdf-providers.ts:279-326`). In `textOnly` mode the image loop is skipped and
-`maxImageSize` is capped at 16 000 000 px (`pdf-providers.ts:254`).
+([`pdf-providers.ts:279-326`](lib/pdf/pdf-providers.ts#L279-L326)). In `textOnly` mode the image loop is skipped and
+`maxImageSize` is capped at 16 000 000 px ([`pdf-providers.ts:254`](lib/pdf/pdf-providers.ts#L254)).
 
 AliDocMind post-processing downloads the OSS image crops it returns, gated by an
-SSRF allow-list restricted to `*.aliyuncs.com` (`pdf-providers.ts:402`), capped
-at 200 images, 10 MB each, 6 concurrent (`pdf-providers.ts:383-387`).
+SSRF allow-list restricted to `*.aliyuncs.com` ([`pdf-providers.ts:402`](lib/pdf/pdf-providers.ts#L402)), capped
+at 200 images, 10 MB each, 6 concurrent ([`pdf-providers.ts:383-387`](lib/pdf/pdf-providers.ts#L383-L387)).
 
 Self-hosted MinerU errors are translated: a lightweight `mineru-api` install
 lacking the pipeline extras returns a Python traceback, and
-`describeSelfHostedMinerUError` (`pdf-providers.ts:168`) turns
+`describeSelfHostedMinerUError` ([`pdf-providers.ts:168`](lib/pdf/pdf-providers.ts#L168)) turns
 `ModuleNotFoundError` / `ImportError` / `Device string must not be empty` into an
 actionable message, otherwise truncating the raw body to 300 chars. A filename
 mismatch in the response falls back to the first result key with a warn
-(`pdf-providers.ts:686`).
+([`pdf-providers.ts:686`](lib/pdf/pdf-providers.ts#L686)).
 
 ## The two media extractors
 
-- `alidocmind` media (`extractors/media.ts:16` → `lib/media-parse/media-parse-providers.ts:29`)
+- `alidocmind` media ([`extractors/media.ts:16`](lib/document/extractors/media.ts#L16) → [`lib/media-parse/media-parse-providers.ts:29`](lib/media-parse/media-parse-providers.ts#L29))
   — cloud transcript + keyframes + synopsis + OCR.
-- `local-ffmpeg` (`extractors/local-media.ts:835`) — resolves `ffmpeg`/`ffprobe`
+- `local-ffmpeg` ([`extractors/local-media.ts:835`](lib/document/extractors/local-media.ts#L835)) — resolves `ffmpeg`/`ffprobe`
   on `PATH`, probes duration, splits audio into `MEDIA_ASR_CHUNK_SEC = 600` s
-  chunks (`local-media.ts:32`), sends each to the configured server ASR
+  chunks ([`local-media.ts:32`](lib/document/extractors/local-media.ts#L32)), sends each to the configured server ASR
   provider, samples keyframes. Hard limits: 90 min media (`:37`), 45 min per job
   (`:35`), 8 min per ASR call (`:36`), 20 min per ffmpeg invocation (`:33`),
   50 000 keyframe candidates (`:39`). Failures are raised as
   `MaterialExtractionError` with an explicit `retryable` flag
-  (`lib/server/material-extraction/errors.ts:2`), re-exported here as
-  `LocalMediaExtractionError` (`local-media.ts:75`).
+  ([`lib/server/material-extraction/errors.ts:2`](lib/server/material-extraction/errors.ts#L2)), re-exported here as
+  `LocalMediaExtractionError` ([`local-media.ts:75`](lib/document/extractors/local-media.ts#L75)).
 
 ## `lib/document/pdf-compat.ts` — the normalisation bridge
 
@@ -239,12 +239,12 @@ echo on every response (`:166`).
 ## Transform pipeline (present, not wired into generation)
 
 `lib/document/transforms/` is a complete framework: a `DocumentTransform`
-interface (`transforms/types.ts:33`), a duplicate-id-rejecting registry
-(`transforms/registry.ts:10`), a `transformDocument` pipeline that clones the
+interface ([`transforms/types.ts:33`](lib/document/transforms/types.ts#L33)), a duplicate-id-rejecting registry
+([`transforms/registry.ts:10`](lib/document/transforms/registry.ts#L10)), a `transformDocument` pipeline that clones the
 artifact between steps, records a `DocumentTransformRecord` per step and supports
-`fail-fast` vs `best-effort` (`transforms/pipeline.ts:14`), and two transforms —
+`fail-fast` vs `best-effort` ([`transforms/pipeline.ts:14`](lib/document/transforms/pipeline.ts#L14)), and two transforms —
 `normalize` (control-char stripping, CRLF, blank-line collapsing, empty-block
 removal, adjacent-block merging with citation remapping,
-`transforms/normalize.ts:60`) and `remove-noise`. Its only caller is
-`lib/rag/ingest/document.ts:138`; the generation path feeds raw provider text
+[`transforms/normalize.ts:60`](lib/document/transforms/normalize.ts#L60)) and `remove-noise`. Its only caller is
+[`lib/rag/ingest/document.ts:138`](lib/rag/ingest/document.ts#L138); the generation path feeds raw provider text
 straight into the prompt.

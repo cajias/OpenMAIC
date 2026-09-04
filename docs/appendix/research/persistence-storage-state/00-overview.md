@@ -9,26 +9,26 @@ locale trees (`lib/i18n/`).
 
 ## Charter
 
-`packages/@openmaic/storage/src/index.ts:1-23` states the package's charter
+[`packages/@openmaic/storage/src/index.ts:1-23`](packages/@openmaic/storage/src/index.ts#L1-L23) states the package's charter
 verbatim: `@openmaic/dsl` owns *what* persists (document/runtime shape,
 validation, migration, the asset `StorageProvider` interface); `@openmaic/storage`
 owns *where/how* it persists. The pluggable seam is deliberately **the backend,
 not the database driver** — every PostgreSQL backend takes an injected
 `Queryable`/`WithTransaction` and imports no driver
-(`packages/@openmaic/storage/src/runtime/pg.ts:41-53`).
+([`packages/@openmaic/storage/src/runtime/pg.ts:41-53`](packages/@openmaic/storage/src/runtime/pg.ts#L41-L53)).
 
 Five storage primitives exist, each with its own interface plus 1–3 backends:
 
 | Primitive | Interface | Backends shipped |
 | --- | --- | --- |
-| KV (small keyed values, 2 scopes) | `KVStore` (`src/kv/types.ts:15`) | browser (`kv/browser.ts`), HTTP account-only (`kv/http.ts`) |
-| Document (a course aggregate) | `DocumentStore` (`src/document/types.ts:180`) | browser IndexedDB, HTTP, PostgreSQL |
+| KV (small keyed values, 2 scopes) | `KVStore` ([`src/kv/types.ts:15`](packages/@openmaic/storage/src/kv/types.ts#L15)) | browser (`kv/browser.ts`), HTTP account-only (`kv/http.ts`) |
+| Document (a course aggregate) | `DocumentStore` ([`src/document/types.ts:180`](packages/@openmaic/storage/src/document/types.ts#L180)) | browser IndexedDB, HTTP, PostgreSQL |
 | Runtime (learner sessions/records) | `RuntimeStore` (`src/runtime/types.ts`) | browser IndexedDB, HTTP, PostgreSQL |
-| Asset (content-addressed bytes) | `AssetStore` (`src/asset/types.ts:140`) | browser IndexedDB pool, HTTP, PostgreSQL registry over a pluggable byte layer (PG column or S3) |
-| Agent session / material / user skill | `AgentSessionStore` etc. (`src/agent-session/types.ts:269`) | PostgreSQL only |
+| Asset (content-addressed bytes) | `AssetStore` ([`src/asset/types.ts:140`](packages/@openmaic/storage/src/asset/types.ts#L140)) | browser IndexedDB pool, HTTP, PostgreSQL registry over a pluggable byte layer (PG column or S3) |
+| Agent session / material / user skill | `AgentSessionStore` etc. ([`src/agent-session/types.ts:269`](packages/@openmaic/storage/src/agent-session/types.ts#L269)) | PostgreSQL only |
 
 Usage metering is the one entity with a **filesystem** backend:
-`lib/server/usage-storage.ts:132` appends JSONL to
+[`lib/server/usage-storage.ts:132`](lib/server/usage-storage.ts#L132) appends JSONL to
 `data/usage/<YYYY>-<MM>.jsonl`.
 
 ## Internal parts
@@ -159,7 +159,7 @@ flowchart LR
   q4 -->|no| pgbytes["asset_blobs.bytes BYTEA column"]
 ```
 
-Local mode is the default: `lib/persistence/bootstrap.ts:15-17` gates the whole
+Local mode is the default: [`lib/persistence/bootstrap.ts:15-17`](lib/persistence/bootstrap.ts#L15-L17) gates the whole
 HTTP wiring on `typeof window !== 'undefined' && process.env.NEXT_PUBLIC_PERSISTENCE === '1'`.
 
 Every planned section of this pack is present; nothing was omitted. Two sections
@@ -172,17 +172,17 @@ Ten files. Every row links, so this table is the pack's navigation as well as it
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file — charter, inventory, deployment modes |
-| [`01a-modules-package.md`](./01a-modules-package.md) | `packages/@openmaic/storage` module by module |
-| [`01b-modules-app.md`](./01b-modules-app.md) | `lib/persistence`, `lib/document-store`, client stores, i18n |
-| [`02a-interfaces-abstraction.md`](./02a-interfaces-abstraction.md) | verbatim interface signatures + backend `classDiagram` |
-| [`02b-entities.md`](./02b-entities.md) | real column/field names, `erDiagram`s, browser store table |
-| [`03-flows.md`](./03-flows.md) | five traced end-to-end flows with hop tables and sequence diagrams |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | npm deps, platform APIs, env vars, config resolution |
-| [`05-failure-modes.md`](./05-failure-modes.md) | per-component failure behaviour and error taxonomy |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | measured metrics with commands, strengths, fragility |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined, and why |
+| [`01a-modules-package.md`](docs/appendix/research/persistence-storage-state/01a-modules-package.md) | `packages/@openmaic/storage` module by module |
+| [`01b-modules-app.md`](docs/appendix/research/persistence-storage-state/01b-modules-app.md) | `lib/persistence`, `lib/document-store`, client stores, i18n |
+| [`02a-interfaces-abstraction.md`](docs/appendix/research/persistence-storage-state/02a-interfaces-abstraction.md) | verbatim interface signatures + backend `classDiagram` |
+| [`02b-entities.md`](docs/appendix/research/persistence-storage-state/02b-entities.md) | real column/field names, `erDiagram`s, browser store table |
+| [`03-flows.md`](docs/appendix/research/persistence-storage-state/03-flows.md) | five traced end-to-end flows with hop tables and sequence diagrams |
+| [`04-dependencies-and-config.md`](docs/appendix/research/persistence-storage-state/04-dependencies-and-config.md) | npm deps, platform APIs, env vars, config resolution |
+| [`05-failure-modes.md`](docs/appendix/research/persistence-storage-state/05-failure-modes.md) | per-component failure behaviour and error taxonomy |
+| [`06-quality-and-metrics.md`](docs/appendix/research/persistence-storage-state/06-quality-and-metrics.md) | measured metrics with commands, strengths, fragility |
+| [`07-open-questions.md`](docs/appendix/research/persistence-storage-state/07-open-questions.md) | what could not be determined, and why |
 
-Pack→topic mapping and the shared chapter convention: [`../index.md`](../index.md).
+Pack→topic mapping and the shared chapter convention: [`../index.md`](docs/appendix/research/index.md).
 The three name collisions this pack's subject suffers from — five things called "storage" —
 are disambiguated in
-[`../../../10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md`](../../../10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md).
+[`../../../10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md`](docs/10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md).

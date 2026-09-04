@@ -25,7 +25,7 @@ Each record's payload is a `WhiteboardRuntimePayloadV1` (`:62`) —
 `WhiteboardRuntimeRecord = RuntimeRecord<WhiteboardRuntimePayloadV1>` (`:164`).
 There are no freehand strokes: every primitive is a `PPTElement` from
 `@openmaic/dsl`, so board and slide canvas share one element model and one
-renderer (`components/whiteboard/whiteboard-canvas.tsx:15`).
+renderer ([`components/whiteboard/whiteboard-canvas.tsx:15`](components/whiteboard/whiteboard-canvas.tsx#L15)).
 
 Six typed errors with stable `code` fields: element-not-found (`:98`), type
 mismatch (`:107`, `expectedType = 'code'`), code-line not found (`:122`),
@@ -35,7 +35,7 @@ whose `reason` is `'whiteboard_missing' | 'whiteboard_empty'`.
 ### 5.2 The fold (replay)
 
 `applyWhiteboardRuntimeOperation(sessionId, current, operation)`
-(`lib/whiteboard/runtime/fold.ts:51`) is the single transition function:
+([`lib/whiteboard/runtime/fold.ts:51`](lib/whiteboard/runtime/fold.ts#L51)) is the single transition function:
 
 - Every operation is deep-cloned and **recursively frozen** before use
   (`immutableClone`, `:30`), so the fold cannot alias caller state.
@@ -80,7 +80,7 @@ stateDiagram-v2
 
 ### 5.3 Store and projection
 
-`createWhiteboardRuntimeService(deps)` (`lib/whiteboard/runtime/store.ts:170`)
+`createWhiteboardRuntimeService(deps)` ([`lib/whiteboard/runtime/store.ts:170`](lib/whiteboard/runtime/store.ts#L170))
 exposes `read`, `append`, `reconcileOperation`. Notable invariants:
 
 - Session id is deterministic:
@@ -97,19 +97,19 @@ exposes `read`, `append`, `reconcileOperation`. Notable invariants:
 - Everything runs inside `withRuntimeStorageSharedLock` (`:174`).
 
 `refreshWhiteboardRuntimeProjection(stageId, minimumLastSeq?)`
-(`runtime/browser-projection.ts:8`) reads the folded state into `useCanvasStore`,
+([`runtime/browser-projection.ts:8`](lib/whiteboard/runtime/browser-projection.ts#L8)) reads the folded state into `useCanvasStore`,
 guarded by a generation token plus three staleness checks (stage changed,
 generation superseded, or a projection with a *higher* `lastSeq` already present,
 `:21-35`). It swallows all errors and returns `false`.
 
-`components/whiteboard/index.tsx:39` derives `runtimeAuthoritative` and, when
+[`components/whiteboard/index.tsx:39`](components/whiteboard/index.tsx#L39) derives `runtimeAuthoritative` and, when
 true, hides the clear/history controls (`:151`) — the op log is the authority and
 the snapshot-history UI serves only the legacy document path. The clear-animation
 duration in the component (`:81`, `Math.min(380 + n*55, 1400)`) is the same
-formula as `wbClearMs` (`lib/choreography/timing.ts:72`) — **duplicated literals,
+formula as `wbClearMs` ([`lib/choreography/timing.ts:72`](lib/choreography/timing.ts#L72)) — **duplicated literals,
 not a shared import**.
 
-`normalizeWhiteboardViewportRatio` (`lib/whiteboard/viewport.ts:22`) reciprocates
+`normalizeWhiteboardViewportRatio` ([`lib/whiteboard/viewport.ts:22`](lib/whiteboard/viewport.ts#L22)) reciprocates
 an inverted (>1) ratio, clamps into `[0.4, 1]`, and falls back to `9/16`.
 
 ## 6. `lib/video-export` — the pure compiler
@@ -148,7 +148,7 @@ scenes without casting.
 
 ### 6.3 The pass pipeline
 
-`compileVideoTimeline(input, deps)` (`lib/video-export/compile.ts:152`) runs nine
+`compileVideoTimeline(input, deps)` ([`lib/video-export/compile.ts:152`](lib/video-export/compile.ts#L152)) runs nine
 steps:
 
 ```mermaid
@@ -168,27 +168,27 @@ flowchart LR
 
 | Pass | Owns | Key detail |
 | --- | --- | --- |
-| `normalize` | ordering + action validation | Sorts by `order ?? inputIndex`, tie-broken by input index (`normalize.ts:100`). Drops unknown types (`unknown-action`) and actions missing a required field (`invalid-action`, `missingRequiredField`, `:29`). Empty speech text is legal — a dwell beat (`:40`). Zero scenes throws. |
-| `probe` | adapt `TimingProbe` → `ResolveTimelineOptions` | Defaults `onUnresolvedVideoDuration` to `'cap'`, unlike choreography's `'throw'` (`probe.ts:41`). An unavailable `play_video` is forced to a 0 ms dwell (`:44`). |
-| `timeline` | **timing only** | Calls `resolveActionTimeline`, buckets segments, derives one subtitle cue per non-empty speech, then splits cues via `splitCues` (`timeline.ts:143`). Emits `estimated-duration` diagnostics and sets `ttsEnabled`. Effect `params` merge descriptor defaults with authored overrides (`effectParams`, `:66`). |
-| `visuals` | Quiz/PBL static covers | `prepareQuizQuestionList` (`visuals.ts:65`) is the only path from authored quiz data into the IR — answer keys, analysis, points and learner state are structurally unrepresentable. Quiz scroll timing constants at `:90-95` (`96 px/s` at 720p, 4–24 s clamp). Legacy PBL v1 is read through `legacy/read.ts`. |
-| `interactive` | prepared HTML → first-class base | Success promotes `base.kind = 'interactive-html'` with `readyTimeoutMs = 8000` / `settleMs = 250` from `interactive-static.ts:4-7`. Failures map to three diagnostic codes via `failureCode` (`interactive.ts:11`). |
-| `reflow` | absolute-time shift | Compiler-added Quiz tails extend their scene and shift every later timestamp, including subtitle cues (`reflow.ts:31`). Authored intra-scene timing is untouched. |
-| `geometry` | element placement | Prefers the measured content box; a **rotated** element deliberately falls back to the authored box so the single downstream `rotate` is not applied twice (`geometry.ts:59-68`). A miss yields `geometry: null`, `degraded: true`, `unresolved-element`. |
-| `assets` | dedup + zip naming | Dedup key is `(assetId, kind)` — a ref may legitimately be both narration audio and video media (`assets.ts:59`). Presence is a property of that key, not of an individual reference (`:62-73`). Paths: `frames/<seq>-<slug>.png`, `audio/<slug>/speech-NNN.<ext>`, `media/<elementId>.<ext>`, `interactive/<slug>.html`. Collisions get `-2`, `-3`… (`unique`, `:101`). |
+| `normalize` | ordering + action validation | Sorts by `order ?? inputIndex`, tie-broken by input index ([`normalize.ts:100`](lib/video-export/passes/normalize.ts#L100)). Drops unknown types (`unknown-action`) and actions missing a required field (`invalid-action`, `missingRequiredField`, `:29`). Empty speech text is legal — a dwell beat (`:40`). Zero scenes throws. |
+| `probe` | adapt `TimingProbe` → `ResolveTimelineOptions` | Defaults `onUnresolvedVideoDuration` to `'cap'`, unlike choreography's `'throw'` ([`probe.ts:41`](lib/video-export/passes/probe.ts#L41)). An unavailable `play_video` is forced to a 0 ms dwell ([`:44`](lib/video-export/passes/probe.ts#L44)). |
+| `timeline` | **timing only** | Calls `resolveActionTimeline`, buckets segments, derives one subtitle cue per non-empty speech, then splits cues via `splitCues` ([`timeline.ts:143`](lib/video-export/passes/timeline.ts#L143)). Emits `estimated-duration` diagnostics and sets `ttsEnabled`. Effect `params` merge descriptor defaults with authored overrides (`effectParams`, `:66`). |
+| `visuals` | Quiz/PBL static covers | `prepareQuizQuestionList` ([`visuals.ts:65`](lib/video-export/passes/visuals.ts#L65)) is the only path from authored quiz data into the IR — answer keys, analysis, points and learner state are structurally unrepresentable. Quiz scroll timing constants at [`:90-95`](lib/video-export/passes/visuals.ts#L90-L95) (`96 px/s` at 720p, 4–24 s clamp). Legacy PBL v1 is read through `legacy/read.ts`. |
+| `interactive` | prepared HTML → first-class base | Success promotes `base.kind = 'interactive-html'` with `readyTimeoutMs = 8000` / `settleMs = 250` from [`interactive-static.ts:4-7`](lib/video-export/interactive-static.ts#L4-L7). Failures map to three diagnostic codes via `failureCode` ([`interactive.ts:11`](lib/video-export/passes/interactive.ts#L11)). |
+| `reflow` | absolute-time shift | Compiler-added Quiz tails extend their scene and shift every later timestamp, including subtitle cues ([`reflow.ts:31`](lib/video-export/passes/reflow.ts#L31)). Authored intra-scene timing is untouched. |
+| `geometry` | element placement | Prefers the measured content box; a **rotated** element deliberately falls back to the authored box so the single downstream `rotate` is not applied twice ([`geometry.ts:59-68`](lib/video-export/passes/geometry.ts#L59-L68)). A miss yields `geometry: null`, `degraded: true`, `unresolved-element`. |
+| `assets` | dedup + zip naming | Dedup key is `(assetId, kind)` — a ref may legitimately be both narration audio and video media ([`assets.ts:59`](lib/video-export/passes/assets.ts#L59)). Presence is a property of that key, not of an individual reference ([`:62-73`](lib/video-export/passes/assets.ts#L62-L73)). Paths: `frames/<seq>-<slug>.png`, `audio/<slug>/speech-NNN.<ext>`, `media/<elementId>.<ext>`, `interactive/<slug>.html`. Collisions get `-2`, `-3`… (`unique`, [`:101`](lib/video-export/passes/assets.ts#L101)). |
 
-`resolveAvailableVideos` (`compile.ts:137`) keys availability by **action object
+`resolveAvailableVideos` ([`compile.ts:137`](lib/video-export/compile.ts#L137)) keys availability by **action object
 identity, not `action.id`**, because the DSL does not enforce stage-wide action-id
 uniqueness.
 
-`emitManifest` (`passes/emit.ts:28`) re-parses the IR through
+`emitManifest` ([`passes/emit.ts:28`](lib/video-export/passes/emit.ts#L28)) re-parses the IR through
 `VideoTimelineSchema` and then through `VideoExportManifestSchema` (which adds
 `runtimeDiagnostics: []`), so a malformed IR fails at the compiler rather than in
 the renderer.
 
 ### 6.4 Subtitles
 
-`toSrt` / `toVtt` (`lib/video-export/subtitles.ts:43`, `:53`) format the IR's cue
+`toSrt` / `toVtt` ([`lib/video-export/subtitles.ts:43`](lib/video-export/subtitles.ts#L43), [`:53`](lib/video-export/subtitles.ts#L53)) format the IR's cue
 track. `usableCues` (`:38`) drops zero/negative spans and empty text so an
 estimated 0 ms narration never emits a malformed block. `normalizeText` (`:29`)
 collapses CRLF and trims trailing whitespace so a cue cannot end its own block
@@ -199,7 +199,7 @@ diverge.
 
 ### 6.5 The Hyperframes emitter
 
-`emitHyperframes(ir, options)` (`lib/video-export/emit-hyperframes/index.ts:1229`)
+`emitHyperframes(ir, options)` ([`lib/video-export/emit-hyperframes/index.ts:1229`](lib/video-export/emit-hyperframes/index.ts#L1229))
 returns `EmittedProject` — text files only, plus `vendorAssets` describing binary
 fonts by `{ path, sourceUrl }` (`:60`).
 
@@ -237,13 +237,13 @@ Cover CSS is written against `COVER_DESIGN_WIDTH = 1280` (`:789`) and scaled by
 would differ between `hyperframes preview` and `hyperframes render`.
 
 Effects are emitted per-descriptor rather than generically
-(`emit-hyperframes/effects.ts:1-19`): spotlight is an SVG mask, laser is nested
+([`emit-hyperframes/effects.ts:1-19`](lib/video-export/emit-hyperframes/effects.ts#L1-L19)): spotlight is an SVG mask, laser is nested
 CSS divs, and a dependency-free `cubicBezier` implementation
-(`effects.ts:44`) supplies the named eases so no easing library is needed.
+([`effects.ts:44`](lib/video-export/emit-hyperframes/effects.ts#L44)) supplies the named eases so no easing library is needed.
 
 ### 6.6 Prebuilt font assets and the generator scripts
 
-Three `package.json` scripts (`package.json:12-14`) regenerate committed modules:
+Three `package.json` scripts ([`package.json:12-14`](package.json#L12-L14)) regenerate committed modules:
 
 | Script | Generator | Output module | Public bytes |
 | --- | --- | --- | --- |
@@ -254,9 +254,9 @@ Three `package.json` scripts (`package.json:12-14`) regenerate committed modules
 The KaTeX generator reads `katex/dist/katex.min.css`, rewrites every
 `@font-face` `src` to a `__OPENMAIC_QUIZ_FONT_BASE__` placeholder, copies the
 WOFF2 files into `public/vendor/video-export/fonts`, and **asserts exactly 20
-faces** (`generate-video-export-katex.mjs:36`) before writing a
+faces** ([`generate-video-export-katex.mjs:36`](scripts/generate-video-export-katex.mjs#L36)) before writing a
 prettier-formatted module. The emitted module exposes the same CSS twice
-(`katex-assets.ts:9`, `:13`): `KATEX_MEASUREMENT_CSS` pointing at
+([`katex-assets.ts:9`](lib/video-export/emit-hyperframes/katex-assets.ts#L9), [`:13`](lib/video-export/emit-hyperframes/katex-assets.ts#L13)): `KATEX_MEASUREMENT_CSS` pointing at
 `/vendor/video-export/fonts` (for the app's off-screen measurement) and
 `KATEX_EXPORT_CSS` pointing at `assets/fonts` (for the ZIP).
 
@@ -264,16 +264,16 @@ Why prebuilt at all: the render happens in a container with **zero outbound
 network** (`render-service/docker-entrypoint.sh`), so any face the composition
 references must already be inside the ZIP; and pixel-identical Quiz rendering
 across hosts is only possible when the exact faces travel with the project — the
-emitted README says as much (`emit-hyperframes/index.ts:1194-1198`).
+emitted README says as much ([`emit-hyperframes/index.ts:1194-1198`](lib/video-export/emit-hyperframes/index.ts#L1194-L1198)).
 
 ## 7. `lib/video-export-app` — the impure companion
 
 | Module | Responsibility |
 | --- | --- |
-| `timeline-deps.ts:205` `createVideoTimelineDeps` | Load Dexie rows, probe real audio/video durations off-document, pre-measure slide geometry, and hand back the synchronous `TimingProbe`/`AssetSource`/`GeometryProbe`/`InteractiveHtmlSource` plus the loaded `records`. |
-| `collect.ts:326` `collectVideoAssets` | Fill the asset plan's paths with bytes: render slide PNGs via `slideToPng`, read audio/media blobs, materialise packaged HTML. |
-| `package-zip.ts:53` `packageVideoZip` | Lay text files at the project root, blobs under `assets/<planPath>`, vendor fonts at their declared paths, and GSAP at `project.gsapVendorPath`. JSZip is dynamically imported. |
-| `build-export-zip.ts:137` `buildExportZip` | The shared prefix of both export paths. Also `compileSubtitles` (`:209`) for the subtitles-only download. |
+| [`timeline-deps.ts:205`](lib/video-export-app/timeline-deps.ts#L205) `createVideoTimelineDeps` | Load Dexie rows, probe real audio/video durations off-document, pre-measure slide geometry, and hand back the synchronous `TimingProbe`/`AssetSource`/`GeometryProbe`/`InteractiveHtmlSource` plus the loaded `records`. |
+| [`collect.ts:326`](lib/video-export-app/collect.ts#L326) `collectVideoAssets` | Fill the asset plan's paths with bytes: render slide PNGs via `slideToPng`, read audio/media blobs, materialise packaged HTML. |
+| [`package-zip.ts:53`](lib/video-export-app/package-zip.ts#L53) `packageVideoZip` | Lay text files at the project root, blobs under `assets/<planPath>`, vendor fonts at their declared paths, and GSAP at `project.gsapVendorPath`. JSZip is dynamically imported. |
+| [`build-export-zip.ts:137`](lib/video-export-app/build-export-zip.ts#L137) `buildExportZip` | The shared prefix of both export paths. Also `compileSubtitles` ([`:209`](lib/video-export-app/build-export-zip.ts#L209)) for the subtitles-only download. |
 | `cover-config.ts` | Resolve localized cover labels + `resolveVideoExportCta`. |
 | `quiz-layout.ts` | Off-screen Quiz question-list measurement using `KATEX_MEASUREMENT_CSS` / `NOTO_CJK_MEASUREMENT_CSS`. |
 | `prepare-interactive-html.ts` | Package embedded interactive HTML into a frozen, self-contained page and hash it. |
@@ -298,7 +298,7 @@ Two subtle bridges live here:
 
 ## 8. `render-service` — the isolated MP4 renderer
 
-`render-service/src/main.ts:229` `createApp(deps)` builds a Hono app over
+[`render-service/src/main.ts:229`](render-service/src/main.ts#L229) `createApp(deps)` builds a Hono app over
 injected collaborators (`AppDeps`, `:76`). The entry file is deliberately named
 `main.ts`: `@hyperframes/producer`'s main module auto-starts its own bundled HTTP
 server when the process entry path ends in `/src/server.ts` (`:19-23`).
@@ -314,15 +314,15 @@ waiting requests keep their bodies unconsumed and backpressured on the socket.
 
 | Module | Responsibility |
 | --- | --- |
-| `config.ts:46` | One frozen `config` object; `boundedIntEnv` (`:15`) throws when a knob exceeds the selected resource profile. |
-| `resource-profile.ts:107` `resolveResourceProfile` | Two profiles: `standard` (prefer-beginframe, ≥8 GiB, `maxParallelChunks 4`) and `low-memory` (screenshot-only, ≥4 GiB, 1). `assertCompatibleEnvironment` (`:75`) **rejects a conflicting override** and otherwise exports the required `PRODUCER_*` vars. `validateResourceProfileStartup` (`:138`) refuses to boot below the memory floor or without an existing `PRODUCER_HEADLESS_SHELL_PATH`. |
-| `render-coordinator.ts:73` | `reserve` → `submit` → `pump` → `run`. Reservation is claimed *before* extraction so a rejected caller never buffers (`:140`). `accepting` (`:130`) is aggregate-only by design — publishing per-identity counts would leak active users' IPs. |
-| `render-executor.ts:168` `InProcessExecutor` | Adapter over `@hyperframes/producer` (`createRenderJob`/`executeRenderJob`) with a deadline `AbortController`, `abortCause` discrimination (`cancelled` vs `deadline`), and `buildRenderExecutionMetrics` (`:126`) recording requested-vs-actual capture mode and worker count. |
-| `chunk-executor.ts:1-25` | Opt-in local plan → chunk → assemble path over `@hyperframes/producer/distributed`, with an immutable `ImmutableRenderPlan` (`:67`) carrying `planHash`, `projectHash`, per-asset SHA-256, and six `ChunkFailureCode`s (`:29`). |
-| `unzip.ts:31` `unzipProject` | fflate async unzip with a synchronous `filter` gate that rejects on declared sizes before decompressing anything; then a `relative()`-based traversal check and an `index.html` requirement (`:74`). |
-| `preview-renderer.ts:43` | `PreviewRenderer` interface + `ChromiumPreviewRenderer`: server-renders one persisted scene with React, injects into the parsed `<head>` via parse5, and screenshots through puppeteer-core. |
+| [`config.ts:46`](render-service/src/config.ts#L46) | One frozen `config` object; `boundedIntEnv` (`:15`) throws when a knob exceeds the selected resource profile. |
+| [`resource-profile.ts:107`](render-service/src/resource-profile.ts#L107) `resolveResourceProfile` | Two profiles: `standard` (prefer-beginframe, ≥8 GiB, `maxParallelChunks 4`) and `low-memory` (screenshot-only, ≥4 GiB, 1). `assertCompatibleEnvironment` ([`:75`](render-service/src/resource-profile.ts#L75)) **rejects a conflicting override** and otherwise exports the required `PRODUCER_*` vars. `validateResourceProfileStartup` ([`:138`](render-service/src/resource-profile.ts#L138)) refuses to boot below the memory floor or without an existing `PRODUCER_HEADLESS_SHELL_PATH`. |
+| [`render-coordinator.ts:73`](render-service/src/render-coordinator.ts#L73) | `reserve` → `submit` → `pump` → `run`. Reservation is claimed *before* extraction so a rejected caller never buffers ([`:140`](render-service/src/render-coordinator.ts#L140)). `accepting` ([`:130`](render-service/src/render-coordinator.ts#L130)) is aggregate-only by design — publishing per-identity counts would leak active users' IPs. |
+| [`render-executor.ts:168`](render-service/src/render-executor.ts#L168) `InProcessExecutor` | Adapter over `@hyperframes/producer` (`createRenderJob`/`executeRenderJob`) with a deadline `AbortController`, `abortCause` discrimination (`cancelled` vs `deadline`), and `buildRenderExecutionMetrics` ([`:126`](render-service/src/render-executor.ts#L126)) recording requested-vs-actual capture mode and worker count. |
+| [`chunk-executor.ts:1-25`](render-service/src/chunk-executor.ts#L1-L25) | Opt-in local plan → chunk → assemble path over `@hyperframes/producer/distributed`, with an immutable `ImmutableRenderPlan` ([`:67`](render-service/src/chunk-executor.ts#L67)) carrying `planHash`, `projectHash`, per-asset SHA-256, and six `ChunkFailureCode`s ([`:29`](render-service/src/chunk-executor.ts#L29)). |
+| [`unzip.ts:31`](render-service/src/unzip.ts#L31) `unzipProject` | fflate async unzip with a synchronous `filter` gate that rejects on declared sizes before decompressing anything; then a `relative()`-based traversal check and an `index.html` requirement ([`:74`](render-service/src/unzip.ts#L74)). |
+| [`preview-renderer.ts:43`](render-service/src/preview-renderer.ts#L43) | `PreviewRenderer` interface + `ChromiumPreviewRenderer`: server-renders one persisted scene with React, injects into the parsed `<head>` via parse5, and screenshots through puppeteer-core. |
 | `preview-gate.ts` / `semaphore.ts` / `capped-stream.ts` | Independent preview admission, the counting semaphore with `tryAcquire`, and the byte-counting stream cap. |
-| `job-store.ts` / `artifact-store.ts` | `InMemoryJobStore` with a TTL reap callback; `LocalDiskArtifactStore` behind `ArtifactStore.locate()`, which may return `{kind:'url'}` for a presigned redirect (`main.ts:453`). |
+| `job-store.ts` / `artifact-store.ts` | `InMemoryJobStore` with a TTL reap callback; `LocalDiskArtifactStore` behind `ArtifactStore.locate()`, which may return `{kind:'url'}` for a presigned redirect ([`main.ts:453`](render-service/src/main.ts#L453)). |
 
 ```mermaid
 sequenceDiagram

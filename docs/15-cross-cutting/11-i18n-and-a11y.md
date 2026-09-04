@@ -7,15 +7,15 @@ for a product whose primary output is an animated, narrated lesson.
 **Sources:** `lib/i18n/{config,locales,types}.ts`, `lib/i18n/locales/*.json` (12),
 `lib/i18n/workbench-locales/*.json` (10), `lib/i18n/workbench.ts`,
 `scripts/check-i18n-keys.mjs`, `lib/hooks/use-i18n.tsx`, `app/layout.tsx`,
-`packages/@openmaic/generation/src/outline-generator.ts:20-21`,
-`lib/choreography/timing.ts:86-95`, `components/edit/PlaybackChromeRoot.tsx:1308-1410`,
+[`packages/@openmaic/generation/src/outline-generator.ts:20-21`](packages/@openmaic/generation/src/outline-generator.ts#L20-L21),
+[`lib/choreography/timing.ts:86-95`](lib/choreography/timing.ts#L86-L95), [`components/edit/PlaybackChromeRoot.tsx:1308-1410`](components/edit/PlaybackChromeRoot.tsx#L1308-L1410),
 `lib/video-export/subtitles.ts`, `lib/video-export/emit-hyperframes/index.ts`,
-[`../appendix/research/persistence-storage-state/01b-modules-app.md`](../appendix/research/persistence-storage-state/01b-modules-app.md).
+[`../appendix/research/persistence-storage-state/01b-modules-app.md`](docs/appendix/research/persistence-storage-state/01b-modules-app.md).
 
 ## Supported locales
 
 12, registered in one place (`lib/i18n/locales.ts`), default **`zh-CN`**
-(`lib/i18n/types.ts:5`).
+([`lib/i18n/types.ts:5`](lib/i18n/types.ts#L5)).
 
 | Code | Label | Short | RTL |
 | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ flowchart TD
 
 Two consequences of resolving in a client `useEffect`: the first paint is always
 `zh-CN`, and `localStorage` unavailability (privacy modes) silently keeps the
-default — both `try`/`catch`ed with a comment (`use-i18n.tsx:37-46`).
+default — both `try`/`catch`ed with a comment ([`use-i18n.tsx:37-46`](lib/hooks/use-i18n.tsx#L37-L46)).
 
 `setLocale` writes `localStorage['locale']` and calls `changeLanguage`. Note this
 is a *raw* `localStorage` key, not the account-scoped KV the settings store uses,
@@ -84,14 +84,14 @@ flowchart LR
 
 The gate enforces **exact** parity — an extra key fails just as hard as a missing
 one — against `en-US.json`. Its `LOCALES_DIR` is
-`lib/i18n/locales` only (`scripts/check-i18n-keys.mjs:4`), so the 10
+`lib/i18n/locales` only ([`scripts/check-i18n-keys.mjs:4`](scripts/check-i18n-keys.mjs#L4)), so the 10
 `workbench-locales/` overlays and the TS-resident `en`/`zh` workbench copy are
 outside its scope. `interpolation.escapeValue: false` is set globally
-(`lib/i18n/config.ts:42`) — safe because React escapes children, but it means any
+([`lib/i18n/config.ts:42`](lib/i18n/config.ts#L42)) — safe because React escapes children, but it means any
 future `dangerouslySetInnerHTML` fed from a translation would be unescaped.
 
 Adding a locale is documented in-file as two steps: create the JSON, add a
-registry entry (`lib/i18n/locales.ts:11-14`). Nothing enforces that the workbench
+registry entry ([`lib/i18n/locales.ts:11-14`](lib/i18n/locales.ts#L11-L14)). Nothing enforces that the workbench
 overlay is added too.
 
 ## Output-language control
@@ -102,16 +102,16 @@ The UI locale and the **generated course language** are separate axes.
 | --- | --- |
 | UI chrome | i18next, resolved as above |
 | Course content | `languageDirective`, produced by the outline call and threaded through every downstream prompt |
-| Default directive | `'Teach in the language that matches the user requirement.'` (`outline-generator.ts:20-21`) — inference from the user's prose, not from the UI locale |
-| PBL | `languageDirective` is the "SINGLE source of truth for content language" (`pbl/planner-core.ts:85`); a project falls back to `project.languageDirective \|\| project.language` |
-| Narration timing | `estimateSpeechDurationMs` branches on a CJK character ratio: 150 ms/char above a 0.3 threshold, 240 ms/word otherwise, 2000 ms floor (`lib/choreography/timing.ts:86-95`) |
+| Default directive | `'Teach in the language that matches the user requirement.'` ([`outline-generator.ts:20-21`](packages/@openmaic/generation/src/outline-generator.ts#L20-L21)) — inference from the user's prose, not from the UI locale |
+| PBL | `languageDirective` is the "SINGLE source of truth for content language" ([`pbl/planner-core.ts:85`](packages/@openmaic/generation/src/pbl/planner-core.ts#L85)); a project falls back to `project.languageDirective \|\| project.language` |
+| Narration timing | `estimateSpeechDurationMs` branches on a CJK character ratio: 150 ms/char above a 0.3 threshold, 240 ms/word otherwise, 2000 ms floor ([`lib/choreography/timing.ts:86-95`](lib/choreography/timing.ts#L86-L95)) |
 
 So a French UI with an English prompt produces an English course. That is a
 deliberate design — the directive follows the *requirement*, not the chrome.
 
 Known leak: hard-coded Chinese strings reach learners from parts of the generation
 pipeline regardless of `languageDirective` (recorded in
-[`../appendix/research/generation-pipeline/`](../appendix/research/generation-pipeline/00-overview.md)).
+[`../appendix/research/generation-pipeline/`](docs/appendix/research/generation-pipeline/00-overview.md)).
 
 ## Accessibility, as it actually is
 
@@ -123,12 +123,12 @@ pipeline regardless of `languageDirective` (recorded in
 | Roles | 9 `role="group"`, 6 `role="img"`, 6 `role="alert"`, 4 `role="button"`, 3 `role="tablist"`/`"tab"`, 2 `role="switch"`/`"status"`/`"separator"`/`"option"`/`"menuitem"`/`"menu"` |
 | Base primitives | shadcn/Radix components, which carry their own focus management and roles |
 | Playback keyboard control | a full shortcut set (below) |
-| Spoken content as text | every `SpeechAction` is mirrored into the chat panel via `addLectureMessage` and into `lectureSpeech` (`PlaybackChromeRoot.tsx:781-796`) |
+| Spoken content as text | every `SpeechAction` is mirrored into the chat panel via `addLectureMessage` and into `lectureSpeech` ([`PlaybackChromeRoot.tsx:781-796`](components/edit/PlaybackChromeRoot.tsx#L781-L796)) |
 | Exported video captions | `subtitles.srt` **and** `subtitles.vtt` sidecars from `toSrt`/`toVtt`, plus an optional burned-in band |
 | Exported HTML text direction | `dir="auto"` on 8 emitted text nodes (`lib/video-export/emit-hyperframes/index.ts`) |
 | Alt text | 72 `alt=` occurrences |
-| Reduced motion, in the editor and workbench | 40 occurrences across 12 files. Six carry a `prefers-reduced-motion` media query or `matchMedia` check — `app/globals.css:572` (kills the ai-thinking shimmer), `components/workbench/workspace-shell.css:582`/`:1202`/`:1584`/`:1973`, `components/workbench/pro-swap.css:238`, `components/workbench/workspace/pro-popover-scope.css:199`, `lib/workbench/pro-swap.ts:96-97` (skips `startViewTransition`), `components/workbench/chat/autoscroll.ts:101`. Six consume motion's `useReducedMotion()` — `EditShell.tsx:280`, `FloatingInsertToolbar.tsx:68`, `SlideNavRail.tsx:68`, `ActionsBar.tsx:1084`, `ProBadge.tsx:33`, and `classroom-complete.tsx` (five hooks at `:82`/`:125`/`:244`/`:262`/`:318`, plus `MotionConfig reducedMotion="always"` at `:362`) |
-| Screen-reader-only labelling | 35 `sr-only` usages across 23 files — icon-button labels (`ai-elements/plan.tsx:120`, `prompt-input.tsx:322`, `ui/dialog.tsx:69`, `ui/carousel.tsx:188`/`:218`), Radix-required dialog titles (`settings/index.tsx:737-738`, `RosterDialog.tsx:78` with a comment explaining the requirement), and one live-region status (`classroom-complete.tsx:369`, `<span className="sr-only" role="status">`) |
+| Reduced motion, in the editor and workbench | 40 occurrences across 12 files. Six carry a `prefers-reduced-motion` media query or `matchMedia` check — [`app/globals.css:572`](app/globals.css#L572) (kills the ai-thinking shimmer), [`components/workbench/workspace-shell.css:582`](components/workbench/workspace-shell.css#L582)/[`:1202`](components/workbench/workspace-shell.css#L1202)/[`:1584`](components/workbench/workspace-shell.css#L1584)/[`:1973`](components/workbench/workspace-shell.css#L1973), [`components/workbench/pro-swap.css:238`](components/workbench/pro-swap.css#L238), [`components/workbench/workspace/pro-popover-scope.css:199`](components/workbench/workspace/pro-popover-scope.css#L199), [`lib/workbench/pro-swap.ts:96-97`](lib/workbench/pro-swap.ts#L96-L97) (skips `startViewTransition`), [`components/workbench/chat/autoscroll.ts:101`](components/workbench/chat/autoscroll.ts#L101). Six consume motion's `useReducedMotion()` — [`EditShell.tsx:280`](components/edit/EditShell/EditShell.tsx#L280), [`FloatingInsertToolbar.tsx:68`](components/edit/EditShell/FloatingInsertToolbar.tsx#L68), [`SlideNavRail.tsx:68`](components/edit/SlideNavRail/SlideNavRail.tsx#L68), [`ActionsBar.tsx:1084`](components/edit/ActionsBar/ActionsBar.tsx#L1084), [`ProBadge.tsx:33`](components/workbench/ProBadge.tsx#L33), and `classroom-complete.tsx` (five hooks at [`:82`](components/scene-renderers/classroom-complete.tsx#L82)/[`:125`](components/scene-renderers/classroom-complete.tsx#L125)/[`:244`](components/scene-renderers/classroom-complete.tsx#L244)/[`:262`](components/scene-renderers/classroom-complete.tsx#L262)/[`:318`](components/scene-renderers/classroom-complete.tsx#L318), plus `MotionConfig reducedMotion="always"` at [`:362`](components/scene-renderers/classroom-complete.tsx#L362)) |
+| Screen-reader-only labelling | 35 `sr-only` usages across 23 files — icon-button labels ([`ai-elements/plan.tsx:120`](components/ai-elements/plan.tsx#L120), [`prompt-input.tsx:322`](components/ai-elements/prompt-input.tsx#L322), [`ui/dialog.tsx:69`](components/ui/dialog.tsx#L69), [`ui/carousel.tsx:188`](components/ui/carousel.tsx#L188)/[`:218`](components/ui/carousel.tsx#L218)), Radix-required dialog titles ([`settings/index.tsx:737-738`](components/settings/index.tsx#L737-L738), [`RosterDialog.tsx:78`](components/edit/AgentsView/RosterDialog.tsx#L78) with a comment explaining the requirement), and one live-region status ([`classroom-complete.tsx:369`](components/scene-renderers/classroom-complete.tsx#L369), `<span className="sr-only" role="status">`) |
 
 ### Playback keyboard map
 
@@ -159,11 +159,11 @@ better than most keyboard layers.
 
 | Gap | Verified how | Why it matters here |
 | --- | --- | --- |
-| **Reduced motion stops at the authoring chrome** | of the 12 files that honour it (above), all but `classroom-complete.tsx` are editor, workbench or workspace surfaces. 17 files under `components/scene-renderers/`, plus `PlaybackChromeRoot.tsx`, carry animation or transition code; exactly one of the 18 checks. `animate.css` (imported globally, `app/layout.tsx:6`), `tw-animate-css` (`app/globals.css:2`) and GSAP in the exporter (`lib/video-export/emit-hyperframes/index.ts`, `public/vendor/gsap.min.js`) have no reduced-motion branch at all | the author gets the accommodation; the learner does not. A vestibular-sensitive learner has no way to opt out of spotlights, lasers, whiteboard draws or slide transitions — the animations that define the product's primary output. |
-| **`<html lang>` is hardcoded `"en"` and never updated** | `app/layout.tsx:43`; nothing in `use-i18n.tsx` touches `document.documentElement` | a screen reader announces Chinese, Japanese, Arabic and Russian content with English phonetics. |
+| **Reduced motion stops at the authoring chrome** | of the 12 files that honour it (above), all but `classroom-complete.tsx` are editor, workbench or workspace surfaces. 17 files under `components/scene-renderers/`, plus `PlaybackChromeRoot.tsx`, carry animation or transition code; exactly one of the 18 checks. `animate.css` (imported globally, [`app/layout.tsx:6`](app/layout.tsx#L6)), `tw-animate-css` ([`app/globals.css:2`](app/globals.css#L2)) and GSAP in the exporter (`lib/video-export/emit-hyperframes/index.ts`, `public/vendor/gsap.min.js`) have no reduced-motion branch at all | the author gets the accommodation; the learner does not. A vestibular-sensitive learner has no way to opt out of spotlights, lasers, whiteboard draws or slide transitions — the animations that define the product's primary output. |
+| **`<html lang>` is hardcoded `"en"` and never updated** | [`app/layout.tsx:43`](app/layout.tsx#L43); nothing in `use-i18n.tsx` touches `document.documentElement` | a screen reader announces Chinese, Japanese, Arabic and Russian content with English phonetics. |
 | **No `dir` management at all** | zero `dir=` in `components/`, `app/` or the renderer; only the exporter emits `dir="auto"` | `ar-SA` is a shipped locale rendered LTR. The one place RTL is handled is the *exported video*, not the app. |
 | **No live captions in the classroom** | no `<track>` element anywhere; `role="alert"` appears 6 times, `aria-live` only 3 | narration text is visible in the chat panel but is not a caption track and is not announced as a live region, so a screen-reader user gets no synchronised transcript. |
-| **No skip link, and landmarks are incidental** | zero matches for "skip to content" / `skipToContent` / `skipLink` across `components/`, `app/`, `lib/`. `<main>` appears in exactly two places (`app/workbench/new/client.tsx:112`, `:132` and `components/scene-renderers/pbl/v2/chat.tsx:531`); there is no `<nav>`, `role="navigation"` or `role="banner"` anywhere. Note this is *not* the same question as `sr-only`, which is used 35 times (above) for labelling, not structure | keyboard navigation into a 1848-line playback chrome has no shortcut past the chrome, and a screen reader gets no document outline to jump around with. |
+| **No skip link, and landmarks are incidental** | zero matches for "skip to content" / `skipToContent` / `skipLink` across `components/`, `app/`, `lib/`. `<main>` appears in exactly two places ([`app/workbench/new/client.tsx:112`](app/workbench/new/client.tsx#L112), [`:132`](app/workbench/new/client.tsx#L132) and [`components/scene-renderers/pbl/v2/chat.tsx:531`](components/scene-renderers/pbl/v2/chat.tsx#L531)); there is no `<nav>`, `role="navigation"` or `role="banner"` anywhere. Note this is *not* the same question as `sr-only`, which is used 35 times (above) for labelling, not structure | keyboard navigation into a 1848-line playback chrome has no shortcut past the chrome, and a screen reader gets no document outline to jump around with. |
 | **`tabIndex` used 9 times** | grep count | for a product with a custom canvas, a chat panel, a sidebar and an iframe pool, that is a thin focus story. |
 | **No a11y tooling in CI** | no `eslint-plugin-jsx-a11y` in `eslint.config.mjs` or `package.json`; no `axe` dependency | none of the above would be caught by a gate. |
 | **Interactive scenes are model-authored** | the model has no a11y instructions traced in the prompts | an interactive widget's accessibility is whatever the LLM happened to emit. |
@@ -175,7 +175,7 @@ with a 14-line comment explaining why: only the stylesheet carries per-subset
 `unicode-range`, so pointing `next/font` at one subset file made Cyrillic (ru-RU)
 and tone-marked Vietnamese fall back to an arbitrary OS font **mid-word**, and
 declaring the other subsets as sibling faces without `unicode-range` does not fix
-it because the browser just picks one (`app/layout.tsx:16-29`). That is a real
+it because the browser just picks one ([`app/layout.tsx:16-29`](app/layout.tsx#L16-L29)). That is a real
 multilingual rendering bug found and fixed correctly.
 
 ## Open questions
@@ -190,6 +190,6 @@ multilingual rendering bug found and fixed correctly.
 
 ## Related
 
-- [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md) — the i18n resource loading and the KV scopes.
-- [`../08-classroom-runtime/index.md`](../08-classroom-runtime/index.md) — the playback chrome that owns the keyboard map.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — subtitle emission and the burn-in band.
+- [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md) — the i18n resource loading and the KV scopes.
+- [`../08-classroom-runtime/index.md`](docs/08-classroom-runtime/index.md) — the playback chrome that owns the keyboard map.
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — subtitle emission and the burn-in band.

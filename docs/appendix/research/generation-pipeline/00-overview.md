@@ -38,17 +38,17 @@ Four sequential concerns:
 
 1. **Ingestion** — bytes → extractor → normalised `DocumentArtifact` /
    `MediaArtifact` → flattened `ParsedPdfContent` → a single multi-document
-   text+image *bundle* (`lib/document/bundle.ts:181`).
+   text+image *bundle* ([`lib/document/bundle.ts:181`](lib/document/bundle.ts#L181)).
 2. **Outline generation** — requirement + bundle → one LLM call →
    `{ languageDirective, courseTitle, outlines[] }`
-   (`packages/@openmaic/generation/src/outline-generator.ts:120`, streamed by
-   `app/api/generate/scene-outlines-stream/route.ts:287`).
+   ([`packages/@openmaic/generation/src/outline-generator.ts:120`](packages/@openmaic/generation/src/outline-generator.ts#L120), streamed by
+   [`app/api/generate/scene-outlines-stream/route.ts:287`](app/api/generate/scene-outlines-stream/route.ts#L287)).
 3. **Stage planning** — mint the stage id, persist the stage shell, publish /
-   freshness metadata (`app/api/stages/route.ts:50`,
-   `app/api/stage-meta/[stageId]/route.ts:38`).
+   freshness metadata ([`app/api/stages/route.ts:50`](app/api/stages/route.ts#L50),
+   [`app/api/stage-meta/[stageId]/route.ts:38`](app/api/stage-meta/[stageId]/route.ts#L38)).
 4. **Per-scene generation** — for each outline: content
-   (`scene-generator.ts:227`) → actions (`scene-generator.ts:1608`) → assemble
-   (`scene-builder.ts:22`) → optional TTS → store.
+   ([`scene-generator.ts:227`](packages/@openmaic/generation/src/scene-generator.ts#L227)) → actions ([`scene-generator.ts:1608`](packages/@openmaic/generation/src/scene-generator.ts#L1608)) → assemble
+   ([`scene-builder.ts:22`](packages/@openmaic/generation/src/scene-builder.ts#L22)) → optional TTS → store.
 
 The publishable package `@openmaic/generation` owns steps 2 and 4 as pure
 functions over an injected model seam:
@@ -70,8 +70,8 @@ decision, retry budget and persistence write lives in the app.
 
 | Mode | Driver | Progress transport | Entry |
 | --- | --- | --- | --- |
-| Interactive (default UI) | Browser: `app/generation-preview/page.tsx:306` + `lib/hooks/use-scene-generator.ts:627` | SSE for outlines; Zustand store status for scenes | `/generation-preview` |
-| One-shot server job | `lib/server/classroom-generation.ts:176` driven by `app/api/generate-classroom/route.ts:14` via `after()` | Job row polled by `GET /api/generate-classroom/[jobId]` | `POST /api/generate-classroom` |
+| Interactive (default UI) | Browser: [`app/generation-preview/page.tsx:306`](app/generation-preview/page.tsx#L306) + [`lib/hooks/use-scene-generator.ts:627`](lib/hooks/use-scene-generator.ts#L627) | SSE for outlines; Zustand store status for scenes | `/generation-preview` |
+| One-shot server job | [`lib/server/classroom-generation.ts:176`](lib/server/classroom-generation.ts#L176) driven by [`app/api/generate-classroom/route.ts:14`](app/api/generate-classroom/route.ts#L14) via `after()` | Job row polled by `GET /api/generate-classroom/[jobId]` | `POST /api/generate-classroom` |
 
 Both call the *same* package primitives; only the model plumbing, retry
 wiring and persistence differ.
@@ -239,7 +239,7 @@ Out of scope for this pack (documented by sibling packs):
   this package but consumed at classroom *runtime*, not during generation.
 - RAG ingestion. Note that `lib/document/transforms/` (the
   normalise/noise-removal pipeline) is consumed **only** by
-  `lib/rag/ingest/document.ts:138`; the generation path never calls
+  [`lib/rag/ingest/document.ts:138`](lib/rag/ingest/document.ts#L138); the generation path never calls
   `transformDocument`
   (`git grep -n "transformDocument" -- app lib` → registry/index/pipeline
   definitions plus `lib/rag/ingest/document.ts` only).
@@ -257,19 +257,19 @@ manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file — charter, internal parts, stage sequence, source inventory, boundaries |
-| [`01a-modules-package.md`](./01a-modules-package.md) | modules of the `@openmaic/generation` package |
-| [`01b-modules-app-ingestion.md`](./01b-modules-app-ingestion.md) | app layer, part 1: ingestion |
-| [`01c-modules-app-generation.md`](./01c-modules-app-generation.md) | app layer, part 2: generation routes, orchestration, UI |
-| [`02a-interfaces-package.md`](./02a-interfaces-package.md) | package core: the model seam (`AICallFn`) and the outline contracts |
-| [`02b-interfaces-scenes.md`](./02b-interfaces-scenes.md) | scene, retry and prompt contracts |
-| [`02c-interfaces-ingestion.md`](./02c-interfaces-ingestion.md) | ingestion and bundling contracts |
-| [`02d-interfaces-wire-and-prompt.md`](./02d-interfaces-wire-and-prompt.md) | wire shapes, plus one real assembled prompt end to end |
-| [`02e-interfaces-prompt-system.md`](./02e-interfaces-prompt-system.md) | the prompt system: templates, snippets, loaders |
-| [`03a-flows-ingestion-outline.md`](./03a-flows-ingestion-outline.md) | traced flows: ingestion and outline generation |
-| [`03b-flows-scenes-and-quiz.md`](./03b-flows-scenes-and-quiz.md) | traced flows: scenes, PBL, the classroom job, quiz |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | dependencies and configuration |
-| [`05-failure-modes.md`](./05-failure-modes.md) | failure modes |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | quality observations and measured metrics |
-| [`07-open-questions.md`](./07-open-questions.md) | open questions |
+| [`01a-modules-package.md`](docs/appendix/research/generation-pipeline/01a-modules-package.md) | modules of the `@openmaic/generation` package |
+| [`01b-modules-app-ingestion.md`](docs/appendix/research/generation-pipeline/01b-modules-app-ingestion.md) | app layer, part 1: ingestion |
+| [`01c-modules-app-generation.md`](docs/appendix/research/generation-pipeline/01c-modules-app-generation.md) | app layer, part 2: generation routes, orchestration, UI |
+| [`02a-interfaces-package.md`](docs/appendix/research/generation-pipeline/02a-interfaces-package.md) | package core: the model seam (`AICallFn`) and the outline contracts |
+| [`02b-interfaces-scenes.md`](docs/appendix/research/generation-pipeline/02b-interfaces-scenes.md) | scene, retry and prompt contracts |
+| [`02c-interfaces-ingestion.md`](docs/appendix/research/generation-pipeline/02c-interfaces-ingestion.md) | ingestion and bundling contracts |
+| [`02d-interfaces-wire-and-prompt.md`](docs/appendix/research/generation-pipeline/02d-interfaces-wire-and-prompt.md) | wire shapes, plus one real assembled prompt end to end |
+| [`02e-interfaces-prompt-system.md`](docs/appendix/research/generation-pipeline/02e-interfaces-prompt-system.md) | the prompt system: templates, snippets, loaders |
+| [`03a-flows-ingestion-outline.md`](docs/appendix/research/generation-pipeline/03a-flows-ingestion-outline.md) | traced flows: ingestion and outline generation |
+| [`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md) | traced flows: scenes, PBL, the classroom job, quiz |
+| [`04-dependencies-and-config.md`](docs/appendix/research/generation-pipeline/04-dependencies-and-config.md) | dependencies and configuration |
+| [`05-failure-modes.md`](docs/appendix/research/generation-pipeline/05-failure-modes.md) | failure modes |
+| [`06-quality-and-metrics.md`](docs/appendix/research/generation-pipeline/06-quality-and-metrics.md) | quality observations and measured metrics |
+| [`07-open-questions.md`](docs/appendix/research/generation-pipeline/07-open-questions.md) | open questions |
 
-Pack→topic mapping and the shared chapter convention: [`../index.md`](../index.md).
+Pack→topic mapping and the shared chapter convention: [`../index.md`](docs/appendix/research/index.md).

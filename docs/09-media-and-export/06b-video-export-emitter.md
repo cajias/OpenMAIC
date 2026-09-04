@@ -1,6 +1,6 @@
 # Hyperframes Emitter and the Export Build
 
-The second half of [`./06-video-export-pipeline.md`](./06-video-export-pipeline.md).
+The second half of [`./06-video-export-pipeline.md`](docs/09-media-and-export/06-video-export-pipeline.md).
 Once `compileVideoTimeline` has produced the `VideoTimeline` IR, a pure emitter
 turns it into one `index.html` driven by a single paused GSAP timeline, and an
 impure browser shell fills in real bytes and packages a ZIP. This file covers the
@@ -10,18 +10,18 @@ that spans both halves.
 **Sources:** `lib/video-export/emit-hyperframes/**`,
 `lib/video-export/{subtitles,split-cue}.ts`,
 `lib/video-export-app/{build-export-zip,timeline-deps,collect,package-zip,export-options,export-in-flight}.ts`;
-[`../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md`](../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md),
-[`../appendix/research/media-audio-video/02f-interfaces-export-app.md`](../appendix/research/media-audio-video/02f-interfaces-export-app.md),
-[`../appendix/research/media-audio-video/03b-flows-video-export.md`](../appendix/research/media-audio-video/03b-flows-video-export.md).
+[`../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md`](docs/appendix/research/media-audio-video/02e-interfaces-passes-emitter.md),
+[`../appendix/research/media-audio-video/02f-interfaces-export-app.md`](docs/appendix/research/media-audio-video/02f-interfaces-export-app.md),
+[`../appendix/research/media-audio-video/03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md).
 
 ## 1. The emitter contract
 
 `emitHyperframes(ir, options)`
-(`lib/video-export/emit-hyperframes/index.ts:1229`) returns `EmittedProject`:
+([`lib/video-export/emit-hyperframes/index.ts:1229`](lib/video-export/emit-hyperframes/index.ts#L1229)) returns `EmittedProject`:
 **text files only**, plus `vendorAssets` describing binary fonts as
 `{ path, sourceUrl }` pairs (`:60`) for the packaging layer to fetch. The emitter
 never touches bytes, which is what keeps it inside the purity fence
-(see [`./09-execution-constraints.md`](./09-execution-constraints.md) §2) and
+(see [`./09-execution-constraints.md`](docs/09-media-and-export/09-execution-constraints.md) §2) and
 string-snapshot testable.
 
 ```mermaid
@@ -94,7 +94,7 @@ quiz question list exists** — `LICENSES/KaTeX-MIT.txt`,
 script-font licences from `planQuizScriptFonts`. `vendorAssets` is likewise empty
 unless a quiz list is present (`:1395-1397`), because Inter is embedded as a
 base64 data URI (see
-[`./08-asset-generation-scripts.md`](./08-asset-generation-scripts.md) §5).
+[`./08-asset-generation-scripts.md`](docs/09-media-and-export/08-asset-generation-scripts.md) §5).
 
 `VideoExportLabels` (`:93`) is the injected learner-facing chrome — 18 string keys
 plus a nested `interactive: InteractiveFallbackLabels` (`:73`) — and every default
@@ -119,10 +119,10 @@ Two consequences are visible in the emitted CSS:
 
 Effects are emitted per-descriptor rather than generically
 (`emit-hyperframes/effects.ts`): spotlight is an SVG mask, laser is nested CSS
-divs, and a dependency-free `cubicBezier` implementation (`effects.ts:44`)
+divs, and a dependency-free `cubicBezier` implementation ([`effects.ts:44`](lib/video-export/emit-hyperframes/effects.ts#L44))
 supplies the named eases so no easing library is needed.
 
-Subtitles: `usableCues` (`subtitles.ts:38`) drops zero/negative spans and empty
+Subtitles: `usableCues` ([`subtitles.ts:38`](lib/video-export/subtitles.ts#L38)) drops zero/negative spans and empty
 text so an estimated 0 ms narration never emits a malformed block, and
 `normalizeText` (`:29`) collapses CRLF and trims trailing whitespace so a cue
 cannot terminate its own block early.
@@ -174,7 +174,7 @@ Three ordering details in `build-export-zip.ts` that are load-bearing:
   mixed-locale export.
 - `createVideoTimelineDeps` and `createQuizLayoutProbe` run concurrently via
   `Promise.all` (`:95`).
-- `acquireExport` (`export-in-flight.ts:24`) is a **module-level** mutex, not a
+- `acquireExport` ([`export-in-flight.ts:24`](lib/video-export-app/export-in-flight.ts#L24)) is a **module-level** mutex, not a
   per-hook ref, because the export dialog unmounts when it closes and a
   per-instance ref would reset and let a second pipeline start (`:10-15`). The
   in-app MP4 render path uses the render store's `status` as its equivalent guard.
@@ -186,7 +186,7 @@ iterated (`present && !dedupOf`, `:341`); a `frame` entry runs
 with no poster gets one decoded from its first frame, bounded by
 `FIRST_FRAME_TIMEOUT_MS = 8000` and catching a CORS-tainted canvas (`:80`, `:107`).
 
-Resolutions (`export-options.ts:4`): `720p` 1280 × 720, `1080p` 1920 × 1080,
+Resolutions ([`export-options.ts:4`](lib/video-export-app/export-options.ts#L4)): `720p` 1280 × 720, `1080p` 1920 × 1080,
 `4k` 3840 × 2160. FPS choices `[24, 30, 60]`; qualities
 `['draft', 'standard', 'high']`.
 
@@ -212,39 +212,39 @@ degrades with a diagnostic:
 | `unresolved-interactive-resource` | an external/relative resource remained | placeholder base |
 
 Collection is equally forgiving: each plan entry in `collectVideoAssets` is
-wrapped in `try`/`catch` and pushed to `missing` (`collect.ts:386-388`), surfacing
-only as a warning toast (`use-export-video.ts:60-64`,
-`lib/store/video-render.ts:240`). Bounded sub-failures that cannot wedge an
+wrapped in `try`/`catch` and pushed to `missing` ([`collect.ts:386-388`](lib/video-export-app/collect.ts#L386-L388)), surfacing
+only as a warning toast ([`use-export-video.ts:60-64`](lib/video-export-app/use-export-video.ts#L60-L64),
+[`lib/store/video-render.ts:240`](lib/store/video-render.ts#L240)). Bounded sub-failures that cannot wedge an
 export:
 
 | Probe | Bound | On failure |
 | --- | --- | --- |
 | `probeAudioDurationMs` / `probeVideoDurationMs` | `PROBE_TIMEOUT_MS = 10_000` per blob | resolves `null` → compiler estimates or caps |
 | `decodeFirstFramePosterUrl` | `FIRST_FRAME_TIMEOUT_MS = 8000` | resolves `null`; also catches a CORS-tainted canvas |
-| `measureSlideElementGeometry` | wrapped in `try`/`catch` | degrades to the authored-box calc (`timeline-deps.ts:491-494`) |
-| `accessDocument(stage.id)` | `.catch(() => undefined)` | falls back to `stage.name` then `'classroom'` (`build-export-zip.ts:91`) |
-| legacy `audioUrl` fetch | `fetchMediaUrl(url, 15_000)` in `try`/`catch` | clip stays missing (`timeline-deps.ts:299-301`) |
+| `measureSlideElementGeometry` | wrapped in `try`/`catch` | degrades to the authored-box calc ([`timeline-deps.ts:491-494`](lib/video-export-app/timeline-deps.ts#L491-L494)) |
+| `accessDocument(stage.id)` | `.catch(() => undefined)` | falls back to `stage.name` then `'classroom'` ([`build-export-zip.ts:91`](lib/video-export-app/build-export-zip.ts#L91)) |
+| legacy `audioUrl` fetch | `fetchMediaUrl(url, 15_000)` in `try`/`catch` | clip stays missing ([`timeline-deps.ts:299-301`](lib/video-export-app/timeline-deps.ts#L299-L301)) |
 
 `packageVideoZip` is the deliberate exception — a failed GSAP or vendor-font fetch
-**throws** (`package-zip.ts:37`, `:43`) and fails the whole export, which is
+**throws** ([`package-zip.ts:37`](lib/video-export-app/package-zip.ts#L37), [`:43`](lib/video-export-app/package-zip.ts#L43)) and fails the whole export, which is
 correct: a ZIP without GSAP renders nothing.
 
 ## Open questions
 
 - `lib/video-export/runtime-diagnostics.ts` supplies `RUNTIME_DIAGNOSTIC_CODES` to
-  the emitter (`emit-hyperframes/index.ts:34`) and the emitter writes an empty
+  the emitter ([`emit-hyperframes/index.ts:34`](lib/video-export/emit-hyperframes/index.ts#L34)) and the emitter writes an empty
   `[]` sink — nothing in this subsystem other than the interactive bridge was
   observed *writing* to `window.__openmaicVideoManifest.runtimeDiagnostics`.
 - `split-cue.ts` (294 lines) was not read; its role (character-weighted line-sized
-  cues) is established only from the call site at `passes/timeline.ts:143`.
-- `AssetKind` includes `'poster'` and `'image'` and `collect.ts:367-380` handles
+  cues) is established only from the call site at [`passes/timeline.ts:143`](lib/video-export/passes/timeline.ts#L143).
+- `AssetKind` includes `'poster'` and `'image'` and [`collect.ts:367-380`](lib/video-export-app/collect.ts#L367-L380) handles
   both, but `passes/assets.ts` plans only `frame`, `html`, `audio` and `video`
   entries — so those branches may be unreachable today.
 - `hyperframes lint` — the downstream enforcer of the determinism red-lines — is
-  invoked only from CI: `.github/workflows/ci.yml:297` runs
+  invoked only from CI: [`.github/workflows/ci.yml:297`](.github/workflows/ci.yml#L297) runs
   `pnpm exec hyperframes lint "$dir"` over the seven sample dirs materialized
   under `HF_E2E_DIR` (`:285`, `:292`) and additionally requires the literal
   `0 errors, 0 warnings` summary (`:307`), against the `hyperframes`
-  devDependency pinned at `package.json:191`. There is no `package.json` script
+  devDependency pinned at [`package.json:191`](package.json#L191). There is no `package.json` script
   alias, so the gate cannot be reproduced locally without copying the workflow
   step.

@@ -8,14 +8,14 @@ are in `01b-modules-server.md`.
 
 The largest module in the layer and, by line count, ~64 % pure data.
 
-### The registry — `PROVIDERS` (`lib/ai/providers.ts:75`)
+### The registry — `PROVIDERS` ([`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75))
 
 `Record<ProviderId, ProviderConfig>`, 19 keys. Registry order and per-provider
 model counts (measured, see `06-quality-and-metrics.md`):
 
 | Key | `type` | `requiresApiKey` | models | notes |
 | --- | --- | --- | --- | --- |
-| `openai` | `openai` | true | 8 | `lib/ai/providers.ts:76` |
+| `openai` | `openai` | true | 8 | [`lib/ai/providers.ts:76`](lib/ai/providers.ts#L76) |
 | `azure` | `azure` | true | 0 | deployment names, not model ids (`:223`); `supportsModelDiscovery: false` |
 | `atlascloud` | `openai` | true | 2 | `supportsModelDiscovery: true` (`:232`) |
 | `anthropic` | `anthropic` | true | 9 | `:263` |
@@ -35,16 +35,16 @@ model counts (measured, see `06-quality-and-metrics.md`):
 | `ollama` | `openai` | **false** | 3 | `http://localhost:11434/v1` `:1508` |
 | `lemonade` | `openai` | **false** | 1 | `http://localhost:13305/v1` `:1540` |
 
-Only five `ProviderType` values exist (`lib/types/provider.ts:38`), so 15 of the
+Only five `ProviderType` values exist ([`lib/types/provider.ts:38`](lib/types/provider.ts#L38)), so 15 of the
 19 providers share the `openai` transport. `minimax` reuses the `anthropic`
 transport.
 
 Immediately after the literal, `applyModelMetadata(PROVIDERS)` runs at module
-load (`lib/ai/providers.ts:1553`) and **mutates** each `ModelInfo.capabilities`
+load ([`lib/ai/providers.ts:1553`](lib/ai/providers.ts#L1553)) and **mutates** each `ModelInfo.capabilities`
 in place to attach the thinking capability from `model-metadata.ts`. This is the
 only mutation of the registry; everything downstream reads the merged shape.
 
-### `getProviderConfig` (`lib/ai/providers.ts:1558`)
+### `getProviderConfig` ([`lib/ai/providers.ts:1558`](lib/ai/providers.ts#L1558))
 
 Built-in lookup first; if the id is unknown *and* `typeof window !== 'undefined'`,
 it falls back to parsing `localStorage.getItem('providersConfig')`
@@ -52,7 +52,7 @@ it falls back to parsing `localStorage.getItem('providersConfig')`
 server-side call for a `custom-*` provider returns `null` and `getModel` demands
 an explicit `providerType`.
 
-### `getModel` (`lib/ai/providers.ts:2033`)
+### `getModel` ([`lib/ai/providers.ts:2033`](lib/ai/providers.ts#L2033))
 
 The adapter factory. Ordered behaviour:
 
@@ -118,7 +118,7 @@ additionally gets `createKimiReasoningPreservationMiddleware()` prepended
 6. For `lemonade` only, clone and JSON-parse the body purely to emit a
    diagnostic warning on malformed JSON (`:2196`).
 
-### `getCompatThinkingBodyParams` (`lib/ai/providers.ts:1599`)
+### `getCompatThinkingBodyParams` ([`lib/ai/providers.ts:1599`](lib/ai/providers.ts#L1599))
 
 A 12-way switch on `ThinkingCapability.requestAdapter` producing vendor body
 fields. Notable shapes:
@@ -140,7 +140,7 @@ There is one hard-coded model special case ahead of the switch: the `openai`
 slot serving `deepseek-v4-flash-vision-exp` needs
 `chat_template_kwargs.thinking` (`:1609`).
 
-### `fetchCustomOpenAIChat` (`lib/ai/providers.ts:1883`)
+### `fetchCustomOpenAIChat` ([`lib/ai/providers.ts:1883`](lib/ai/providers.ts#L1883))
 
 A non-streaming→streaming shim for gateways that only answer correctly with
 `stream: true`. It forces `stream: true` + `include_usage`, reads the whole SSE
@@ -171,7 +171,7 @@ an exact canonical-id lookup with one wildcard: any unknown `lemonade` model
 gets `lemonadeToggleBudget` (`:464`).
 
 `applyModelMetadata` (`:471`) is the mutating overlay run once from
-`providers.ts:1553`.
+[`providers.ts:1553`](lib/ai/providers.ts#L1553).
 
 Anthropic capability nuances worth knowing: `anthropicManualEffort` (`:113`)
 maps effort→`budgetTokens` via `anthropicManualBudgetByEffort` (`:106`), whereas
@@ -242,9 +242,9 @@ decodes them back into `reasoning_content` after SDK serialization.
 ## `lib/ai/model-aliases.ts` (23 lines) and `lib/ai/azure.ts` (28 lines)
 
 `MODEL_ID_ALIASES` currently holds exactly one entry:
-`openai:gpt-5.6-sol → gpt-5.6` (`model-aliases.ts:1`). `findModelById` (`:13`)
+`openai:gpt-5.6-sol → gpt-5.6` ([`model-aliases.ts:1`](lib/ai/model-aliases.ts#L1)). `findModelById` ([`:13`](lib/ai/model-aliases.ts#L13))
 resolves both directions so the wire id is never rewritten.
-`normalizeAzureBaseUrl` (`azure.ts:9`) strips `/chat/completions`,
+`normalizeAzureBaseUrl` ([`azure.ts:9`](lib/ai/azure.ts#L9)) strips `/chat/completions`,
 `/responses`, `/deployments/<name>`, and `/v1` for `*.openai.azure.com`,
 defaulting the path to `/openai`.
 
@@ -271,10 +271,10 @@ flowchart LR
   remove --> store
 ```
 
-`TOKEN_PLAN_PRESETS` (`lib/config/token-plan-presets.ts:77`) holds two entries:
+`TOKEN_PLAN_PRESETS` ([`lib/config/token-plan-presets.ts:77`](lib/config/token-plan-presets.ts#L77)) holds two entries:
 `minimax` (`:80`) and `volcengine-ark` (`:139`). Each declares per-modality
 targets across `llm|image|video|tts|webSearch`. `applyTokenPlan`
-(`apply-token-plan.ts:80`) fills one key into every declared modality, isolating
+([`apply-token-plan.ts:80`](lib/config/apply-token-plan.ts#L80)) fills one key into every declared modality, isolating
 failures per modality (`:94`). `tokenPlanModelInfo` (`:122`) overlays the
 catalog thinking capability onto plan-seeded model ids so a seeded model does not
 lose its reasoning control. `removeTokenPlan` (`:234`) restores built-in

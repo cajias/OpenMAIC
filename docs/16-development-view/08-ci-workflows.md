@@ -3,15 +3,15 @@
 Five GitHub Actions workflows and twelve jobs in total. This file covers the whole
 trigger graph plus the three workflows on the merge path — `ci.yml` (three jobs),
 `storage-pg-contract.yml` and `docs-build.yml`. The two publish workflows are in
-[`08b-release-workflows.md`](./08b-release-workflows.md).
+[`08b-release-workflows.md`](docs/16-development-view/08b-release-workflows.md).
 
 **Sources:** all five files under `.github/workflows/`, plus
 `tests/workflows/ci-video-export-contract.test.ts`,
 `tests/workflows/publish-packages-workflow.test.ts`,
 `scripts/assert-pg-contract-suites.mjs`. Evidence:
-[`quality-testing-ci-deps/01b`](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[`quality-testing-ci-deps/03`](../appendix/research/quality-testing-ci-deps/03-flows.md),
-[`quality-testing-ci-deps/04`](../appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
+[`quality-testing-ci-deps/01b`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[`quality-testing-ci-deps/03`](docs/appendix/research/quality-testing-ci-deps/03-flows.md),
+[`quality-testing-ci-deps/04`](docs/appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
 
 ## The workflow graph
 
@@ -60,7 +60,7 @@ flowchart TD
 
 `publish` does **not** depend on `ci.yml` through GitHub's machinery. It polls
 `repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push`
-with a 1800-second deadline (`publish-packages.yml:301-331`). The comment names
+with a 1800-second deadline ([`publish-packages.yml:301-331`](.github/workflows/publish-packages.yml#L301-L331)). The comment names
 the reason: `ci.yml` runs concurrently with the publish on a push to `main` and
 "blocks nothing".
 
@@ -76,16 +76,16 @@ the reason: `ci.yml` runs concurrently with the publish on a push to `main` and
 
 Two conditional-concurrency decisions worth understanding:
 
-- **A `main` run of `ci.yml` is never cancelled** (`ci.yml:23-26`): each `main` run
+- **A `main` run of `ci.yml` is never cancelled** ([`ci.yml:23-26`](.github/workflows/ci.yml#L23-L26)): each `main` run
   validates only its own push range, so cancelling a superseded run "takes the
   range that contained a package change with it and the replacement, comparing
   against the cancelled tip, sees nothing".
 - **`publish-openmaic` is keyed on nothing but the literal string**
-  (`publish-packages.yml:55-60`): keying it on the ref "would let two runs race for
+  ([`publish-packages.yml:55-60`](.github/workflows/publish-packages.yml#L55-L60)): keying it on the ref "would let two runs race for
   the same version, each deciding independently that the version is unpublished".
 
 **Why the push triggers list the integration branches as well as the PR triggers**
-(`ci.yml:5-9`): a `pull_request` run "only ever proves one part merged into the
+([`ci.yml:5-9`](.github/workflows/ci.yml#L5-L9)): a `pull_request` run "only ever proves one part merged into the
 branch", so without a push trigger the accumulated state of the branch that
 eventually reaches `main` is never built on its own.
 
@@ -120,13 +120,13 @@ flowchart TD
   A21["storage test"]
 ```
 
-The push-range guard at `ci.yml:66-79` is unusually strict on purpose: a branch
+The push-range guard at [`ci.yml:66-79`](.github/workflows/ci.yml#L66-L79) is unusually strict on purpose: a branch
 creation or a force push reports an unusable `github.event.before`, and rather
 than substituting `HEAD^` the step fails — "a force push can replace many commits
 at once, so the previous commit is not the range that needs checking, and
 publishing requires this run to be green."
 
-The generation Node-consumer smoke (`ci.yml:151-178`) is the only step in the job
+The generation Node-consumer smoke ([`ci.yml:151-178`](.github/workflows/ci.yml#L151-L178)) is the only step in the job
 that starts a background process. It launches `scripts/generation-node-smoke-server.mjs`
 on port 43127 with a `trap cleanup EXIT`, polls `/health` up to 50 times at 100 ms,
 runs `scripts/generation-node-smoke.mjs` against it, and validates the printed
@@ -136,7 +136,7 @@ be present, and `sceneValidation.valid` must be exactly `true`.
 ## `ci.yml` — job `render-service`
 
 Six steps, and the only job in the repository that builds a container image. The
-table below covers the five after `actions/checkout@v4` (`ci.yml:199`).
+table below covers the five after `actions/checkout@v4` ([`ci.yml:199`](.github/workflows/ci.yml#L199)).
 
 | Step | Detail |
 | --- | --- |
@@ -172,7 +172,7 @@ flowchart TD
 
 Four operational decisions with their stated reasons:
 
-- **Only the browser tarball is installed, not `install-deps`** (`ci.yml:251-254`):
+- **Only the browser tarball is installed, not `install-deps`** ([`ci.yml:251-254`](.github/workflows/ci.yml#L251-L254)):
   "`install-deps` talks to Ubuntu apt; on this runner fleet that mirror has sat
   through the whole 15-minute job budget. `ubuntu-latest` already ships the
   libraries Chromium needs."
@@ -235,7 +235,7 @@ workspace, so install it standalone."
 
 `publish-packages.yml` and `publish-openmaic-skill.yml` — their job graphs, the
 job-boundary security model, and the `.github/scripts` helpers — are in
-[`08b-release-workflows.md`](./08b-release-workflows.md).
+[`08b-release-workflows.md`](docs/16-development-view/08b-release-workflows.md).
 
 ## Security posture across the three merge-path workflows
 
@@ -248,7 +248,7 @@ job-boundary security model, and the `.github/scripts` helpers — are in
 | runs install and build code | yes | yes | yes |
 
 The two publish workflows invert every row of that table; see
-[`08b-release-workflows.md`](./08b-release-workflows.md).
+[`08b-release-workflows.md`](docs/16-development-view/08b-release-workflows.md).
 
 ## Open questions
 
@@ -263,5 +263,5 @@ The two publish workflows invert every row of that table; see
   path — where a failure has already consumed a version number in review.
 - Whether any of these workflows is configured as a **required** status check is a
   branch-protection setting, not recorded in the repository.
-  `publish-openmaic-skill.yml:8-9` explicitly asks that it *not* be required for
+  [`publish-openmaic-skill.yml:8-9`](.github/workflows/publish-openmaic-skill.yml#L8-L9) explicitly asks that it *not* be required for
   every PR because it is path-filtered.

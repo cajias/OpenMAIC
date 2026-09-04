@@ -27,11 +27,11 @@ anything about this repo.
 
 ## What this topic does NOT cover
 
-Container decomposition (`../02-container-view/index.md`), any component
+Container decomposition ([`../02-container-view/index.md`](docs/02-container-view/index.md)), any component
 internals (topics 03 through 10), the traced end-to-end data flows
-(`../11-data-flows/index.md`), the endpoint-by-endpoint API reference
-(`../12-api-reference/index.md`), and deployment topology
-(`../17-deployment-view/index.md`). Those are named here only where the context
+([`../11-data-flows/index.md`](docs/11-data-flows/index.md)), the endpoint-by-endpoint API reference
+([`../12-api-reference/index.md`](docs/12-api-reference/index.md)), and deployment topology
+([`../17-deployment-view/index.md`](docs/17-deployment-view/index.md)). Those are named here only where the context
 boundary touches them.
 
 ## Sources
@@ -40,7 +40,7 @@ Primary code read for this topic:
 
 | Path | Why it matters here |
 | --- | --- |
-| `README.md` | The stated product claim, which every page here checks against code |
+| [`README.md`](README.md) | The stated product claim, which every page here checks against code |
 | `package.json` | The dependency set that bounds what OpenMAIC can integrate |
 | `middleware.ts` | The only site-wide access gate |
 | `instrumentation.ts` | The once-per-process startup schedule |
@@ -52,17 +52,17 @@ Primary code read for this topic:
 | `lib/web-search/index.ts`, `lib/web-search/types.ts` | The nine search backends |
 | `lib/document/extractors/manifest.ts` | The document and media extractor catalog |
 | `packages/@openmaic/storage/src/index.ts` | The persistence charter and backend list |
-| `skills/openmaic/SKILL.md` + `references/` | The external-agent driver contract |
+| [`skills/openmaic/SKILL.md`](skills/openmaic/SKILL.md) + `references/` | The external-agent driver contract |
 | `.env.example` | The operator-facing configuration surface |
 | `docker-compose.yml`, `render-service/` | The optional out-of-process container |
 
 Evidence packs (verbatim signatures and traced flows, written before this topic):
 
-- `../appendix/research/app-shell-and-routing/00-overview.md`
-- `../appendix/research/api-surface/00-overview.md`
-- `../appendix/research/ai-provider-layer/00-overview.md`
-- `../appendix/research/agent-runtime/00-overview.md`
-- `../appendix/research/quality-testing-ci-deps/00-overview.md`
+- [`../appendix/research/app-shell-and-routing/00-overview.md`](docs/appendix/research/app-shell-and-routing/00-overview.md)
+- [`../appendix/research/api-surface/00-overview.md`](docs/appendix/research/api-surface/00-overview.md)
+- [`../appendix/research/ai-provider-layer/00-overview.md`](docs/appendix/research/ai-provider-layer/00-overview.md)
+- [`../appendix/research/agent-runtime/00-overview.md`](docs/appendix/research/agent-runtime/00-overview.md)
+- [`../appendix/research/quality-testing-ci-deps/00-overview.md`](docs/appendix/research/quality-testing-ci-deps/00-overview.md)
 
 Every non-obvious claim in this topic carries a `path:line` citation. Where a
 statement is an inference rather than a reading, it is prefixed `Inferred:`.
@@ -71,17 +71,17 @@ statement is an inference rather than a reading, it is prefixed `Inferred:`.
 
 | File | Contents |
 | --- | --- |
-| [`01-what-openmaic-is.md`](./01-what-openmaic-is.md) | The problem, the solution shape, and the one-paragraph architecture; the ingest to generate to play to export spine |
-| [`02-actors-and-personas.md`](./02-actors-and-personas.md) | Five actors, their entry surfaces, and the authority each holds in code |
-| [`03-external-systems.md`](./03-external-systems.md) | Every external system by group, named concretely, with interaction and protocol |
-| [`04-context-diagram.md`](./04-context-diagram.md) | The canonical C4 L1 diagram, three role-scoped zooms, and the docs-set notation legend |
-| [`05-use-case-scenarios.md`](./05-use-case-scenarios.md) | Eleven primary scenarios: actor, trigger, containers exercised, forward link |
-| [`06-quality-attributes.md`](./06-quality-attributes.md) | Six quality attributes inferred from code, each with mechanism and accepted cost |
+| [`01-what-openmaic-is.md`](docs/01-system-context/01-what-openmaic-is.md) | The problem, the solution shape, and the one-paragraph architecture; the ingest to generate to play to export spine |
+| [`02-actors-and-personas.md`](docs/01-system-context/02-actors-and-personas.md) | Five actors, their entry surfaces, and the authority each holds in code |
+| [`03-external-systems.md`](docs/01-system-context/03-external-systems.md) | Every external system by group, named concretely, with interaction and protocol |
+| [`04-context-diagram.md`](docs/01-system-context/04-context-diagram.md) | The canonical C4 L1 diagram, three role-scoped zooms, and the docs-set notation legend |
+| [`05-use-case-scenarios.md`](docs/01-system-context/05-use-case-scenarios.md) | Eleven primary scenarios: actor, trigger, containers exercised, forward link |
+| [`06-quality-attributes.md`](docs/01-system-context/06-quality-attributes.md) | Six quality attributes inferred from code, each with mechanism and accepted cost |
 
 ## Reading order
 
 Read `01` then `04`. `02` and `03` are reference tables you will come back to.
-`05` is the bridge into `../11-data-flows/index.md`. `06` is the page to read
+`05` is the bridge into [`../11-data-flows/index.md`](docs/11-data-flows/index.md). `06` is the page to read
 before you propose a change that trades one of these attributes away.
 
 ## Topic overview
@@ -151,12 +151,12 @@ flowchart LR
 
 | If you want | Go to |
 | --- | --- |
-| The containers these actors actually reach | `../02-container-view/index.md` |
-| The HTTP surface as an endpoint list | `../12-api-reference/index.md` |
-| A scenario traced hop by hop | `../11-data-flows/index.md` |
-| The external systems as npm/licence facts | `../13-dependencies/index.md` |
-| Cross-cutting gates (auth, SSRF, i18n, flags) | `../15-cross-cutting/index.md` |
-| How to run and deploy it | `../17-deployment-view/index.md` |
-| *Why* the system has this shape at all | [`../18-decisions/index.md`](../18-decisions/index.md) |
-| What a word means | [`../glossary.md`](../glossary.md) |
-| The documentation set root — reading paths, the C4 / 4+1 model, conventions | [`../README.md`](../README.md) |
+| The containers these actors actually reach | [`../02-container-view/index.md`](docs/02-container-view/index.md) |
+| The HTTP surface as an endpoint list | [`../12-api-reference/index.md`](docs/12-api-reference/index.md) |
+| A scenario traced hop by hop | [`../11-data-flows/index.md`](docs/11-data-flows/index.md) |
+| The external systems as npm/licence facts | [`../13-dependencies/index.md`](docs/13-dependencies/index.md) |
+| Cross-cutting gates (auth, SSRF, i18n, flags) | [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md) |
+| How to run and deploy it | [`../17-deployment-view/index.md`](docs/17-deployment-view/index.md) |
+| *Why* the system has this shape at all | [`../18-decisions/index.md`](docs/18-decisions/index.md) |
+| What a word means | [`../glossary.md`](docs/glossary.md) |
+| The documentation set root — reading paths, the C4 / 4+1 model, conventions | [`../README.md`](docs/README.md) |

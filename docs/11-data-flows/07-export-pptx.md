@@ -7,10 +7,10 @@ silently drops or degrades.
 
 **Sources:** `lib/export/use-export-pptx.ts`, `lib/export/latex-to-omml.ts`,
 `lib/export/html-parser/index.ts`, `lib/export/svg-path-parser.ts`,
-`packages/pptxgenjs` (v4.0.1, `slide.ts:253`, `gen-objects.ts:669`),
+`packages/pptxgenjs` (v4.0.1, [`slide.ts:253`](packages/pptxgenjs/src/slide.ts#L253), [`gen-objects.ts:669`](packages/pptxgenjs/src/gen-objects.ts#L669)),
 `packages/mathml2omml` (v0.5.0), `packages/@openmaic/dsl/src/asset-manifest.ts`,
 `lib/media/resolve-stored-bytes.ts`;
-`../appendix/research/dsl-renderer-editor/03-flows.md`.
+[`../appendix/research/dsl-renderer-editor/03-flows.md`](docs/appendix/research/dsl-renderer-editor/03-flows.md).
 
 ## Container: browser only, no server hop
 
@@ -29,7 +29,7 @@ flowchart LR
 ```
 
 Interactive (`html`), quiz and PBL scenes have **no `.pptx` representation at
-all** — `buildPptxBlob` only ever sees slide canvases (`use-export-pptx.ts:1313-1314`).
+all** — `buildPptxBlob` only ever sees slide canvases ([`use-export-pptx.ts:1313-1314`](lib/export/use-export-pptx.ts#L1313-L1314)).
 The resource-pack ZIP variant is the path for interactive content, and it is the
 only export that accepts a deck with zero slide scenes (`requireSlides = false`,
 `:1321`).
@@ -37,7 +37,7 @@ only export that accepts a deck with zero slide scenes (`requireSlides = false`,
 ## Two guards run before the first element is written
 
 `buildPptxBlob` opens by pinning the document's media scope twice
-(`use-export-pptx.ts:508-509`).
+([`use-export-pptx.ts:508-509`](lib/export/use-export-pptx.ts#L508-L509)).
 
 ```mermaid
 flowchart TD
@@ -126,7 +126,7 @@ sequenceDiagram
 
 | # | Where | Call | Notes |
 | --- | --- | --- | --- |
-| 1 | `use-export-pptx.ts:1320-1342` | `withExportGuard(action, requireSlides)` | re-entrancy guard on `exportingRef`; `slides.length === 0` ⇒ warning toast; the action runs inside a `setTimeout(…, 100)` so the spinner paints first |
+| 1 | [`use-export-pptx.ts:1320-1342`](lib/export/use-export-pptx.ts#L1320-L1342) | `withExportGuard(action, requireSlides)` | re-entrancy guard on `exportingRef`; `slides.length === 0` ⇒ warning toast; the action runs inside a `setTimeout(…, 100)` so the spinner paints first |
 | 2 | `:1310-1311` | ratio derivation | `ratioPx2Inch = 96 × (viewportSize / 960)`, `ratioPx2Pt = (96/72) × (viewportSize / 960)` — 960 is the reference deck width in px |
 | 3 | `:506` | `new pptxgen()` | the vendored fork, `packages/pptxgenjs` |
 | 4 | `:508-509` | manifest derivation + parity assertion | throws, does not degrade |
@@ -135,7 +135,7 @@ sequenceDiagram
 | 7 | `:540-549` | background | image resolved through `resolveManifestMedia`; a missing generated background "stays empty instead of leaking an opaque ref to pptxgen" |
 | 8 | `:410-429` | `resolvePptxEmbeddableSrc(ref, task, stageId)` | opaque ref ⇒ `resolveStoredBytes` with `resolutionGating: true`, `loadCompatRow: true`, `taskUrlFallback: true`; concrete address ⇒ resolves to itself through the state machine |
 | 9 | `:1040-1044` | LaTeX font-size **estimate** | `lines = (latex.match(/\\\\/g) \|\| []).length + 1`, `fontSize = round((height / ratioPx2Pt) / (lines × 3))` — estimated from line-break count, never measured |
-| 10 | `:1046-1055` | `pptxSlide.addFormula(...)` | exists only in the fork (`packages/pptxgenjs/src/slide.ts:253` → `gen-objects.ts:669`) |
+| 10 | `:1046-1055` | `pptxSlide.addFormula(...)` | exists only in the fork ([`packages/pptxgenjs/src/slide.ts:253`](packages/pptxgenjs/src/slide.ts#L253) → [`gen-objects.ts:669`](packages/pptxgenjs/src/gen-objects.ts#L669)) |
 | 11 | `:1056-1097` | SVG fallback | inline `<svg>` built from `el.path`, `svg2Base64`, `addImage`; `continue` when `svg2Base64` returns falsy |
 | 12 | `:1119-1127` | media base64-isation | `fetch(resolvedSrc)`; a non-OK response **throws** and the element is skipped by the enclosing catch |
 | 13 | `:1139-1142` | extension guessing | URL extension → `el.ext` → `mp4` for video / `mp3` for audio |
@@ -148,10 +148,10 @@ sequenceDiagram
 | --- | --- | --- |
 | store → export | `Scene[]` filtered to `content.type === 'slide'` | `packages/@openmaic/dsl/src/stage.ts` |
 | export input | `Slide` (10-variant `PPTElement` union) | `packages/@openmaic/dsl/src/slides.ts` |
-| media scope | `ReadonlySet<string>` of manifest refs | derived at `use-export-pptx.ts:437` |
+| media scope | `ReadonlySet<string>` of manifest refs | derived at [`use-export-pptx.ts:437`](lib/export/use-export-pptx.ts#L437) |
 | resolved media | data URL (`data:<mime>;base64,…`) | `blobToDataUrl` |
 | text | `pptxgen.TextProps[]` | produced by `formatHTML` → `toAST` |
-| formula | OMML `<m:oMath>` XML string, or `null` | `lib/export/latex-to-omml.ts:70` |
+| formula | OMML `<m:oMath>` XML string, or `null` | [`lib/export/latex-to-omml.ts:70`](lib/export/latex-to-omml.ts#L70) |
 | output | `Blob` (OOXML `.pptx`) | `pptxgen` |
 
 Units: the DSL is in **px**; PPTX wants **inches** for geometry and **points**
@@ -177,7 +177,7 @@ flowchart TD
   N --> FB["caller falls back to an SVG image (non-editable)"]
 ```
 
-`buildMathRPr` (`latex-to-omml.ts:25`) hardcodes the Cambria Math typeface with
+`buildMathRPr` ([`latex-to-omml.ts:25`](lib/export/latex-to-omml.ts#L25)) hardcodes the Cambria Math typeface with
 its panose string, because "PowerPoint requires Cambria Math font" for math runs.
 `szHundredths` is `fontSize × 100` — OOXML sizes are hundredths of a point.
 
@@ -185,11 +185,11 @@ its panose string, because "PowerPoint requires Cambria Math font" for math runs
 
 | Dropped / degraded | Evidence |
 | --- | --- |
-| LaTeX becomes a **static image** whenever `temml` or `mathml2omml` throws | `latex-to-omml.ts:77-80` returns `null`; fallback at `use-export-pptx.ts:1056` |
-| MathML `<mpadded>` spacing is discarded before OMML conversion | `latex-to-omml.ts:11-19` |
-| LaTeX font size is **estimated** from `\\` count, never measured | `use-export-pptx.ts:1040-1043` |
-| `special` shapes (paths using commands beyond L/Q/C/A) become images | flagged by the DSL's `slides.ts`; the importer sets the flag at `transformParsedToSlides.ts:991` |
-| An unresolvable media ref makes the element **skipped entirely** (`continue`) | `use-export-pptx.ts:1114` |
+| LaTeX becomes a **static image** whenever `temml` or `mathml2omml` throws | [`latex-to-omml.ts:77-80`](lib/export/latex-to-omml.ts#L77-L80) returns `null`; fallback at [`use-export-pptx.ts:1056`](lib/export/use-export-pptx.ts#L1056) |
+| MathML `<mpadded>` spacing is discarded before OMML conversion | [`latex-to-omml.ts:11-19`](lib/export/latex-to-omml.ts#L11-L19) |
+| LaTeX font size is **estimated** from `\\` count, never measured | [`use-export-pptx.ts:1040-1043`](lib/export/use-export-pptx.ts#L1040-L1043) |
+| `special` shapes (paths using commands beyond L/Q/C/A) become images | flagged by the DSL's `slides.ts`; the importer sets the flag at [`transformParsedToSlides.ts:991`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L991) |
+| An unresolvable media ref makes the element **skipped entirely** (`continue`) | [`use-export-pptx.ts:1114`](lib/export/use-export-pptx.ts#L1114) |
 | `blob:` and remote URLs cannot survive — everything is re-fetched to base64, so an offline or CORS-blocked asset is lost | `:1116-1127` |
 | Extension guessing falls back to `mp4` / `mp3` when neither the URL nor `el.ext` says otherwise | `:1142` |
 | Interactive / quiz / PBL scenes have no representation | `buildPptxBlob` receives `Slide[]` only, `:1313-1314` |
@@ -226,7 +226,7 @@ message reaches only `log.error` (`:1333`).
 
 ## Related
 
-- [`08-export-video.md`](./08-export-video.md) — the other export, which *does* carry interactive scenes.
-- [`06-edit-with-ai.md`](./06-edit-with-ai.md) — the writer side of the same `Slide` contract.
-- `../07-dsl-renderer-editor/index.md` — the element union, the importer, and the vendored forks.
-- `../13-dependencies/index.md` — fork provenance and licences.
+- [`08-export-video.md`](docs/11-data-flows/08-export-video.md) — the other export, which *does* carry interactive scenes.
+- [`06-edit-with-ai.md`](docs/11-data-flows/06-edit-with-ai.md) — the writer side of the same `Slide` contract.
+- [`../07-dsl-renderer-editor/index.md`](docs/07-dsl-renderer-editor/index.md) — the element union, the importer, and the vendored forks.
+- [`../13-dependencies/index.md`](docs/13-dependencies/index.md) — fork provenance and licences.

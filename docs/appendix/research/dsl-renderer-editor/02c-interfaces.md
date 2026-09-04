@@ -34,11 +34,11 @@ flowchart LR
 ```
 
 `@openmaic/renderer/types` is a pure re-export of `@openmaic/dsl` plus the renderer's own `effects`
-types (`renderer/src/types/index.ts:4`), which is why the arrow points back at the contract.
+types ([`renderer/src/types/index.ts:4`](packages/@openmaic/renderer/src/types/index.ts#L4)), which is why the arrow points back at the contract.
 
 ## 1. Renderer
 
-`packages/@openmaic/renderer/src/SlideCanvas.tsx:27` (abridged — 15 of 18 props shown):
+[`packages/@openmaic/renderer/src/SlideCanvas.tsx:27`](packages/@openmaic/renderer/src/SlideCanvas.tsx#L27) (abridged — 15 of 18 props shown):
 
 ```ts
 export interface SlideCanvasProps {
@@ -64,7 +64,7 @@ export interface SlideCanvasProps {
 }
 ```
 
-`packages/@openmaic/renderer/src/hooks/useViewportSize.ts:3`, `:10`, `:33`
+[`packages/@openmaic/renderer/src/hooks/useViewportSize.ts:3`](packages/@openmaic/renderer/src/hooks/useViewportSize.ts#L3), [`:10`](packages/@openmaic/renderer/src/hooks/useViewportSize.ts#L10), [`:33`](packages/@openmaic/renderer/src/hooks/useViewportSize.ts#L33)
 
 ```ts
 export interface ViewportStyles { width: number; height: number; left: number; top: number }
@@ -76,7 +76,7 @@ export function useViewportSize(
 ): UseViewportSizeResult;
 ```
 
-`packages/@openmaic/renderer/src/snapshot/index.ts:90`, `snapshot/measure.ts:73`
+[`packages/@openmaic/renderer/src/snapshot/index.ts:90`](packages/@openmaic/renderer/src/snapshot/index.ts#L90), [`snapshot/measure.ts:73`](packages/@openmaic/renderer/src/snapshot/measure.ts#L73)
 
 ```ts
 export async function slideToPng(
@@ -93,7 +93,7 @@ export async function measureSlideElementGeometry(
 
 ## 2. Editor core
 
-`packages/@openmaic/editor/src/core/index.ts:88`, `:119`, `:131`, `:137`
+[`packages/@openmaic/editor/src/core/index.ts:88`](packages/@openmaic/editor/src/core/index.ts#L88), [`:119`](packages/@openmaic/editor/src/core/index.ts#L119), [`:131`](packages/@openmaic/editor/src/core/index.ts#L131), [`:137`](packages/@openmaic/editor/src/core/index.ts#L137)
 
 ```ts
 export type EditorOperation =
@@ -155,7 +155,7 @@ export function isValidEditorElement(value: unknown): value is PPTElement
 export const MAX_EDITOR_HISTORY = 50;
 ```
 
-`packages/@openmaic/editor/src/react/text/types.ts:53`
+[`packages/@openmaic/editor/src/react/text/types.ts:53`](packages/@openmaic/editor/src/react/text/types.ts#L53)
 
 ```ts
 export interface TextEditorController {
@@ -171,8 +171,8 @@ export interface TextEditorController {
 
 ## 3. Importer
 
-`packages/@openmaic/importer/src/index.ts:12`, `:24`; `src/import-pipeline/index.ts:36`, `:38`, `:56`,
-`:112`, `:123`; `src/import-pipeline/types.ts:4`, `:17`
+[`packages/@openmaic/importer/src/index.ts:12`](packages/@openmaic/importer/src/index.ts#L12), [`:24`](packages/@openmaic/importer/src/index.ts#L24); [`src/import-pipeline/index.ts:36`](packages/@openmaic/importer/src/import-pipeline/index.ts#L36), [`:38`](packages/@openmaic/importer/src/import-pipeline/index.ts#L38), [`:56`](packages/@openmaic/importer/src/import-pipeline/index.ts#L56),
+`:112`, `:123`; [`src/import-pipeline/types.ts:4`](packages/@openmaic/importer/src/import-pipeline/types.ts#L4), [`:17`](packages/@openmaic/importer/src/import-pipeline/types.ts#L17)
 
 ```ts
 export interface ParseOptions { mediaMode?: MediaMode }        // 'base64' | 'blob'
@@ -199,7 +199,7 @@ export interface ImportContext {
 export interface TransformResult { slides: Slide[]; uploadTasks: Promise<unknown>[] }
 ```
 
-`packages/@openmaic/importer/src/openmaic/configs/shapes.ts:5`, `:21`
+[`packages/@openmaic/importer/src/openmaic/configs/shapes.ts:5`](packages/@openmaic/importer/src/openmaic/configs/shapes.ts#L5), [`:21`](packages/@openmaic/importer/src/openmaic/configs/shapes.ts#L21)
 
 ```ts
 export interface ShapePoolItem {
@@ -225,8 +225,8 @@ export interface ShapePathFormula {
 
 ## 4. Export
 
-`lib/export/use-export-pptx.ts:437`, `:460`, `:473`, `:497`; `lib/export/latex-to-omml.ts:70`;
-`lib/export/html-parser/index.ts:9`
+[`lib/export/use-export-pptx.ts:437`](lib/export/use-export-pptx.ts#L437), [`:460`](lib/export/use-export-pptx.ts#L460), [`:473`](lib/export/use-export-pptx.ts#L473), [`:497`](lib/export/use-export-pptx.ts#L497); [`lib/export/latex-to-omml.ts:70`](lib/export/latex-to-omml.ts#L70);
+[`lib/export/html-parser/index.ts:9`](lib/export/html-parser/index.ts#L9)
 
 ```ts
 export function derivePptxMediaReferenceSet(slides: readonly Slide[]): ReadonlySet<string>;
@@ -249,8 +249,8 @@ export function latexToOmml(latex: string, fontSize?: number): string | null;
 export const toAST = (str: string) => AST[];
 ```
 
-Vendored pptxgenjs fork additions (`packages/pptxgenjs/src/slide.ts:253`,
-`packages/pptxgenjs/src/gen-objects.ts:669`):
+Vendored pptxgenjs fork additions ([`packages/pptxgenjs/src/slide.ts:253`](packages/pptxgenjs/src/slide.ts#L253),
+[`packages/pptxgenjs/src/gen-objects.ts:669`](packages/pptxgenjs/src/gen-objects.ts#L669)):
 
 ```ts
 addFormula(options: FormulaProps): Slide
@@ -259,8 +259,8 @@ export function addFormulaDefinition(target: PresSlide, opts: FormulaProps): voi
 
 ## 5. Agent-facing DSL op surface
 
-`lib/server/agent-runtime/course-edit/apply.ts:127`, `:227`, `:286`, `:423`;
-`lib/server/agent-runtime/course-edit/element-schema.ts:673`, `:681`, `:689`
+[`lib/server/agent-runtime/course-edit/apply.ts:127`](lib/server/agent-runtime/course-edit/apply.ts#L127), [`:227`](lib/server/agent-runtime/course-edit/apply.ts#L227), [`:286`](lib/server/agent-runtime/course-edit/apply.ts#L286), [`:423`](lib/server/agent-runtime/course-edit/apply.ts#L423);
+[`lib/server/agent-runtime/course-edit/element-schema.ts:673`](lib/server/agent-runtime/course-edit/element-schema.ts#L673), [`:681`](lib/server/agent-runtime/course-edit/element-schema.ts#L681), [`:689`](lib/server/agent-runtime/course-edit/element-schema.ts#L689)
 
 ```ts
 export type SlideEditOp =
@@ -284,7 +284,7 @@ export function validateSlideCanvas(canvas: unknown): string[];
 
 ## 6. Minimal real example
 
-From `packages/@openmaic/dsl/test/schema.test.ts:96` — the smallest scene the generated
+From [`packages/@openmaic/dsl/test/schema.test.ts:96`](packages/@openmaic/dsl/test/schema.test.ts#L96) — the smallest scene the generated
 `scene.schema.json` accepts, verbatim:
 
 ```ts
@@ -311,7 +311,7 @@ And the smallest valid action, from the same file (`:86`): `{ id: 'a', type: 'sp
 — dropping `elementId` makes the schema reject it (`:89`).
 
 The app's own blank slide factory, for comparison
-(`lib/server/agent-runtime/course-edit/apply.ts:505`):
+([`lib/server/agent-runtime/course-edit/apply.ts:505`](lib/server/agent-runtime/course-edit/apply.ts#L505)):
 
 ```ts
 export function emptySlideContent(): SlideContent {
@@ -330,5 +330,5 @@ export function emptySlideContent(): SlideContent {
 ```
 
 Note the two different `viewportSize` conventions in the codebase: `1000` for app-authored slides,
-`1280` for imported 16:9 decks (`packages/@openmaic/importer/src/import-pipeline/index.ts:34`
+`1280` for imported 16:9 decks ([`packages/@openmaic/importer/src/import-pipeline/index.ts:34`](packages/@openmaic/importer/src/import-pipeline/index.ts#L34)
 `FALLBACK_VIEWPORT_SIZE`, and `json.size.width * ratio` for real decks at `:64`).

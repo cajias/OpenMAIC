@@ -7,7 +7,7 @@ One subsection per module that carries real behaviour. Anchors are
 
 Two unrelated responsibilities in one function, in a fixed order.
 
-**Order (`middleware.ts:46-86`):**
+**Order ([`middleware.ts:46-86`](middleware.ts#L46-L86)):**
 
 1. **Workbench 404 gate** (lines 53-58). Computes
    `canInspectServerRuntime = process.env.NEXT_RUNTIME !== 'edge'`, then
@@ -28,17 +28,17 @@ Two unrelated responsibilities in one function, in a fixed order.
 6. **Page pass-through** (line 85): every other unauthenticated request is let
    through, and `AccessCodeGuard` renders the modal client-side.
 
-**Matcher (`middleware.ts:89`):** `'/((?!_next/static|_next/image|favicon.ico|logos/).*)'`.
+**Matcher ([`middleware.ts:89`](middleware.ts#L89)):** `'/((?!_next/static|_next/image|favicon.ico|logos/).*)'`.
 So middleware runs for every page, every `/api/*` route, `apple-icon.png`,
 `/avatars/*`, `/vendor/*` and `/logo-horizontal.png` — but not for the ~30 provider
 SVGs under `public/logos/` (an invocation-cost exclusion, not a security one:
 those paths would pass the gate anyway via step 6).
 
-**Crypto (`middleware.ts:5-44`):** hand-rolled Web Crypto HMAC-SHA256 so the
+**Crypto ([`middleware.ts:5-44`](middleware.ts#L5-L44)):** hand-rolled Web Crypto HMAC-SHA256 so the
 function stays Edge-compatible. `verifyToken` splits on the first `.`, re-signs
 the timestamp half, and compares with an XOR accumulator after a length check
 (line 38-43). The comment at line 37 is honest that this is not truly
-constant-time in JS. The Node-side twin is `lib/server/access-token.ts:11`
+constant-time in JS. The Node-side twin is [`lib/server/access-token.ts:11`](lib/server/access-token.ts#L11)
 (`verifyAccessToken`), which uses `crypto.timingSafeEqual`. **Neither side
 validates the timestamp** — see `06-quality-and-metrics.md`.
 
@@ -68,7 +68,7 @@ instance before the first request.
 
 | Step | Line | Call | Notes |
 | --- | --- | --- | --- |
-| 1 | 16 | `if (process.env.NEXT_RUNTIME !== 'nodejs') return;` | Edge invocation is a no-op; asserted by `tests/persistence/asset-collector-schedule.test.ts:290` |
+| 1 | 16 | `if (process.env.NEXT_RUNTIME !== 'nodejs') return;` | Edge invocation is a no-op; asserted by [`tests/persistence/asset-collector-schedule.test.ts:290`](tests/persistence/asset-collector-schedule.test.ts#L290) |
 | 2 | 19-21 | `startAssetCollectorSchedule()` | dynamic import so `pg` never enters the Edge bundle |
 | 3 | 28-29 | `validateServerConfig()` | warn-only boot validation of `MODEL_ROUTES` / `DEFAULT_MODEL` / `<PREFIX>_MODELS` |
 | 4 | 37-38 | `isAgentRuntimeConfigured()` | flag **and** non-empty `DATABASE_URL` |
@@ -81,7 +81,7 @@ Steps 4-7 sit inside a `try`/`catch` (lines 36-55) that logs
 `'[instrumentation] Agent runtime startup failed'` and continues. Steps 2 and 3
 do **not**.
 
-**Shutdown (`instrumentation.ts:57-95`):** `shutdown` is memoised with
+**Shutdown ([`instrumentation.ts:57-95`](instrumentation.ts#L57-L95)):** `shutdown` is memoised with
 `shutdownPromise ??=` (line 59) so concurrent signals share one drain. Order is
 deliberate and commented at lines 60-62 — sessions are parked before any pool
 they use closes:
@@ -126,8 +126,8 @@ export function registerShutdownSignals(shutdown: () => Promise<void>): void {
 The docstring (lines 4-11) gives the exact reason for the split: Turbopack's
 static Edge-runtime scan flags a top-level `process.once` reference in the
 Edge-analysed module graph and **cannot prove** the `NEXT_RUNTIME` guard in
-`instrumentation.ts:16` makes it unreachable, so it warned on every compile.
-Moving it behind a dynamic import at `instrumentation.ts:100` removes the
+[`instrumentation.ts:16`](instrumentation.ts#L16) makes it unreachable, so it warned on every compile.
+Moving it behind a dynamic import at [`instrumentation.ts:100`](instrumentation.ts#L100) removes the
 reference from that graph. Commit `1b2d9332` is the change.
 
 `process.once` (not `on`) is what makes the handler self-removing; the memoised
@@ -145,8 +145,8 @@ on `<body>` (lines 43-47) — necessary because `ThemeProvider` adds/removes the
 
 **Provider stack, outer to inner (lines 48-59):**
 
-1. `ThemeProvider` — `lib/hooks/use-theme.tsx:15`
-2. `I18nProvider` — `lib/hooks/use-i18n.tsx:29`
+1. `ThemeProvider` — [`lib/hooks/use-theme.tsx:15`](lib/hooks/use-theme.tsx#L15)
+2. `I18nProvider` — [`lib/hooks/use-i18n.tsx:29`](lib/hooks/use-i18n.tsx#L29)
 3. `ServerProvidersInit` — renders `null`, fetches server-configured providers on mount
 4. `ProSwapWatcher` — renders `null`, reports pathname arrivals to `pro-swap`
 5. `AccessCodeGuard` — wraps `{children}`; the only child that receives them
@@ -158,7 +158,7 @@ on `<body>` (lines 43-47) — necessary because `ThemeProvider` adds/removes the
 `next/font` and contribute CSS variables to `<body className>`. The UI font
 (Inter) comes from the `@fontsource-variable/inter` **stylesheet** (line 29), not
 `next/font`, because only the stylesheet carries per-subset `unicode-range`
-declarations; `--font-sans` is therefore declared in `app/globals.css:68` rather
+declarations; `--font-sans` is therefore declared in [`app/globals.css:68`](app/globals.css#L68) rather
 than by a generated class. The 14-line comment at lines 16-28 records both
 failed alternatives.
 
@@ -189,7 +189,7 @@ ships the editor.
 Six lines. `isWorkbenchEntryEnabled()` (line 4) =
 `isProWorkbenchEnabled() && isAgentRuntimeConfigured()`. Both `/workspace` and
 `/workbench/new` call exactly this, so the two entry routes cannot disagree.
-`tests/workbench/entry-gate.test.ts:29-41` enumerates all five off-cases
+[`tests/workbench/entry-gate.test.ts:29-41`](tests/workbench/entry-gate.test.ts#L29-L41) enumerates all five off-cases
 including a whitespace-only `DATABASE_URL`.
 
 ## `app/workspace/page.tsx` — the Pro workspace entry
@@ -206,11 +206,11 @@ rather than a `useState` on `/`. Behaviour:
   boundary exists because the shell reads the initial deep-link snapshot from
   `useSearchParams`.
 
-`WorkspaceEntry` (`components/workbench/WorkspaceEntry.tsx:4`) is a 6-line
+`WorkspaceEntry` ([`components/workbench/WorkspaceEntry.tsx:4`](components/workbench/WorkspaceEntry.tsx#L4)) is a 6-line
 integration seam that returns `<WorkspaceShell />`.
 
 **Stale-comment warning:** the docstring at lines 5-8 and the one in
-`components/workbench/workspace/WorkspaceShell.tsx:7` both refer to an
+[`components/workbench/workspace/WorkspaceShell.tsx:7`](components/workbench/workspace/WorkspaceShell.tsx#L7) both refer to an
 `AppChrome` component that "suppresses `SiteHeader` on this path". Neither
 `AppChrome` nor `SiteHeader` exists in this repository —
 `git log --pretty=format: --name-only -- 'components/site-header/'` lists only
@@ -224,7 +224,7 @@ The route is a compatibility shim, not a product surface. Server half (21 lines)
 **`notFound`, not `redirect`**, unlike `/workspace` — then
 `Suspense` → `WorkbenchLaunchBridge`.
 
-Client half (`client.tsx:45`) consumes a launch intent exactly once:
+Client half ([`client.tsx:45`](app/workbench/new/client.tsx#L45)) consumes a launch intent exactly once:
 
 1. `intent` is memoised from `searchParams.get('prompt')` and `('skill')`
    (lines 53-58); when absent it falls back to
@@ -274,7 +274,7 @@ Shell-relevant behaviour only:
 - `layout.tsx` (6 lines) exists only for `export const dynamic = 'force-dynamic'`
   (line 2), justified in its one-line comment as needed because the page uses
   client hooks.
-- `page.tsx:1539` wraps `GenerationPreviewContent` in `Suspense` with a
+- [`page.tsx:1539`](app/generation-preview/page.tsx#L1539) wraps `GenerationPreviewContent` in `Suspense` with a
   skeleton fallback.
 - Session lifecycle: load on mount (lines 220-243), normalise a missing
   `previewPhase` (line 228), restore mid-stream review intent (lines 233-235),
@@ -284,7 +284,7 @@ Shell-relevant behaviour only:
   removes `generationSession` (line 1050), `await store.saveToStorage()`, then
   `router.push('/classroom/${stage.id}')` (line 1052). `goBackToHome` (line 1073)
   aborts, clears the timer, removes the session, pushes `/`.
-- `types.ts:22` defines `previewPhase` as
+- [`types.ts:22`](app/generation-preview/types.ts#L22) defines `previewPhase` as
   `'preparing' | 'outline-ready' | 'review' | 'generating-content'`;
   `getActiveSteps` (line 135) filters `ALL_STEPS` per session.
 
@@ -319,7 +319,7 @@ harmless, but redundant.
 A production route that exists for tooling. On mount it seeds the stage store
 with a synthetic stage/scene (lines 21-51), then installs two globals:
 `window.__setElements` (line 55) and `window.__evalReady = true` (line 79).
-`eval/whiteboard-layout/capture.ts:19-23` navigates to `/eval/whiteboard` and
+[`eval/whiteboard-layout/capture.ts:19-23`](eval/whiteboard-layout/capture.ts#L19-L23) navigates to `/eval/whiteboard` and
 waits on `__evalReady` before injecting elements and screenshotting a fixed
 1000x563 clip. `setReady` is deferred with `queueMicrotask` (line 81) to avoid a
 cascading-render warning. This route is **not** flag-gated.
@@ -335,9 +335,9 @@ cascading-render warning. This route is **not** flag-gated.
   `@theme inline` (lines 20-61) maps `--color-*` to `--*` CSS variables.
 - `app/editor-fonts.ts` (39 lines) — 23 `@fontsource` CSS imports. Its docstring
   claims it is "imported once from the root layout"; it is not. The only importer
-  is `lib/edit/preload-editor.ts:35`, a lazy `import()`.
+  is [`lib/edit/preload-editor.ts:35`](lib/edit/preload-editor.ts#L35), a lazy `import()`.
 - `components/site-header/theme-toggle.tsx` (66 lines) — a three-option theme
   popover with an outside-mousedown close. Its only importer is
-  `components/workbench/workspace/WorkspaceRail.tsx:100`.
+  [`components/workbench/workspace/WorkspaceRail.tsx:100`](components/workbench/workspace/WorkspaceRail.tsx#L100).
 - `components/ui/` (34 files, 3241 lines) — characterised in
   `04-dependencies-and-config.md`.

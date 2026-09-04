@@ -13,7 +13,7 @@ Five concerns, five homes:
 
 | Concern | Home | Nature |
 | --- | --- | --- |
-| The contract itself | `packages/@openmaic/dsl` | pure types + JSON Schema + validators + normalizers + migration ladder, zero runtime deps (`packages/@openmaic/dsl/src/index.ts:10`) |
+| The contract itself | `packages/@openmaic/dsl` | pure types + JSON Schema + validators + normalizers + migration ladder, zero runtime deps ([`packages/@openmaic/dsl/src/index.ts:10`](packages/@openmaic/dsl/src/index.ts#L10)) |
 | Read-only paint | `packages/@openmaic/renderer` | React components, `Slide` in → DOM out, plus an off-screen PNG/geometry snapshot path |
 | Mutation | `packages/@openmaic/editor` | pure op/transaction/history core (`src/core/index.ts`) + a React gesture surface (`src/react/`) + optional UI chrome (`src/ui/`) |
 | `.pptx` → DSL | `packages/@openmaic/importer` | OOXML unzip → model → serializer → `Slide[]`, then the DSL's own normalize pass |
@@ -22,7 +22,7 @@ Five concerns, five homes:
 The app layer (`components/slide-renderer/`, `components/edit/`, `components/canvas/`,
 `lib/prosemirror/`, `lib/edit/`) is the *legacy in-app* implementation of renderer + editor that
 still ships by default; the two `@openmaic/*` packages are behind feature flags
-(`lib/config/feature-flags.ts:56`, `:65`). Both live in scope because both consume the same DSL.
+([`lib/config/feature-flags.ts:56`](lib/config/feature-flags.ts#L56), [`:65`](lib/config/feature-flags.ts#L65)). Both live in scope because both consume the same DSL.
 
 ## Internal parts
 
@@ -64,8 +64,8 @@ flowchart TD
 ```
 
 The dependency arrows are declared and kept acyclic by fiat in
-`packages/@openmaic/dsl/src/index.ts:4`: `dsl -> (nothing)`, `renderer -> dsl`, `importer -> dsl`,
-and `editor -> {dsl, renderer}` (`scripts/openmaic-packages.mjs:37`).
+[`packages/@openmaic/dsl/src/index.ts:4`](packages/@openmaic/dsl/src/index.ts#L4): `dsl -> (nothing)`, `renderer -> dsl`, `importer -> dsl`,
+and `editor -> {dsl, renderer}` ([`scripts/openmaic-packages.mjs:37`](scripts/openmaic-packages.mjs#L37)).
 
 ## Layered view of one slide edit
 
@@ -119,21 +119,21 @@ Largest single modules, in descending order (same command, per file):
 
 | Thing | Value | Source |
 | --- | --- | --- |
-| `DSL_VERSION` (serialized document shape) | `0.3.0` | `packages/@openmaic/dsl/src/version.ts:61` |
-| `RUNTIME_DSL_VERSION` (learner runtime shape) | `0.1.0` | `packages/@openmaic/dsl/src/version.ts:276` |
-| `CURRENT_SLIDE_CONTENT_SCHEMA_VERSION` (app-side `SlideContent.schemaVersion`) | `1` | `lib/edit/slide-schema.ts:24` |
-| `@openmaic/dsl` npm version | `0.11.1` | `packages/@openmaic/dsl/package.json:3` |
-| `@openmaic/renderer` | `0.1.6` | `packages/@openmaic/renderer/package.json:2` |
-| `@openmaic/editor` | `0.0.5` | `packages/@openmaic/editor/package.json:3` |
-| `@openmaic/importer` | `0.1.3` | `packages/@openmaic/importer/package.json:3` |
+| `DSL_VERSION` (serialized document shape) | `0.3.0` | [`packages/@openmaic/dsl/src/version.ts:61`](packages/@openmaic/dsl/src/version.ts#L61) |
+| `RUNTIME_DSL_VERSION` (learner runtime shape) | `0.1.0` | [`packages/@openmaic/dsl/src/version.ts:276`](packages/@openmaic/dsl/src/version.ts#L276) |
+| `CURRENT_SLIDE_CONTENT_SCHEMA_VERSION` (app-side `SlideContent.schemaVersion`) | `1` | [`lib/edit/slide-schema.ts:24`](lib/edit/slide-schema.ts#L24) |
+| `@openmaic/dsl` npm version | `0.11.1` | [`packages/@openmaic/dsl/package.json:3`](packages/@openmaic/dsl/package.json#L3) |
+| `@openmaic/renderer` | `0.1.6` | [`packages/@openmaic/renderer/package.json:2`](packages/@openmaic/renderer/package.json#L2) |
+| `@openmaic/editor` | `0.0.5` | [`packages/@openmaic/editor/package.json:3`](packages/@openmaic/editor/package.json#L3) |
+| `@openmaic/importer` | `0.1.3` | [`packages/@openmaic/importer/package.json:3`](packages/@openmaic/importer/package.json#L3) |
 | vendored `pptxgenjs` | `4.0.1` | `packages/pptxgenjs/package.json` |
 | vendored `mathml2omml` | `0.5.0` | `packages/mathml2omml/package.json` |
 
 Three independent version lines coexist and are deliberately not merged: the DSL document line
 (`dslVersion`), the DSL runtime line (`runtimeDslVersion`), and the app's `SlideContent.schemaVersion`.
 The first two are mechanically kept apart by a cross-line guard
-(`packages/@openmaic/dsl/src/version.ts:597`); the third predates the package split and is applied
-by `migrateSlideContent` at every SlideContent read boundary (`lib/edit/slide-schema.ts:26`).
+([`packages/@openmaic/dsl/src/version.ts:597`](packages/@openmaic/dsl/src/version.ts#L597)); the third predates the package split and is applied
+by `migrateSlideContent` at every SlideContent read boundary ([`lib/edit/slide-schema.ts:26`](lib/edit/slide-schema.ts#L26)).
 
 ## Index of this pack
 
@@ -143,16 +143,16 @@ manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file |
-| [`01a-modules.md`](./01a-modules.md) | module-by-module: DSL and renderer |
-| [`01b-modules.md`](./01b-modules.md) | module-by-module: editor, importer, export, vendored forks, app glue |
-| [`02a-interfaces.md`](./02a-interfaces.md) | verbatim signatures: element model + lesson skeleton (classDiagram, erDiagram) |
-| [`02b-interfaces.md`](./02b-interfaces.md) | verbatim signatures: actions, validation, normalization, versioning, asset seam |
-| [`02c-interfaces.md`](./02c-interfaces.md) | verbatim signatures: renderer, editor, importer, export, agent ops, minimal example |
-| [`03-flows.md`](./03-flows.md) | four traced end-to-end flows |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | external deps, env vars, build/config resolution |
-| [`05-failure-modes.md`](./05-failure-modes.md) | error handling and degradation per boundary |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | strengths, fragilities, every measured number + its command |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined |
+| [`01a-modules.md`](docs/appendix/research/dsl-renderer-editor/01a-modules.md) | module-by-module: DSL and renderer |
+| [`01b-modules.md`](docs/appendix/research/dsl-renderer-editor/01b-modules.md) | module-by-module: editor, importer, export, vendored forks, app glue |
+| [`02a-interfaces.md`](docs/appendix/research/dsl-renderer-editor/02a-interfaces.md) | verbatim signatures: element model + lesson skeleton (classDiagram, erDiagram) |
+| [`02b-interfaces.md`](docs/appendix/research/dsl-renderer-editor/02b-interfaces.md) | verbatim signatures: actions, validation, normalization, versioning, asset seam |
+| [`02c-interfaces.md`](docs/appendix/research/dsl-renderer-editor/02c-interfaces.md) | verbatim signatures: renderer, editor, importer, export, agent ops, minimal example |
+| [`03-flows.md`](docs/appendix/research/dsl-renderer-editor/03-flows.md) | four traced end-to-end flows |
+| [`04-dependencies-and-config.md`](docs/appendix/research/dsl-renderer-editor/04-dependencies-and-config.md) | external deps, env vars, build/config resolution |
+| [`05-failure-modes.md`](docs/appendix/research/dsl-renderer-editor/05-failure-modes.md) | error handling and degradation per boundary |
+| [`06-quality-and-metrics.md`](docs/appendix/research/dsl-renderer-editor/06-quality-and-metrics.md) | strengths, fragilities, every measured number + its command |
+| [`07-open-questions.md`](docs/appendix/research/dsl-renderer-editor/07-open-questions.md) | what could not be determined |
 
 No file is omitted; every section of the requested pack has real content. Pack→topic
-mapping: [`../index.md`](../index.md).
+mapping: [`../index.md`](docs/appendix/research/index.md).

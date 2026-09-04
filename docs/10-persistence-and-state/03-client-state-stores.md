@@ -9,9 +9,9 @@ notice instead of silent data loss.
 `lib/store/stage.ts`, `lib/store/kv-persist.ts`, `lib/store/persist-health.ts`,
 `lib/workbench/session-store.ts`, `lib/utils/chat-storage.ts`,
 `packages/@openmaic/storage/src/zustand/persist.ts`; evidence
-[../appendix/research/persistence-storage-state/01b-modules-app.md](../appendix/research/persistence-storage-state/01b-modules-app.md),
-[05-failure-modes.md](../appendix/research/persistence-storage-state/05-failure-modes.md),
-[06-quality-and-metrics.md](../appendix/research/persistence-storage-state/06-quality-and-metrics.md).
+[../appendix/research/persistence-storage-state/01b-modules-app.md](docs/appendix/research/persistence-storage-state/01b-modules-app.md),
+[05-failure-modes.md](docs/appendix/research/persistence-storage-state/05-failure-modes.md),
+[06-quality-and-metrics.md](docs/appendix/research/persistence-storage-state/06-quality-and-metrics.md).
 
 ## The four stores at a glance
 
@@ -21,7 +21,7 @@ Line counts measured with `wc -l`:
 | --- | --- | --- | --- | --- |
 | `useSettingsStore` (`lib/store/settings.ts`) | 2248 | the entire provider/model/media/TTS/ASR/PDF/image/video/web-search configuration, plus five layout prefs (`sidebarCollapsed`, `chatAreaCollapsed`/`Width`, `editRailCollapsed`/`Width`) and a playback/agent-selection block (`ttsMuted`, `ttsVolume`, `autoPlayLecture`, `playbackSpeed`, `selectedAgentIds`, `agentMode`, `autoAgentCount`, `agentVoiceOverrides`, `agentSelectionIsUserSet`) | KV `account` key `settings-storage` | zustand `persist` → `createKVPersistStorage`, `version: 4` |
 | `useUserProfileStore` (`lib/store/user-profile.ts`) | 73 | `avatar`, `nickname`, `bio` | KV `account` key `user-profile-storage` | same adapter, no `version` |
-| `useStageStore` (`lib/store/stage.ts`) | 1231 | the live course being viewed or edited, plus the save orchestration around it | `DocumentStore` (IndexedDB or PostgreSQL) via `lib/utils/stage-storage` | debounced dirty-set flush, 500 ms (`stage.ts:60`) |
+| `useStageStore` (`lib/store/stage.ts`) | 1231 | the live course being viewed or edited, plus the save orchestration around it | `DocumentStore` (IndexedDB or PostgreSQL) via `lib/utils/stage-storage` | debounced dirty-set flush, 500 ms ([`stage.ts:60`](lib/store/stage.ts#L60)) |
 | `useWorkbenchStore` (`lib/workbench/session-store.ts`) | 2173 | the folded state of one agent-runtime run | nothing, except one panel flag in raw `localStorage` | pure fold over the SSE event log |
 
 `createKVPersistStorage` has exactly two consumers — settings and user profile.
@@ -81,7 +81,7 @@ Three things this diagram is saying:
 2. `useStageStore` never talks to a backend directly — it stages `PendingChange`
    entries and a debounced flush hands them to `lib/utils/stage-storage`, which
    holds the `getDocumentStore()` handle. `stage-storage` is loaded through a
-   cached dynamic `import()` (`stage.ts:56`) so the store module does not pull the
+   cached dynamic `import()` ([`stage.ts:56`](lib/store/stage.ts#L56)) so the store module does not pull the
    persistence graph in at eval time.
 3. Only `kv-persist` reports health. A failed document or runtime write surfaces
    as a store-level error, not as a `persist-health` notice.
@@ -89,45 +89,45 @@ Three things this diagram is saying:
 ## `settings.ts`: why 2248 lines
 
 `SettingsState` is one flat interface of 91 members — 44 state fields and 47
-actions, 42 of them `set*`-prefixed (`settings.ts:81-391`). The bulk is not UI
+actions, 42 of them `set*`-prefixed ([`settings.ts:81-391`](lib/store/settings.ts#L81-L391)). The bulk is not UI
 state — it is one `Record<ProviderId, {...}>` per capability, and there are eight
 capabilities: LLM providers, TTS, ASR, PDF, image, video, web search, plus
 per-model thinking configs. The entry shape differs per capability rather than
 being shared: an LLM entry carries `apiKey`, `baseUrl`, `models`, the built-in/custom
 metadata (`name`, `type`, `defaultBaseUrl?`, `icon?`, `requiresApiKey`, `isBuiltIn`,
 `modelsUrl?`) and `isServerConfigured?` / `serverModels?`
-(`lib/types/settings.ts:21-45`); TTS and ASR entries add `enabled`, `modelId?`,
+([`lib/types/settings.ts:21-45`](lib/types/settings.ts#L21-L45)); TTS and ASR entries add `enabled`, `modelId?`,
 `customModels?`, `providerOptions?`, `serverDisabled?` and the custom-provider
-fields (`settings.ts:101-140`); image and video entries carry `enabled`,
+fields ([`settings.ts:101-140`](lib/store/settings.ts#L101-L140)); image and video entries carry `enabled`,
 `serverDisabled?`, `customModels?` and `replaceBuiltInModels?` but no `modelId` or
-`providerOptions` (`settings.ts:163-192`). The store's own header states the intent: this is "the canonical
+`providerOptions` ([`settings.ts:163-192`](lib/store/settings.ts#L163-L192)). The store's own header states the intent: this is "the canonical
 `account`-scoped value in the storage contract, and the thing a second device
-should not have to be told again" (`settings.ts:1-8`) — which, given that
+should not have to be told again" ([`settings.ts:1-8`](lib/store/settings.ts#L1-L8)) — which, given that
 `account` KV has no HTTP backend
-([01-storage-abstraction.md](./01-storage-abstraction.md)), it currently is not.
+([01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)), it currently is not.
 
 Two behaviours in the persist config are worth internalising before you touch it:
 
 | Hook | What it does | Line |
 | --- | --- | --- |
-| `migrate` | a four-step v0→v4 ladder, reading fields that no longer exist on the type through `as Record<string, unknown>` casts (22 of them in the file) | `settings.ts:1998` onward |
-| `merge` | runs on **every** rehydrate, not just on migration: deletes the retired `editInsertToolbarCollapsed`, then six `ensureBuiltIn*` passes, `promoteLegacyCustomProviderBaseUrls`, `ensureValidProviderSelections`, `stripLegacyServerBaseUrl` and `pruneThinkingConfigs` | `settings.ts:2213-2235` |
+| `migrate` | a four-step v0→v4 ladder, reading fields that no longer exist on the type through `as Record<string, unknown>` casts (22 of them in the file) | [`settings.ts:1998`](lib/store/settings.ts#L1998) onward |
+| `merge` | runs on **every** rehydrate, not just on migration: deletes the retired `editInsertToolbarCollapsed`, then six `ensureBuiltIn*` passes, `promoteLegacyCustomProviderBaseUrls`, `ensureValidProviderSelections`, `stripLegacyServerBaseUrl` and `pruneThinkingConfigs` | [`settings.ts:2213-2235`](lib/store/settings.ts#L2213-L2235) |
 
 The stated reason for the unconditional `merge` work is "always sync built-in
 providers on every rehydrate, so newly added providers/models appear without
-clearing cache" (`settings.ts:2211-2212`). The cost is that per-provider defaults
+clearing cache" ([`settings.ts:2211-2212`](lib/store/settings.ts#L2211-L2212)). The cost is that per-provider defaults
 are re-derived on every page load rather than once at migration time.
 
 At the bottom of both KV-persisted stores, `purgeLegacyPersistKey(name)` fires
 once, best-effort, to drop the pre-cutover raw `localStorage` blob. For settings
 that blob "holds plaintext provider API keys, so clearing it is a small security
-win. No correctness depends on it" (`settings.ts:2244-2248`).
+win. No correctness depends on it" ([`settings.ts:2244-2248`](lib/store/settings.ts#L2244-L2248)).
 
 The `onWriteRefused` hook in both stores routes through a
 `const recovery: { rehydrate?: ... } = {}` assigned *after* the store is created.
 That is not style: naming the store inside its own definition "would make the
 store's own type circular, and every `useSettingsStore(s => ...)` selector would
-silently widen to `any`" (`settings.ts:1989-1994`).
+silently widen to `any`" ([`settings.ts:1989-1994`](lib/store/settings.ts#L1989-L1994)).
 
 ## `kv-persist.ts`: the 735-line reason a failed write is not silence
 
@@ -135,7 +135,7 @@ The module comment explains the problem it exists to solve. Before it, persisted
 stores wrote straight to `localStorage` through zustand's default storage while
 the rest of the app's keyed values had already moved to `KVStore` — "two unrelated
 mechanisms over the same browser API, which is the split-brain the storage RFC set
-out to remove" (`kv-persist.ts:1-10`). And async storage fails in ways
+out to remove" ([`kv-persist.ts:1-10`](lib/store/kv-persist.ts#L1-L10)). And async storage fails in ways
 `localStorage` never did; review rounds kept finding the same two bugs: "a backend
 failure read as 'there is nothing there', and the result of an operation that
 nobody looked at" (`:18-23`).
@@ -172,7 +172,7 @@ stateDiagram-v2
   end note
 ```
 
-The full table lives in the source doc comment (`kv-persist.ts:130-160`). Four
+The full table lives in the source doc comment ([`kv-persist.ts:130-160`](lib/store/kv-persist.ts#L130-L160)). Four
 rows carry the design:
 
 - `unhydrated` + `write` refuses. Persisting from an un-hydrated store would
@@ -186,7 +186,7 @@ rows carry the design:
   asked for that data to be gone.
 
 Recovery is capped by `DEFAULT_RECOVERY_BACKOFF_MS = [0, 250, 1000]`
-(`kv-persist.ts:451`) — the array length *is* the attempt cap, bounding the
+([`kv-persist.ts:451`](lib/store/kv-persist.ts#L451)) — the array length *is* the attempt cap, bounding the
 treadmill a readable-but-unwritable backend would otherwise create. `removeItem`
 failing throws on purpose: "a caller clearing a user's data has to be able to tell
 that it did not happen".
@@ -200,7 +200,7 @@ delivered). Two independent latch sets per key for exactly that reason, and
 publishing is deferred one macrotask so a fast recovery can cancel a notice nobody
 saw yet.
 
-`resolveKv` (`kv-persist.ts:470-474`) is where the whole scope story bottoms out.
+`resolveKv` ([`kv-persist.ts:470-474`](lib/store/kv-persist.ts#L470-L474)) is where the whole scope story bottoms out.
 It returns `KVStore | null` over three branches: the injected `deps.kv` if there is
 one; then `null` when no ambient `localStorage` is reachable — SSR, or a
 `localStorage` that throws outright under some privacy settings (`:454-456`) —
@@ -209,7 +209,7 @@ otherwise a memoised `defaultKv ??= new BrowserKVStore()`.
 
 ## `session-store.ts`: why 2173 lines with nothing persisted
 
-Two invariants, both stated in the header (`session-store.ts:13-24`):
+Two invariants, both stated in the header ([`session-store.ts:13-24`](lib/workbench/session-store.ts#L13-L24)):
 
 1. **The rendered UI is a pure function of the applied event prefix.** `foldEvent`
    is pure and exported for tests; no event handler queries the session status
@@ -228,7 +228,7 @@ status, `lastEventId`, the chat node list, plan, built pages, `libraryRevision`,
 about twenty small pure helpers. Purity forbids the usual escape of asking the
 server, so every derivation has to be in the fold.
 
-`createInitialSessionState()` (`session-store.ts:511`) is the single total reset,
+`createInitialSessionState()` ([`session-store.ts:511`](lib/workbench/session-store.ts#L511)) is the single total reset,
 used by the store's initial state, by `attach()` for a different session, and by
 `detach()`. Its comment is the best bug postmortem in the repo: the
 one-field-left-behind bug arrived three times (`replaying`, then `status` whose
@@ -243,7 +243,7 @@ session the previous one's `chat` array".
 
 The only thing this store persists is one preference per session:
 `localStorage['workbench.panel.<sessionId>']`, written directly through
-`window.localStorage`, not through `KVStore` (`session-store.ts:570-590`).
+`window.localStorage`, not through `KVStore` ([`session-store.ts:570-590`](lib/workbench/session-store.ts#L570-L590)).
 Per-session rather than global because "'I want the classroom out' is a statement
 about the course being built", and written only on a deliberate toggle so "the
 automatic opener must not silently become a preference".
@@ -253,31 +253,31 @@ automatic opener must not silently become a preference".
 `useStageStore` is the only store whose persistence is a scheduler. Module-level
 state (not store state) holds `pendingStageId`, `pendingRevision`, a
 `Map<string, PendingEntry>` of dirty changes, one `saveTimer`, and one
-`flushInFlight` round (`stage.ts:44-55`). Constants:
+`flushInFlight` round ([`stage.ts:44-55`](lib/store/stage.ts#L44-L55)). Constants:
 `SAVE_DEBOUNCE_MS = 500` and `DEPARTING_STAGE_RETRY_DELAY_MS = 100`
-(`stage.ts:58,60`).
+([`stage.ts:58,60`](lib/store/stage.ts#L58)).
 
 It also carries the deletion fences: `isStageDeleted`,
 `isStageDeletionInFlight`, `isStageWriteStale`, `stageDeletionEpoch`,
-`stageDeletionSettled` from `lib/utils/deleted-stages` (`stage.ts:27-34`), so a
+`stageDeletionSettled` from `lib/utils/deleted-stages` ([`stage.ts:27-34`](lib/store/stage.ts#L27-L34)), so a
 save that would land after a course was deleted is dropped rather than
-resurrecting it. `PENDING_SCENE_ID = '__pending__'` (`stage.ts:38`) is the virtual
+resurrecting it. `PENDING_SCENE_ID = '__pending__'` ([`stage.ts:38`](lib/store/stage.ts#L38)) is the virtual
 scene shown when the user navigates to a page still being generated.
 
 Chat is not a store: `lib/utils/chat-storage.ts` (1455 lines) is a module the
 stage store calls into, with its own locking and its own legacy source. It gets
-its own file — [05-chat-storage-and-cutover.md](./05-chat-storage-and-cutover.md).
+its own file — [05-chat-storage-and-cutover.md](docs/10-persistence-and-state/05-chat-storage-and-cutover.md).
 
 ## Cross-references
 
 - Backend selection behind `getDocumentStore` / `getRuntimeStore`:
-  [01-storage-abstraction.md](./01-storage-abstraction.md)
+  [01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)
 - The one-way settings pull that writes `isServerConfigured` / `serverModels`:
-  [04-settings-server-sync.md](./04-settings-server-sync.md)
+  [04-settings-server-sync.md](docs/10-persistence-and-state/04-settings-server-sync.md)
 - What the workbench fold is folding over:
-  [../05-agent-runtime/index.md](../05-agent-runtime/index.md)
+  [../05-agent-runtime/index.md](docs/05-agent-runtime/index.md)
 - Where the stage document physically lands:
-  [08-data-lifecycle.md](./08-data-lifecycle.md)
+  [08-data-lifecycle.md](docs/10-persistence-and-state/08-data-lifecycle.md)
 
 ## Open questions
 

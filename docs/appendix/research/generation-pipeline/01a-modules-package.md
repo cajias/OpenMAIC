@@ -60,13 +60,13 @@ flowchart TD
 `export *`), outline (`buildOutlinePrompt`,
 `generateSceneOutlinesFromRequirements`, `applyOutlineFallbacks`,
 `sanitizeProceduralSkillOutline`, `DEFAULT_LANGUAGE_DIRECTIVE`), and the whole
-prompt loader (`export * from './prompts/index.js'`, `index.ts:114`).
+prompt loader (`export * from './prompts/index.js'`, [`index.ts:114`](packages/@openmaic/generation/src/index.ts#L114)).
 
 Note the duplicated symbol names: `formatImageDescription` /
 `formatImagePlaceholder` are exported from `prompt-formatters.ts`
-(`index.ts:100-101`) while byte-identical copies also exist in
-`outline-formatters.ts:3` and `:14`. Only `partitionImagesForVision` is
-exported from `outline-formatters` (`index.ts:89`).
+([`index.ts:100-101`](packages/@openmaic/generation/src/index.ts#L100-L101)) while byte-identical copies also exist in
+[`outline-formatters.ts:3`](packages/@openmaic/generation/src/outline-formatters.ts#L3) and [`:14`](packages/@openmaic/generation/src/outline-formatters.ts#L14). Only `partitionImagesForVision` is
+exported from `outline-formatters` ([`index.ts:89`](packages/@openmaic/generation/src/index.ts#L89)).
 
 ## `src/prompts/loader.ts` — template assembly
 
@@ -78,45 +78,45 @@ code works from `src/` and `dist/`:
 const DEFAULT_PROMPTS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 ```
 
-`buildPrompt(promptId, variables, promptsDir?)` (`loader.ts:126`) runs a fixed
+`buildPrompt(promptId, variables, promptsDir?)` ([`loader.ts:126`](packages/@openmaic/generation/src/prompts/loader.ts#L126)) runs a fixed
 three-phase substitution, in this order:
 
-1. `processSnippets` (`loader.ts:42`) — `{{snippet:name}}` → file content of
-   `snippets/<name>.md`. A missing snippet **throws** (`loader.ts:37`) rather
+1. `processSnippets` ([`loader.ts:42`](packages/@openmaic/generation/src/prompts/loader.ts#L42)) — `{{snippet:name}}` → file content of
+   `snippets/<name>.md`. A missing snippet **throws** ([`loader.ts:37`](packages/@openmaic/generation/src/prompts/loader.ts#L37)) rather
    than shipping the literal token to the model.
-2. `processConditionalBlocks` (`loader.ts:52`) — `{{#if flag}}…{{/if}}`,
+2. `processConditionalBlocks` ([`loader.ts:52`](packages/@openmaic/generation/src/prompts/loader.ts#L52)) — `{{#if flag}}…{{/if}}`,
    non-nesting by design, truthiness read from the same `variables` record.
-3. `interpolateVariables` (`loader.ts:99`) — `{{camelCase}}`; an **undefined**
-   value leaves the literal `{{token}}` in place (`loader.ts:103`), objects are
+3. `interpolateVariables` ([`loader.ts:99`](packages/@openmaic/generation/src/prompts/loader.ts#L99)) — `{{camelCase}}`; an **undefined**
+   value leaves the literal `{{token}}` in place ([`loader.ts:103`](packages/@openmaic/generation/src/prompts/loader.ts#L103)), objects are
    `JSON.stringify(value, null, 2)`.
 
-`loadPrompt` (`loader.ts:65`) requires `system.md` and treats `user.md` as
-optional *only* on `ENOENT` (`loader.ts:87`) — any other fs error rethrows.
+`loadPrompt` ([`loader.ts:65`](packages/@openmaic/generation/src/prompts/loader.ts#L65)) requires `system.md` and treats `user.md` as
+optional *only* on `ENOENT` ([`loader.ts:87`](packages/@openmaic/generation/src/prompts/loader.ts#L87)) — any other fs error rethrows.
 Missing `system.md` returns `null`, which is how every caller detects
 "prompt-unavailable".
 
-`PROMPT_VARIABLE_DEFAULTS` (`loader.ts:15`) currently carries exactly one
+`PROMPT_VARIABLE_DEFAULTS` ([`loader.ts:15`](packages/@openmaic/generation/src/prompts/loader.ts#L15)) currently carries exactly one
 entry: `pbl-actions.projectSummary`.
 
-Prompt ids are a closed union (`prompts/types.ts:6`): `requirements-to-outlines`,
+Prompt ids are a closed union ([`prompts/types.ts:6`](packages/@openmaic/generation/src/prompts/types.ts#L6)): `requirements-to-outlines`,
 `slide-content`, `quiz-content`, `simulation-content`, `diagram-content`,
 `code-content`, `game-content`, `visualization3d-content`,
 `procedural-skill-content`, `slide-actions`, `quiz-actions`,
 `interactive-actions`, `pbl-actions`. Snippet ids likewise
-(`prompts/types.ts:22`, 7 ids).
+([`prompts/types.ts:22`](packages/@openmaic/generation/src/prompts/types.ts#L22), 7 ids).
 
 ## `src/outline-generator.ts`
 
 - `buildOutlinePrompt(requirements, context)` (`:82`) — assembles the
   `requirements-to-outlines` prompt. Inputs: `requirement`, PDF text truncated
-  to `MAX_PDF_CONTENT_CHARS` (50 000, `constants.ts:1`), an
+  to `MAX_PDF_CONTENT_CHARS` (50 000, [`constants.ts:1`](packages/@openmaic/generation/src/constants.ts#L1)), an
   `availableImages` block, a `## Student Profile` block synthesised inline at
   `:91`, conditional flags `hasSourceImages` / `imageEnabled` / `videoEnabled` /
   `mediaEnabled`, `researchContext`, `teacherContext`. Throws
   `Error('Prompt template not found')` when `buildPrompt` returns null (`:113`).
 - `buildAvailableImages` (`:46`) — vision-mode split: sort by vision priority,
   keep only images with a mapping entry, first `MAX_VISION_IMAGES` (20,
-  `constants.ts:2`) become `[see attached]` placeholders plus real attachments;
+  [`constants.ts:2`](packages/@openmaic/generation/src/constants.ts#L2)) become `[see attached]` placeholders plus real attachments;
   the remainder plus mapping-less images become plain text descriptions.
 - `generateSceneOutlinesFromRequirements(...)` (`:120`) — single `aiCall`, then
   `parseJsonResponse`. Accepts **either** a bare `SceneOutline[]` (then
@@ -316,10 +316,10 @@ model omitted it (`:122`).
 
 ## PBL scene generation
 
-`generatePBLSceneContent` (`scene-generator.ts:988`) builds a
+`generatePBLSceneContent` ([`scene-generator.ts:988`](packages/@openmaic/generation/src/scene-generator.ts#L988)) builds a
 `PBLPlannerV2Input` carrying only the current outline in `courseContext.allOutlines`
 (`:1008`) plus the user profile and `targetLanguage`, then calls
-`generatePBLV2ProjectSingleCall` (`pbl/planner-single-call.ts:477`).
+`generatePBLV2ProjectSingleCall` ([`pbl/planner-single-call.ts:477`](packages/@openmaic/generation/src/pbl/planner-single-call.ts#L477)).
 
 That planner: build system prompt (ordinary vs `scenarioRoleplay` variant,
 `:503`) → one call → `parseJsonResponse` → `validateLLMOutput` → **one** targeted

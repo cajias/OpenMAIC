@@ -5,14 +5,14 @@ instructor agent the learner chats with, submissions scored by an evaluator, and
 learner-state ledger reconstructed on load. This page covers what state is
 tracked, the instructor agent's loop, and the three gates that guard advancement.
 The wire protocol, the runtime ledger and legacy reachability continue in
-[`./08b-pbl-v2-runtime-and-legacy.md`](./08b-pbl-v2-runtime-and-legacy.md).
+[`./08b-pbl-v2-runtime-and-legacy.md`](docs/08-classroom-runtime/08b-pbl-v2-runtime-and-legacy.md).
 
 **Sources:** `lib/pbl/v2/agents/instructor.ts`, `lib/pbl/v2/types.ts`,
 `packages/@openmaic/generation/src/pbl/operations/kernel/{progress,task-completion,engagement}.ts`,
 `app/api/pbl/v2/task/update/route.ts`, `components/scene-renderers/pbl-renderer.tsx`,
 `packages/@openmaic/dsl/src/pbl.ts`, `lib/pbl/v2/runtime/learner-state.ts`,
-[`../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md`](../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md),
-[`../appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md`](../appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md).
+[`../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md`](docs/appendix/research/classroom-runtime/01b-modules-pbl-interactive.md),
+[`../appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md`](docs/appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md).
 
 ## What is tracked, and where
 
@@ -22,13 +22,13 @@ of that contract: `extractLearnerState` and `stripToDesignTemplate`.
 
 | Field group | Lives in | Notes |
 | --- | --- | --- |
-| `title`, `description`, `language`, `tags`, `roles`, milestone/microtask design fields, `scenario` config, briefings, `completionCriteria` | `scene.content.projectV2` in the course document | `PBLContent.projectV2?: PBLProject` (`packages/@openmaic/dsl/src/pbl.ts:151-153`) |
-| thread messages, submissions, evaluations, engagement events, runtime events, `pendingHandover`, `pendingTaskCompletion`, `proficiencyAssessment` | `RuntimeStore` records, folded on read | `PBLProjectV2` is a `RuntimeOverlay` that *replaces* those properties on the contract type (`lib/pbl/v2/types.ts:539`; the `RuntimeOverlay` helper is `:43`) |
-| `uiPhase` | the document | `PBLUiPhase`: `hero`, `generating`, `workspace`, `completed` (`dsl/src/pbl.ts:16`) |
-| `status` | the document | `PBLProjectStatus`: `designing`, `review`, `active`, `completed`, `archived` (`dsl/src/pbl.ts:3`) |
+| `title`, `description`, `language`, `tags`, `roles`, milestone/microtask design fields, `scenario` config, briefings, `completionCriteria` | `scene.content.projectV2` in the course document | `PBLContent.projectV2?: PBLProject` ([`packages/@openmaic/dsl/src/pbl.ts:151-153`](packages/@openmaic/dsl/src/pbl.ts#L151-L153)) |
+| thread messages, submissions, evaluations, engagement events, runtime events, `pendingHandover`, `pendingTaskCompletion`, `proficiencyAssessment` | `RuntimeStore` records, folded on read | `PBLProjectV2` is a `RuntimeOverlay` that *replaces* those properties on the contract type ([`lib/pbl/v2/types.ts:539`](lib/pbl/v2/types.ts#L539); the `RuntimeOverlay` helper is [`:43`](lib/pbl/v2/types.ts#L43)) |
+| `uiPhase` | the document | `PBLUiPhase`: `hero`, `generating`, `workspace`, `completed` ([`dsl/src/pbl.ts:16`](packages/@openmaic/dsl/src/pbl.ts#L16)) |
+| `status` | the document | `PBLProjectStatus`: `designing`, `review`, `active`, `completed`, `archived` ([`dsl/src/pbl.ts:3`](packages/@openmaic/dsl/src/pbl.ts#L3)) |
 
 Both event outboxes are bounded rings: `MAX_ENGAGEMENT_EVENTS = 500`
-(`kernel/engagement.ts:28`), enforced by `capEngagementEvents` splicing from the
+([`kernel/engagement.ts:28`](packages/@openmaic/generation/src/pbl/operations/kernel/engagement.ts#L28)), enforced by `capEngagementEvents` splicing from the
 front (`:60-63`).
 
 ## A task session
@@ -63,7 +63,7 @@ stateDiagram-v2
 ```
 
 `workspace` and `completed` are rendered by **one** portaled
-`PBLV2WorkspaceLayer` (`pbl-renderer.tsx:238-261`), `position: fixed`, portalled
+`PBLV2WorkspaceLayer` ([`pbl-renderer.tsx:238-261`](components/scene-renderers/pbl-renderer.tsx#L238-L261)), `position: fixed`, portalled
 to `document.body` — or to the natively fullscreened element while native
 fullscreen is on (`:260`). That single-instance choice is what preserves chat
 scroll position and an in-flight instructor stream across expand/collapse *and*
@@ -85,7 +85,7 @@ Two ordering details in the renderer:
 
 ## The instructor agent loop
 
-`runInstructorTurn(args)` (`lib/pbl/v2/agents/instructor.ts:1301`) is an
+`runInstructorTurn(args)` ([`lib/pbl/v2/agents/instructor.ts:1301`](lib/pbl/v2/agents/instructor.ts#L1301)) is an
 `AsyncGenerator<PBLSSEEvent, void, void>` — 1 865 lines in the module, three
 phases, two tools.
 
@@ -129,7 +129,7 @@ flowchart TD
 
 | Phase | Triggered by | Tools exposed | Prompt block |
 | --- | --- | --- | --- |
-| `greeting` | first entry with an empty instructor thread | **none** | `PHASE_BLOCKS.greeting` (`instructor.ts:68`) |
+| `greeting` | first entry with an empty instructor thread | **none** | `PHASE_BLOCKS.greeting` ([`instructor.ts:68`](lib/pbl/v2/agents/instructor.ts#L68)) |
 | `setup` | a new microtask became active (`runTaskOpenerPhase`) | **none** | `PHASE_BLOCKS.setup` |
 | `instructing` | a learner message | `record_observation`, `adjust_difficulty` (`:1422`, `:1472`) | `PHASE_BLOCKS.instructing` |
 
@@ -163,18 +163,18 @@ between "the learner submitted something good" and "the next milestone is open".
 
 | Gate | Decided by | Mechanism |
 | --- | --- | --- |
-| 1. Evaluation passes | the evaluator LLM behind `POST /api/pbl/v2/evaluate` | `taskEvaluationCanComplete(evaluation)`: `kind === 'task' && score >= TASK_EVAL_PASS_SCORE` where the constant is `60` (`kernel/task-completion.ts:18-26`) |
-| 2. The learner confirms | the sidebar **Done** button | `setPendingTaskCompletion` stages `{microtaskId, milestoneId, reason, assessment, evidence, createdAt}` and appends a `task_completion_staged` runtime event (`task-completion.ts:53-84`). Only then does `POST /api/pbl/v2/task/update {action:'complete_pending_task'}` succeed |
-| 3. The milestone boundary | the **Continue** button on a staged handover | `advanceMicrotask` writes `project.pendingHandover` and a `handover_staged` event (`progress.ts:588-608`); the next milestone stays `locked` until `continueAfterHandover` marks the handover `consumed: true` (`:797`) |
+| 1. Evaluation passes | the evaluator LLM behind `POST /api/pbl/v2/evaluate` | `taskEvaluationCanComplete(evaluation)`: `kind === 'task' && score >= TASK_EVAL_PASS_SCORE` where the constant is `60` ([`kernel/task-completion.ts:18-26`](packages/@openmaic/generation/src/pbl/operations/kernel/task-completion.ts#L18-L26)) |
+| 2. The learner confirms | the sidebar **Done** button | `setPendingTaskCompletion` stages `{microtaskId, milestoneId, reason, assessment, evidence, createdAt}` and appends a `task_completion_staged` runtime event ([`task-completion.ts:53-84`](packages/@openmaic/generation/src/pbl/operations/kernel/task-completion.ts#L53-L84)). Only then does `POST /api/pbl/v2/task/update {action:'complete_pending_task'}` succeed |
+| 3. The milestone boundary | the **Continue** button on a staged handover | `advanceMicrotask` writes `project.pendingHandover` and a `handover_staged` event ([`progress.ts:588-608`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L588-L608)); the next milestone stays `locked` until `continueAfterHandover` marks the handover `consumed: true` (`:797`) |
 
 `POST /api/pbl/v2/task/update` refuses gate 2 explicitly: no active microtask →
 `400 'No active microtask to complete.'`; no staged completion →
 `400 'No pending task completion to confirm.'`
-(`app/api/pbl/v2/task/update/route.ts:78-84`).
+([`app/api/pbl/v2/task/update/route.ts:78-84`](app/api/pbl/v2/task/update/route.ts#L78-L84)).
 
 ### `advanceMicrotask`, step by step
 
-`progress.ts:463`, and the ordering matters:
+[`progress.ts:463`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L463), and the ordering matters:
 
 1. `findMicrotask` — missing → `{ok:false, error:'microtask_not_found'}`.
 2. Already `completed` or `skipped` → `{ok:false, error:'already_terminal'}` (`:483-485`),
@@ -208,10 +208,10 @@ both hard-gated so an ordinary project can never be affected:
 
 | Action | Gate | Effect |
 | --- | --- | --- |
-| `enter_scenario` | `project.scenario` present **and** the active milestone's `scenarioStage === 'prep'`, else `400 'Not a scenario project.'` / `400 'No active scenario prep stage to advance.'` (`route.ts:120-127`) | completes the prep microtask, which seals the prep milestone and stages the handover, then immediately consumes it (`:128-140`) |
-| `complete_act` | `project.scenario` present, else `400 'Not a scenario project.'` (`:150-152`) | `completeRoleplayAct(project, 'act_completed_by_learner')` marks **every** not-yet-terminal beat of the active roleplay milestone `completed`, seals the milestone and stages the handover through the same path (`progress.ts:652`) |
+| `enter_scenario` | `project.scenario` present **and** the active milestone's `scenarioStage === 'prep'`, else `400 'Not a scenario project.'` / `400 'No active scenario prep stage to advance.'` ([`route.ts:120-127`](app/api/pbl/v2/task/update/route.ts#L120-L127)) | completes the prep microtask, which seals the prep milestone and stages the handover, then immediately consumes it (`:128-140`) |
+| `complete_act` | `project.scenario` present, else `400 'Not a scenario project.'` (`:150-152`) | `completeRoleplayAct(project, 'act_completed_by_learner')` marks **every** not-yet-terminal beat of the active roleplay milestone `completed`, seals the milestone and stages the handover through the same path ([`progress.ts:652`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L652)) |
 
-The act model is documented at `progress.ts:638-651`: a roleplay milestone is one
+The act model is documented at [`progress.ts:638-651`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L638-L651): a roleplay milestone is one
 continuous scene whose beats are background checkpoints, never sequentially
 advanced, so the learner is never auto-advanced mid-scene. Which checkpoints were
 met is judged later by the final evaluator for **scoring only**, never for
@@ -221,15 +221,15 @@ progression.
 
 - Where `uiPhase: 'generating'` is set was not traced; the renderer routes it to
   the same branch as `'hero'`, so the distinction has no visible effect there.
-- `instructor.ts:6-7` says "the three teaching tools" and names two; the tool
+- [`instructor.ts:6-7`](lib/pbl/v2/agents/instructor.ts#L6-L7) says "the three teaching tools" and names two; the tool
   object at `:1422` really does contain only two. Whether a third was removed or
   never landed is not recorded.
 
 ## Next
 
-- [`./08b-pbl-v2-runtime-and-legacy.md`](./08b-pbl-v2-runtime-and-legacy.md) — the
+- [`./08b-pbl-v2-runtime-and-legacy.md`](docs/08-classroom-runtime/08b-pbl-v2-runtime-and-legacy.md) — the
   wire protocol, the runtime ledger, and legacy reachability.
-- [`./01-playback-vocabulary.md`](./01-playback-vocabulary.md) — where `pbl` sits
+- [`./01-playback-vocabulary.md`](docs/08-classroom-runtime/01-playback-vocabulary.md) — where `pbl` sits
   in the scene union.
-- [`./09-interactive-scene-sandbox.md`](./09-interactive-scene-sandbox.md) — the
+- [`./09-interactive-scene-sandbox.md`](docs/08-classroom-runtime/09-interactive-scene-sandbox.md) — the
   other non-slide scene kind.

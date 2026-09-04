@@ -7,25 +7,25 @@ the split is deliberate.
 
 **Boot / config time: warn, never throw.** `validateServerConfig()` wraps every
 check in a try/catch and only `console.warn`s
-(`lib/server/config-validation.ts:44`, outer catch at `:208`). The header states
+([`lib/server/config-validation.ts:44`](lib/server/config-validation.ts#L44), outer catch at [`:208`](lib/server/config-validation.ts#L208)). The header states
 the intent: *"operators with partial config still get a running app, and the
 warnings name exactly what is broken"* (`:22`–`:24`). `loadRoutes` similarly logs
 and continues on invalid `MODEL_ROUTES` JSON
-(`lib/server/model-routes.ts:236`–`:238`), `parseThinking` drops individual bad
+([`lib/server/model-routes.ts:236`](lib/server/model-routes.ts#L236)–[`:238`](lib/server/model-routes.ts#L238)), `parseThinking` drops individual bad
 fields (`:77`), and `loadYamlFile` returns `{}` on any read/parse error
-(`lib/server/provider-config.ts:225`–`:228`).
+([`lib/server/provider-config.ts:225`](lib/server/provider-config.ts#L225)–[`:228`](lib/server/provider-config.ts#L228)).
 
 **Request time: throw loud, no vendor default.** `resolveModel` throws when
 nothing resolves rather than silently picking a model
-(`lib/server/resolve-model.ts:66`, with the comment at `:60`–`:62`: *"There is
+([`lib/server/resolve-model.ts:66`](lib/server/resolve-model.ts#L66), with the comment at [`:60`](lib/server/resolve-model.ts#L60)–[`:62`](lib/server/resolve-model.ts#L62): *"There is
 intentionally no hardcoded model fallback — if nothing resolves we fail loud
 rather than silently pick a vendor default."*).
 
 The single exception to "boot warns" is the agent driver:
-`assertAgentDriverRouteConfig` throws (`agent-driver-model.ts:16`, `:27`, `:34`,
+`assertAgentDriverRouteConfig` throws ([`agent-driver-model.ts:16`](lib/server/agent-runtime/agent-driver-model.ts#L16), [`:27`](lib/server/agent-runtime/agent-driver-model.ts#L27), [`:34`](lib/server/agent-runtime/agent-driver-model.ts#L34),
 `:41`), and boot validation catches that throw and downgrades it to a warning
-(`config-validation.ts:191`–`:195`). At runtime the same assertion is re-run and
-*not* caught (`agent-driver-model.ts:92`), so a bad driver route fails the
+([`config-validation.ts:191`](lib/server/config-validation.ts#L191)–[`:195`](lib/server/config-validation.ts#L195)). At runtime the same assertion is re-run and
+*not* caught ([`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92)), so a bad driver route fails the
 request.
 
 ## Failure state machine — model resolution
@@ -56,17 +56,17 @@ Exact messages and lines:
 
 | Condition | Message | Where |
 | --- | --- | --- |
-| nothing resolvable | `No model could be resolved. Configure DEFAULT_MODEL (and/or a MODEL_ROUTES entry for this stage), or send a model via x-model.` | `lib/server/resolve-model.ts:67` |
-| provider-type mismatch (resolver) | `Provider type mismatch for ${providerId}: expected ${registeredProviderType}, received ${clientProviderType}.` | `lib/server/resolve-model.ts:94` |
-| provider-type mismatch (factory) | `Provider type mismatch for ${config.providerId}: expected ${provider.type}, received ${providerType}.` | `lib/ai/providers.ts:2040` |
-| Bedrock not operator-enabled | `Amazon Bedrock must be enabled by the server operator before it can be used.` | `lib/server/resolve-model.ts:102` |
-| unknown provider, no type hint | `Unknown provider: ${config.providerId}. Please provide providerType.` | `lib/ai/providers.ts:2049` |
-| missing key | `API key required for provider: ${config.providerId}` | `lib/ai/providers.ts:2055` |
-| unsupported type | `Unsupported provider type: ${providerType}` | `lib/ai/providers.ts:2318` |
-| driver route absent | `MODEL_ROUTES must explicitly configure stage "maic-agent-driver" …` | `agent-driver-model.ts:17` |
-| driver bare model id | `… must use a model id with an explicit provider prefix; received …` | `agent-driver-model.ts:28` |
-| driver thinking.effort set | `… must not set thinking.effort because ${modelId} cannot combine reasoning_effort with function tools on this transport.` | `agent-driver-model.ts:35` |
-| driver bad pi api | `… has unsupported pi api/dialect … for model id …` | `agent-driver-model.ts:41`, repeated `:55` |
+| nothing resolvable | `No model could be resolved. Configure DEFAULT_MODEL (and/or a MODEL_ROUTES entry for this stage), or send a model via x-model.` | [`lib/server/resolve-model.ts:67`](lib/server/resolve-model.ts#L67) |
+| provider-type mismatch (resolver) | `Provider type mismatch for ${providerId}: expected ${registeredProviderType}, received ${clientProviderType}.` | [`lib/server/resolve-model.ts:94`](lib/server/resolve-model.ts#L94) |
+| provider-type mismatch (factory) | `Provider type mismatch for ${config.providerId}: expected ${provider.type}, received ${providerType}.` | [`lib/ai/providers.ts:2040`](lib/ai/providers.ts#L2040) |
+| Bedrock not operator-enabled | `Amazon Bedrock must be enabled by the server operator before it can be used.` | [`lib/server/resolve-model.ts:102`](lib/server/resolve-model.ts#L102) |
+| unknown provider, no type hint | `Unknown provider: ${config.providerId}. Please provide providerType.` | [`lib/ai/providers.ts:2049`](lib/ai/providers.ts#L2049) |
+| missing key | `API key required for provider: ${config.providerId}` | [`lib/ai/providers.ts:2055`](lib/ai/providers.ts#L2055) |
+| unsupported type | `Unsupported provider type: ${providerType}` | [`lib/ai/providers.ts:2318`](lib/ai/providers.ts#L2318) |
+| driver route absent | `MODEL_ROUTES must explicitly configure stage "maic-agent-driver" …` | [`agent-driver-model.ts:17`](lib/server/agent-runtime/agent-driver-model.ts#L17) |
+| driver bare model id | `… must use a model id with an explicit provider prefix; received …` | [`agent-driver-model.ts:28`](lib/server/agent-runtime/agent-driver-model.ts#L28) |
+| driver thinking.effort set | `… must not set thinking.effort because ${modelId} cannot combine reasoning_effort with function tools on this transport.` | [`agent-driver-model.ts:35`](lib/server/agent-runtime/agent-driver-model.ts#L35) |
+| driver bad pi api | `… has unsupported pi api/dialect … for model id …` | [`agent-driver-model.ts:41`](lib/server/agent-runtime/agent-driver-model.ts#L41), repeated [`:55`](lib/server/agent-runtime/agent-driver-model.ts#L55) |
 
 ## Upstream provider failures
 
@@ -90,7 +90,7 @@ client retry classification *without* exposing provider response bodies, URLs, o
 credential-adjacent details.
 
 `/api/verify-model` deliberately does **not** use this helper. It string-matches
-the error message into a friendlier hint (`app/api/verify-model/route.ts:60`–`:72`)
+the error message into a friendlier hint ([`app/api/verify-model/route.ts:60`](app/api/verify-model/route.ts#L60)–[`:72`](app/api/verify-model/route.ts#L72))
 and returns HTTP 500 in every upstream-failure case (`:75`) — including the
 "API key is invalid or expired" case, which a caller might reasonably expect as
 401. The resolution-failure branch, by contrast, returns 401 with the raw
@@ -101,8 +101,8 @@ message (`:30`–`:34`).
 Two independent retry layers:
 
 1. **SDK-level**, `maxRetries`, handled inside `ai` for network/5xx. Not
-   configured by this layer; noted in `lib/ai/llm.ts:266`.
-2. **Validation-level**, `LLMRetryOptions` (`lib/ai/llm.ts:268`). Default
+   configured by this layer; noted in [`lib/ai/llm.ts:266`](lib/ai/llm.ts#L266).
+2. **Validation-level**, `LLMRetryOptions` ([`lib/ai/llm.ts:268`](lib/ai/llm.ts#L268)). Default
    `retries: 0` means no retry at all. When `retries > 0` the default validator
    is `text.trim().length > 0` (`:276`). Every attempt that reaches a response is
    recorded to the usage log **before** validation (`:361`), with the explicit
@@ -136,7 +136,7 @@ flowchart TD
 ```
 
 The three empty `catch { /* leave body as-is */ }` blocks in `getModel`'s fetch
-shims (`lib/ai/providers.ts:2127`, `:2143`, `:2261`) are the most consequential:
+shims ([`lib/ai/providers.ts:2127`](lib/ai/providers.ts#L2127), [`:2143`](lib/ai/providers.ts#L2143), [`:2261`](lib/ai/providers.ts#L2261)) are the most consequential:
 if the request body were ever not valid JSON, thinking control would be silently
 dropped and the model would reason (or not) against the operator's intent with no
 log line at all. In practice the body is produced by the AI SDK and is always
@@ -162,23 +162,23 @@ flowchart TD
 
 Two asymmetries worth flagging:
 
-- `resolve-model.ts:105` gates SSRF validation on `NODE_ENV === 'production'`.
-  The same gate appears in `verify-image-provider/route.ts:57`,
-  `verify-video-provider/route.ts:52` and `verify-pdf-provider/route.ts:58`.
-  `probe-models/route.ts:33` validates **unconditionally** — the only route in
+- [`resolve-model.ts:105`](lib/server/resolve-model.ts#L105) gates SSRF validation on `NODE_ENV === 'production'`.
+  The same gate appears in [`verify-image-provider/route.ts:57`](app/api/verify-image-provider/route.ts#L57),
+  [`verify-video-provider/route.ts:52`](app/api/verify-video-provider/route.ts#L52) and [`verify-pdf-provider/route.ts:58`](app/api/verify-pdf-provider/route.ts#L58).
+  [`probe-models/route.ts:33`](app/api/provider/probe-models/route.ts#L33) validates **unconditionally** — the only route in
   this layer that does.
 - `probe-models` sets `redirect: 'manual'` and rejects any 3xx
-  (`lib/server/model-fetch.ts:127`, `:132`). `getModel`'s provider fetches do not
+  ([`lib/server/model-fetch.ts:127`](lib/server/model-fetch.ts#L127), [`:132`](lib/server/model-fetch.ts#L132)). `getModel`'s provider fetches do not
   set `redirect`, so they follow the platform default.
 
 ## Failure modes with no handling
 
 | Situation | Consequence | Evidence |
 | --- | --- | --- |
-| `MODEL_ROUTES` names a valid stage with a model whose provider has no key | Boot warns; the request throws `API key required for provider` at `getModel` time | `config-validation.ts:91`; `providers.ts:2055` |
-| A `probed` model id no longer exists upstream | 404 from the provider surfaces as `Upstream endpoint not found.`; the stale id stays in the store until the next probe replaces the list wholesale | `lib/types/provider.ts:152`; `llm-error-response.ts:53` |
-| `data/usage/` not writable | Every usage row silently lost; `/api/usage` reports zeros | `usage-storage.ts:131`–`:135` |
-| Two providers expose the same bare model id and a caller passes a bare id | `UNIQUE_MODEL_THINKING_MAP` deliberately omits duplicated ids, so thinking capability is not found and no `providerOptions` are injected | `lib/ai/llm.ts:88` |
-| `custom-*` provider referenced server-side | `getProviderConfig` returns `null` (localStorage is browser-only), so `getModel` requires an explicit `providerType` from the client | `providers.ts:1565`, `:2045` |
-| Azure deployment name not in any catalog | `azure.models` is `[]` by design, so `modelInfo` is `null` and no capability gating applies | `providers.ts:224`; `providers.ts:2335` |
-| `fetchModels` gets 2xx with a non-`data` body | `body.data ?? []` yields an empty model list, reported as `total: 0` rather than an error | `model-fetch.ts:138` |
+| `MODEL_ROUTES` names a valid stage with a model whose provider has no key | Boot warns; the request throws `API key required for provider` at `getModel` time | [`config-validation.ts:91`](lib/server/config-validation.ts#L91); [`providers.ts:2055`](lib/ai/providers.ts#L2055) |
+| A `probed` model id no longer exists upstream | 404 from the provider surfaces as `Upstream endpoint not found.`; the stale id stays in the store until the next probe replaces the list wholesale | [`lib/types/provider.ts:152`](lib/types/provider.ts#L152); [`llm-error-response.ts:53`](lib/server/llm-error-response.ts#L53) |
+| `data/usage/` not writable | Every usage row silently lost; `/api/usage` reports zeros | [`usage-storage.ts:131`](lib/server/usage-storage.ts#L131)–[`:135`](lib/server/usage-storage.ts#L135) |
+| Two providers expose the same bare model id and a caller passes a bare id | `UNIQUE_MODEL_THINKING_MAP` deliberately omits duplicated ids, so thinking capability is not found and no `providerOptions` are injected | [`lib/ai/llm.ts:88`](lib/ai/llm.ts#L88) |
+| `custom-*` provider referenced server-side | `getProviderConfig` returns `null` (localStorage is browser-only), so `getModel` requires an explicit `providerType` from the client | [`providers.ts:1565`](lib/ai/providers.ts#L1565), [`:2045`](lib/ai/providers.ts#L2045) |
+| Azure deployment name not in any catalog | `azure.models` is `[]` by design, so `modelInfo` is `null` and no capability gating applies | [`providers.ts:224`](lib/ai/providers.ts#L224); [`providers.ts:2335`](lib/ai/providers.ts#L2335) |
+| `fetchModels` gets 2xx with a non-`data` body | `body.data ?? []` yields an empty model list, reported as `total: 0` rather than an error | [`model-fetch.ts:138`](lib/server/model-fetch.ts#L138) |

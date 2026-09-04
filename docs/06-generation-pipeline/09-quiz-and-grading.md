@@ -5,13 +5,13 @@ decides which questions can be graded from an answer key and which need a model,
 classroom then grades them two different ways. This section covers both halves and the
 feedback shape they converge on.
 
-**Sources:** `packages/@openmaic/generation/src/scene-generator.ts:854-955`, `:1660-1686`,
-`packages/@openmaic/dsl/src/stage.ts:191-214`,
+**Sources:** [`packages/@openmaic/generation/src/scene-generator.ts:854-955`](packages/@openmaic/generation/src/scene-generator.ts#L854-L955), [`:1660-1686`](packages/@openmaic/generation/src/scene-generator.ts#L1660-L1686),
+[`packages/@openmaic/dsl/src/stage.ts:191-214`](packages/@openmaic/dsl/src/stage.ts#L191-L214),
 `packages/@openmaic/generation/templates/quiz-content/**`, `.../quiz-actions/**`,
 `lib/quiz/grading.ts`, `components/scene-renderers/quiz-view.tsx`,
 `app/api/quiz-grade/route.ts`; evidence:
-[`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md),
-[`06-quality-and-metrics.md`](../appendix/research/generation-pipeline/06-quality-and-metrics.md).
+[`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md),
+[`06-quality-and-metrics.md`](docs/appendix/research/generation-pipeline/06-quality-and-metrics.md).
 
 ## The contract: `QuizQuestion`
 
@@ -49,15 +49,15 @@ classDiagram
 ```
 
 `QuizOption.value` is the selection key (`"A"`, `"B"`, …) and `label` the display text
-(`packages/@openmaic/dsl/src/stage.ts:191-194`). `answer` holds the *values*, so
+([`packages/@openmaic/dsl/src/stage.ts:191-194`](packages/@openmaic/dsl/src/stage.ts#L191-L194)). `answer` holds the *values*, so
 `["A"]` or `["A","C"]`, and is `undefined` for text questions (`:201`).
 
 Two enum mismatches to hold in mind:
 
 | Where | Vocabulary |
 | --- | --- |
-| `SceneOutline.quizConfig.questionTypes` (`outline-types.ts:85`) | `'single' \| 'multiple' \| 'text'` |
-| `QuizQuestion.type` (`dsl/stage.ts:198`) | `'single' \| 'multiple' \| 'short_answer'` |
+| `SceneOutline.quizConfig.questionTypes` ([`outline-types.ts:85`](packages/@openmaic/generation/src/outline-types.ts#L85)) | `'single' \| 'multiple' \| 'text'` |
+| `QuizQuestion.type` ([`packages/@openmaic/dsl/src/stage.ts:198`](packages/@openmaic/dsl/src/stage.ts#L198)) | `'single' \| 'multiple' \| 'short_answer'` |
 
 Nothing translates `'text'` into `'short_answer'`. The outline asks for one vocabulary; the
 generator's post-processing and the runtime both branch on the other.
@@ -93,7 +93,7 @@ rather than a wrapper object.
 
 ### Tolerant normalisation
 
-`normalizeQuizOptions` (`scene-generator.ts:914`) accepts three shapes per option:
+`normalizeQuizOptions` ([`scene-generator.ts:914`](packages/@openmaic/generation/src/scene-generator.ts#L914)) accepts three shapes per option:
 
 | Model emitted | Normalised to |
 | --- | --- |
@@ -116,7 +116,7 @@ structurally valid.
 
 ## Runtime grading: two paths
 
-`components/scene-renderers/quiz-view.tsx:797-844` splits the question list at submit time
+[`components/scene-renderers/quiz-view.tsx:797-844`](components/scene-renderers/quiz-view.tsx#L797-L844) splits the question list at submit time
 and runs both paths, then merges results back into the original question order.
 
 ```mermaid
@@ -163,7 +163,7 @@ export function gradeChoiceQuestions(
 
 It filters `!isShortAnswer(q)`, then per question compares
 `arraysEqual(toArray(answers[q.id]), toArray(q.answer))` — both sides sorted, so option order
-does not matter (`grading.ts:11-16`). `earned` is `q.points ?? 1` on a match, `0` otherwise.
+does not matter ([`grading.ts:11-16`](lib/quiz/grading.ts#L11-L16)). `earned` is `q.points ?? 1` on a match, `0` otherwise.
 
 `isShortAnswer` (`:29`) classifies **by `type` only**, and the doc comment says why (`:23-28`):
 "an unanswered choice question (empty `answer`) is still a choice question and must not be
@@ -172,7 +172,7 @@ re-routed to AI grading. `hasAnswer` does not override the type."
 ### LLM grading
 
 `POST /api/quiz-grade` (113 lines) is the whole server side. It validates two things
-(`route.ts:37-44`): `question` and `userAnswer` must be non-empty, and `points` must be a
+([`route.ts:37-44`](app/api/quiz-grade/route.ts#L37-L44)): `question` and `userAnswer` must be non-empty, and `points` must be a
 positive finite number. Then it resolves the `quiz-grade` model stage and builds a
 locale-branched system prompt (`:55-61`):
 
@@ -213,7 +213,7 @@ flowchart TD
   fb2 --> qr
 ```
 
-The extractor is `text.match(/\{[\s\S]*\}/)` (`route.ts:88`) — **greedy**, so it does not
+The extractor is `text.match(/\{[\s\S]*\}/)` ([`route.ts:88`](app/api/quiz-grade/route.ts#L88)) — **greedy**, so it does not
 match the first brace-delimited object; it matches from the first `{` to the last `}` in the
 entire response. A model that emits a reasoning block or trailing prose containing a second
 `{…}` produces a match spanning both objects, `JSON.parse` throws, and the server fallback
@@ -221,7 +221,7 @@ below fires. That is the most likely real-world trigger for it.
 
 The two fallbacks differ in an observable way:
 
-| | Server fallback (`route.ts:95-103`) | Client fallback (`quiz-view.tsx:131-144`) |
+| | Server fallback ([`route.ts:95-103`](app/api/quiz-grade/route.ts#L95-L103)) | Client fallback ([`quiz-view.tsx:131-144`](components/scene-renderers/quiz-view.tsx#L131-L144)) |
 | --- | --- | --- |
 | Trigger | response present but unparseable | request threw, or non-2xx |
 | `correct` | derived from the 0.8 threshold — so 0.5 becomes `false` | explicitly `null` |
@@ -251,25 +251,25 @@ export interface QuestionResult {
 }
 ```
 
-The 0.8 threshold is client-side and hard-coded (`quiz-view.tsx:126-127`): a short-answer
+The 0.8 threshold is client-side and hard-coded ([`quiz-view.tsx:126-127`](components/scene-renderers/quiz-view.tsx#L126-L127)): a short-answer
 question counts as `correct` when `earned >= points * 0.8`. So a partial-credit score of
 70 % renders as incorrect even though the learner keeps the points.
 
 Results are merged by `questionId` into a `Map` and re-ordered to match the original question
-array (`quiz-view.tsx:816-820`), then persisted through `persistQuizReview` before the phase
+array ([`quiz-view.tsx:816-820`](components/scene-renderers/quiz-view.tsx#L816-L820)), then persisted through `persistQuizReview` before the phase
 advances to `reviewing` (`:827-838`). A persistence failure holds the phase at `grading` and
 sets `runtimeGate.status = 'error'` — the grade is not shown if it could not be recorded.
 
 ## Action generation for quiz scenes
 
-`generateSceneActions`'s quiz branch (`scene-generator.ts:1660-1686`) renders the question
+`generateSceneActions`'s quiz branch ([`scene-generator.ts:1660-1686`](packages/@openmaic/generation/src/scene-generator.ts#L1660-L1686)) renders the question
 list with `formatQuestionsForPrompt` and calls the `quiz-actions` prompt. Two things differ
 from the slide branch:
 
 - `processActions(actions, [], agents, log)` is called with an **empty element list**
   (`:1682`), so the `spotlight.elementId` repair is a no-op for quiz scenes — a hallucinated
   `spotlight` keeps its invalid id and is later stripped by
-  `SLIDE_ONLY_ACTIONS` filtering in the parser (`action-parser.ts:142`).
+  `SLIDE_ONLY_ACTIONS` filtering in the parser ([`action-parser.ts:142`](packages/@openmaic/generation/src/action-parser.ts#L142)).
 - The zero-actions fallback is a single canned `speech` action titled `'测验引导'`
   (`:1908-1917`), whose Chinese text reaches the learner regardless of `languageDirective`.
 
@@ -279,12 +279,12 @@ Grading produces `QuestionResult[]`. Persisting it is a separate 665-line module
 largest of `lib/quiz/`'s five files (`runtime.ts` 665, `math-text.ts` 310,
 `persistence.ts` 191, `view-state.ts` 96, `grading.ts` 52 — `wc -l lib/quiz/*.ts`). The
 *shape* it writes belongs to this topic; the *place* — the learner `RuntimeStore` — belongs
-to [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md).
+to [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md).
 
 An attempt is identified by `quizAttemptId(stageId, sceneId, learnerKey)` (`:252`) and
 advances through a three-phase monotonic ladder — `QuizAttemptPhase = 'draft' | 'submitted' | 'reviewed'`
-(`packages/@openmaic/dsl/src/runtime.ts:332`, with a compile-time exhaustiveness assertion
-at `:341-348`), ordered by `PHASE_ORDER` (`lib/quiz/runtime.ts:93`). The record written is
+([`packages/@openmaic/dsl/src/runtime.ts:332`](packages/@openmaic/dsl/src/runtime.ts#L332), with a compile-time exhaustiveness assertion
+at `:341-348`), ordered by `PHASE_ORDER` ([`lib/quiz/runtime.ts:93`](lib/quiz/runtime.ts#L93)). The record written is
 `QuizAttemptPayload` (`:18`): a `QuizAttemptSkeleton` plus `payloadVersion: 1`, the phase,
 the answers, and the `results?: QuestionResult[]` this file's grading section produces.
 
@@ -331,11 +331,11 @@ Legacy attempts are lifted rather than lost: `backfillQuizAttempt` (`:638`) take
 
 `loadQuizAttemptState` (`:368`) is the read side, and it has more consumers than the write
 side has callers — which is why its return type is the load-bearing part of the module:
-`components/scene-renderers/quiz-view.tsx:32` (the learner surface, plus the writer),
-`components/scene-renderers/classroom-complete.tsx:16` (the end-of-class summary),
-`lib/chat/quiz-results-for-store-state.ts:3` (so an in-class agent can see the score),
-`lib/pbl/v2/operations/runtime/quiz-snapshot.ts:24` (PBL progress), and
-`lib/quiz/view-state.ts:3` (types only).
+[`components/scene-renderers/quiz-view.tsx:32`](components/scene-renderers/quiz-view.tsx#L32) (the learner surface, plus the writer),
+[`components/scene-renderers/classroom-complete.tsx:16`](components/scene-renderers/classroom-complete.tsx#L16) (the end-of-class summary),
+[`lib/chat/quiz-results-for-store-state.ts:3`](lib/chat/quiz-results-for-store-state.ts#L3) (so an in-class agent can see the score),
+[`lib/pbl/v2/operations/runtime/quiz-snapshot.ts:24`](lib/pbl/v2/operations/runtime/quiz-snapshot.ts#L24) (PBL progress), and
+[`lib/quiz/view-state.ts:3`](lib/quiz/view-state.ts#L3) (types only).
 
 ## Test posture
 
@@ -343,10 +343,10 @@ side has callers — which is why its return type is the load-bearing part of th
 | --- | --- |
 | `gradeChoiceQuestions` and `isShortAnswer` — the local deterministic grader (`tests/quiz/grading.test.ts`) | `app/api/quiz-grade/route.ts` — no unit or integration test |
 | the quiz-content prompt bytes, via the scene prompt goldens | the server 50 % fallback, the `NaN` path, and the clamp |
-| the quiz surface end to end, via Playwright | — the E2E spec **stubs** the route with a fixed 200 (`e2e/tests/quiz-content-surface-657.spec.ts:181`) |
+| the quiz surface end to end, via Playwright | — the E2E spec **stubs** the route with a fixed 200 ([`e2e/tests/quiz-content-surface-657.spec.ts:181`](e2e/tests/quiz-content-surface-657.spec.ts#L181)) |
 
 So the route's failure behaviour is exercised nowhere. See
-[`../14-code-quality/index.md`](../14-code-quality/index.md).
+[`../14-code-quality/index.md`](docs/14-code-quality/index.md).
 
 ## Open questions
 

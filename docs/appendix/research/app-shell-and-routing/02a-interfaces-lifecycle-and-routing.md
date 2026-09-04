@@ -6,13 +6,13 @@ copied verbatim from the file at the cited line.
 
 ## Process lifecycle
 
-`instrumentation.ts:13`
+[`instrumentation.ts:13`](instrumentation.ts#L13)
 
 ```ts
 export async function register(): Promise<void>
 ```
 
-`lib/server/register-shutdown-signals.ts:12`
+[`lib/server/register-shutdown-signals.ts:12`](lib/server/register-shutdown-signals.ts#L12)
 
 ```ts
 export function registerShutdownSignals(shutdown: () => Promise<void>): void
@@ -21,7 +21,7 @@ export function registerShutdownSignals(shutdown: () => Promise<void>): void
 The three handle types `register()` consumes are declared elsewhere and imported
 as `import(...)` types so the Edge module graph never sees them:
 
-`instrumentation.ts:31-34`
+[`instrumentation.ts:31-34`](instrumentation.ts#L31-L34)
 
 ```ts
 let runner: import('@/lib/server/agent-runtime/runner').AgentRunnerHandle | undefined;
@@ -30,7 +30,7 @@ let extractionRunner:
   | undefined;
 ```
 
-`lib/server/agent-runtime/runner.ts:850`
+[`lib/server/agent-runtime/runner.ts:850`](lib/server/agent-runtime/runner.ts#L850)
 
 ```ts
 export interface AgentRunnerHandle {
@@ -39,7 +39,7 @@ export interface AgentRunnerHandle {
 }
 ```
 
-`lib/server/material-extraction/runner.ts:11`
+[`lib/server/material-extraction/runner.ts:11`](lib/server/material-extraction/runner.ts#L11)
 
 ```ts
 export interface MaterialExtractionRunnerHandle {
@@ -48,7 +48,7 @@ export interface MaterialExtractionRunnerHandle {
 }
 ```
 
-`lib/persistence/asset-collector-schedule.ts:42`
+[`lib/persistence/asset-collector-schedule.ts:42`](lib/persistence/asset-collector-schedule.ts#L42)
 
 ```ts
 export interface AssetCollectorSchedule {
@@ -61,7 +61,7 @@ export interface AssetCollectorSchedule {
 }
 ```
 
-`lib/persistence/asset-collector-schedule.ts:88`
+[`lib/persistence/asset-collector-schedule.ts:88`](lib/persistence/asset-collector-schedule.ts#L88)
 
 ```ts
 export function startAssetCollectorSchedule(
@@ -69,10 +69,10 @@ export function startAssetCollectorSchedule(
 ): AssetCollectorSchedule | undefined
 ```
 
-The `| undefined` return is why `instrumentation.ts:78` uses
+The `| undefined` return is why [`instrumentation.ts:78`](instrumentation.ts#L78) uses
 `assetSchedule?.stop()`. It is `undefined` when server persistence is not
 configured or the operator disabled collection
-(`asset-collector-schedule.ts:80-87`).
+([`asset-collector-schedule.ts:80-87`](lib/persistence/asset-collector-schedule.ts#L80-L87)).
 
 ```mermaid
 classDiagram
@@ -106,7 +106,7 @@ classDiagram
 
 ## Middleware
 
-`middleware.ts:46` and `:88`
+[`middleware.ts:46`](middleware.ts#L46) and [`:88`](middleware.ts#L88)
 
 ```ts
 export async function middleware(request: NextRequest)
@@ -129,7 +129,7 @@ Internal helpers (not exported): `encode` (line 6), `bufToHex` (line 11),
 async function verifyToken(token: string, accessCode: string): Promise<boolean>
 ```
 
-Node-side counterparts, `lib/server/access-token.ts:4` and `:11`:
+Node-side counterparts, [`lib/server/access-token.ts:4`](lib/server/access-token.ts#L4) and [`:11`](lib/server/access-token.ts#L11):
 
 ```ts
 export function createAccessToken(accessCode: string): string
@@ -144,18 +144,18 @@ the Node one uses `createHmac` + `timingSafeEqual`. Neither reads the timestamp.
 
 | Path | Signature |
 | --- | --- |
-| `app/layout.tsx:37` | `export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>)` |
-| `app/page.tsx:1894` | `export default function Page()` |
-| `app/generation-preview/layout.tsx:4` | `export default function GenerationPreviewLayout({ children }: { children: React.ReactNode })` |
-| `app/generation-preview/page.tsx:1539` | `export default function GenerationPreviewPage()` |
-| `app/classroom/[id]/page.tsx:28` | `export default function ClassroomDetailPage()` |
-| `app/workspace/page.tsx:34` | `export default function WorkspacePage()` |
-| `app/workbench/new/page.tsx:13` | `export default function WorkbenchNewCompatibilityPage()` |
-| `app/eval/whiteboard/page.tsx:105` | `export default function EvalWhiteboardPage()` |
+| [`app/layout.tsx:37`](app/layout.tsx#L37) | `export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>)` |
+| [`app/page.tsx:1894`](app/page.tsx#L1894) | `export default function Page()` |
+| [`app/generation-preview/layout.tsx:4`](app/generation-preview/layout.tsx#L4) | `export default function GenerationPreviewLayout({ children }: { children: React.ReactNode })` |
+| [`app/generation-preview/page.tsx:1539`](app/generation-preview/page.tsx#L1539) | `export default function GenerationPreviewPage()` |
+| [`app/classroom/[id]/page.tsx:28`](app/classroom/[id]/page.tsx#L28) | `export default function ClassroomDetailPage()` |
+| [`app/workspace/page.tsx:34`](app/workspace/page.tsx#L34) | `export default function WorkspacePage()` |
+| [`app/workbench/new/page.tsx:13`](app/workbench/new/page.tsx#L13) | `export default function WorkbenchNewCompatibilityPage()` |
+| [`app/eval/whiteboard/page.tsx:105`](app/eval/whiteboard/page.tsx#L105) | `export default function EvalWhiteboardPage()` |
 
 Note the shape: **no route component in this subsystem takes `params` or
 `searchParams` props.** `/classroom/[id]` reads its dynamic segment with
-`useParams()` (`app/classroom/[id]/page.tsx:29`); `/workspace` and
+`useParams()` ([`app/classroom/[id]/page.tsx:29`](app/classroom/[id]/page.tsx#L29)); `/workspace` and
 `/workbench/new` read query params client-side with `useSearchParams()` behind a
 `Suspense` boundary. Consequence: none of the three can produce a server-rendered,
 data-dependent response, and none of them can be statically prerendered per-id.
@@ -174,7 +174,7 @@ export const dynamic = 'force-dynamic';
 There is no `revalidate`, `runtime`, `fetchCache`, `generateMetadata`, or
 `generateStaticParams` anywhere in the non-API tree.
 
-`app/layout.tsx:31`
+[`app/layout.tsx:31`](app/layout.tsx#L31)
 
 ```ts
 export const metadata: Metadata = {
@@ -186,7 +186,7 @@ export const metadata: Metadata = {
 
 ## Gates
 
-`lib/workbench/entry-gate.ts:4`
+[`lib/workbench/entry-gate.ts:4`](lib/workbench/entry-gate.ts#L4)
 
 ```ts
 /** Server-authoritative decision shared by every workbench entry route. */
@@ -219,7 +219,7 @@ The remaining nine predicates share the same shape
 (`() => boolean` over `readBoolean(process.env.X)`) and are tabulated in
 `01-modules.md`. One is not a pure flag read:
 
-`lib/config/feature-flags.ts:101`
+[`lib/config/feature-flags.ts:101`](lib/config/feature-flags.ts#L101)
 
 ```ts
 export function resolveVocationalActive(
@@ -229,7 +229,7 @@ export function resolveVocationalActive(
 }
 ```
 
-The runtime probe the client gates on, `app/api/agent/runtime/route.ts:16-24`:
+The runtime probe the client gates on, [`app/api/agent/runtime/route.ts:16-24`](app/api/agent/runtime/route.ts#L16-L24):
 
 ```ts
 export const runtime = 'nodejs';

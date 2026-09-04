@@ -6,12 +6,12 @@ different questions with one set of facts: *what processes and stores exist at
 run time* (C4 level 2) and *how the repository is layered so that those
 processes can be built from it* (logical/development structure).
 
-Read this after [../01-system-context/index.md](../01-system-context/index.md)
+Read this after [../01-system-context/index.md](docs/01-system-context/index.md)
 and before any of the component topics (`03-` … `10-`). Every component topic
 is a zoom into exactly one container or one bounded context named here. For how
 those containers are actually deployed, scaled and configured per environment,
-continue to [../17-deployment-view/index.md](../17-deployment-view/index.md).
-The set root is [../README.md](../README.md).
+continue to [../17-deployment-view/index.md](docs/17-deployment-view/index.md).
+The set root is [../README.md](docs/README.md).
 
 ## Who this is for
 
@@ -43,12 +43,12 @@ Primary code read for this topic:
   `packages/mathml2omml` — the workspace packages and vendored forks.
 
 Evidence packs leaned on, with their own citations:
-[app-shell-and-routing](../appendix/research/app-shell-and-routing/00-overview.md),
-[api-surface](../appendix/research/api-surface/00-overview.md),
-[persistence-storage-state](../appendix/research/persistence-storage-state/00-overview.md),
-[media-audio-video](../appendix/research/media-audio-video/02g-interfaces-render-service.md),
-[ai-provider-layer](../appendix/research/ai-provider-layer/00-overview.md),
-[quality-testing-ci-deps](../appendix/research/quality-testing-ci-deps/00-overview.md).
+[app-shell-and-routing](docs/appendix/research/app-shell-and-routing/00-overview.md),
+[api-surface](docs/appendix/research/api-surface/00-overview.md),
+[persistence-storage-state](docs/appendix/research/persistence-storage-state/00-overview.md),
+[media-audio-video](docs/appendix/research/media-audio-video/02g-interfaces-render-service.md),
+[ai-provider-layer](docs/appendix/research/ai-provider-layer/00-overview.md),
+[quality-testing-ci-deps](docs/appendix/research/quality-testing-ci-deps/00-overview.md).
 
 ## Topic overview
 
@@ -100,12 +100,12 @@ flowchart LR
 
 | File | What it covers |
 | --- | --- |
-| [01-container-inventory.md](./01-container-inventory.md) | Every container: technology, responsibility, how it starts, where its config comes from. |
-| [02-container-diagram.md](./02-container-diagram.md) | The canonical C4 L2 diagram plus per-slice variants for the generation, playback and export paths. |
-| [03-server-client-boundary.md](./03-server-client-boundary.md) | The server/browser split: what ships to the bundle, what crosses, how operator secrets stay server-side. |
-| [04-logical-layering.md](./04-logical-layering.md) | `app/` → `components/` → `lib/` → `packages/@openmaic/*` → vendored, the intended direction, and the cited violations. |
-| [05-workspace-packages.md](./05-workspace-packages.md) | The six `@openmaic/*` packages and two vendored forks: purpose, publication, consumers, stability contract. |
-| [06-bounded-contexts.md](./06-bounded-contexts.md) | The ten subsystems as bounded contexts, the language each owns, and the seams between them. |
+| [01-container-inventory.md](docs/02-container-view/01-container-inventory.md) | Every container: technology, responsibility, how it starts, where its config comes from. |
+| [02-container-diagram.md](docs/02-container-view/02-container-diagram.md) | The canonical C4 L2 diagram plus per-slice variants for the generation, playback and export paths. |
+| [03-server-client-boundary.md](docs/02-container-view/03-server-client-boundary.md) | The server/browser split: what ships to the bundle, what crosses, how operator secrets stay server-side. |
+| [04-logical-layering.md](docs/02-container-view/04-logical-layering.md) | `app/` → `components/` → `lib/` → `packages/@openmaic/*` → vendored, the intended direction, and the cited violations. |
+| [05-workspace-packages.md](docs/02-container-view/05-workspace-packages.md) | The six `@openmaic/*` packages and two vendored forks: purpose, publication, consumers, stability contract. |
+| [06-bounded-contexts.md](docs/02-container-view/06-bounded-contexts.md) | The ten subsystems as bounded contexts, the language each owns, and the seams between them. |
 
 ## Measured scale (context for everything below)
 

@@ -60,11 +60,11 @@ The two differ in every mechanism, not just in tuning:
 
 | Axis | Runtime A (authoring) | Runtime B (in class) |
 | --- | --- | --- |
-| Where the loop runs | server, in a background scan started at boot | **the browser** — `runAgentLoop` (`lib/chat/agent-loop.ts:154`) drives the turn and calls the route per step |
-| Work claiming | PostgreSQL lease. Scan every `scanIntervalMs` (default 1000), heartbeat every `heartbeatIntervalMs` (default 2000), lease TTL `leaseTtlMs` (default 10 000) — `lib/server/agent-runtime/config.ts:7,9,15`, all three env-overridable | none. A request either runs or does not |
-| Crash survival | another process claims the session after lease expiry, then `planResume(transcript)` (`lib/server/agent-runtime/resume.ts:93`) and `repairOrphanedToolCalls` reconstruct a consistent transcript | none, by design. A dropped request is a dropped exchange |
+| Where the loop runs | server, in a background scan started at boot | **the browser** — `runAgentLoop` ([`lib/chat/agent-loop.ts:154`](lib/chat/agent-loop.ts#L154)) drives the turn and calls the route per step |
+| Work claiming | PostgreSQL lease. Scan every `scanIntervalMs` (default 1000), heartbeat every `heartbeatIntervalMs` (default 2000), lease TTL `leaseTtlMs` (default 10 000) — [`lib/server/agent-runtime/config.ts:7,9,15`](lib/server/agent-runtime/config.ts#L7), all three env-overridable | none. A request either runs or does not |
+| Crash survival | another process claims the session after lease expiry, then `planResume(transcript)` ([`lib/server/agent-runtime/resume.ts:93`](lib/server/agent-runtime/resume.ts#L93)) and `repairOrphanedToolCalls` reconstruct a consistent transcript | none, by design. A dropped request is a dropped exchange |
 | Stream | `GET …/:id/events`, replayable from a `Last-Event-ID` and deliberately **not** closed at `session_end` | one SSE response per turn, closed when the turn ends |
-| Enablement | `isAgentRuntimeEnabled() && DATABASE_URL` (`lib/config/feature-flags.ts:18,24`); without the database its routes answer 404 and no runner starts | `isPiChatEnabled()` (`lib/config/feature-flags.ts:72`); the route 404s when off |
+| Enablement | `isAgentRuntimeEnabled() && DATABASE_URL` ([`lib/config/feature-flags.ts:18,24`](lib/config/feature-flags.ts#L18)); without the database its routes answer 404 and no runner starts | `isPiChatEnabled()` ([`lib/config/feature-flags.ts:72`](lib/config/feature-flags.ts#L72)); the route 404s when off |
 | Persistence | `@openmaic/storage/src/agent-session/pg.ts` — 1 710 lines of PostgreSQL | none of its own; whatever the teacher writes goes through the ordinary document path |
 
 ## Alternatives rejected
@@ -96,23 +96,23 @@ can never observe a session without its own prompt.
 
 - The in-class path has no database dependency, so the whole product works from a
   checkout with no PostgreSQL — the default topology in
-  [`../17-deployment-view/01-topologies-overview.md`](../17-deployment-view/01-topologies-overview.md).
+  [`../17-deployment-view/01-topologies-overview.md`](docs/17-deployment-view/01-topologies-overview.md).
 - Each runtime's cancellation primitive is the simplest one that works for it: a lease TTL
   for A, request abort for B. Neither pays for the other's.
 - Runtime A's crash recovery is testable in isolation — `planResume` is a pure function
-  over a transcript (`lib/server/agent-runtime/resume.ts:93`).
+  over a transcript ([`lib/server/agent-runtime/resume.ts:93`](lib/server/agent-runtime/resume.ts#L93)).
 
 **Bad.**
 
 - **Two tool registries to keep in step.** The catalogues are documented separately
-  ([`../05-agent-runtime/03-tool-catalogue.md`](../05-agent-runtime/03-tool-catalogue.md))
+  ([`../05-agent-runtime/03-tool-catalogue.md`](docs/05-agent-runtime/03-tool-catalogue.md))
   and nothing machine-checks that a capability added to one is added to the other.
-- **"Agent" now means two things** — see [`../glossary.md`](../glossary.md). The
-  [`../05-agent-runtime/index.md`](../05-agent-runtime/index.md) topic opens with a
+- **"Agent" now means two things** — see [`../glossary.md`](docs/glossary.md). The
+  [`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md) topic opens with a
   two-runtimes table for exactly this reason.
 - **`runSession` is 970 lines with roughly 22 mutable closure cells** and is the second
   most dangerous file in the repository to change
-  ([`../14-code-quality/08-complexity-hotspots.md`](../14-code-quality/08-complexity-hotspots.md)
+  ([`../14-code-quality/08-complexity-hotspots.md`](docs/14-code-quality/08-complexity-hotspots.md)
   §5). Durability is where that complexity comes from; runtime B has no equivalent.
 - A reader debugging "the agent is stuck" must first establish *which* agent.
 
@@ -142,10 +142,10 @@ for two runtimes collapses into an argument for one durable runtime with a cheap
   states an intent either way.
 - Whether `runSession` could be split by *lease scope* rather than by concern. The
   in-source rationale argues against splitting by concern and does not address the
-  alternative ([`../14-code-quality/08-complexity-hotspots.md`](../14-code-quality/08-complexity-hotspots.md),
+  alternative ([`../14-code-quality/08-complexity-hotspots.md`](docs/14-code-quality/08-complexity-hotspots.md),
   open questions).
 
 ---
 
-Next: [02-no-schema-layer-at-the-http-edge.md](./02-no-schema-layer-at-the-http-edge.md) ·
-back to [index.md](./index.md) · set root [`../README.md`](../README.md)
+Next: [02-no-schema-layer-at-the-http-edge.md](docs/18-decisions/02-no-schema-layer-at-the-http-edge.md) ·
+back to [index.md](docs/18-decisions/index.md) · set root [`../README.md`](docs/README.md)

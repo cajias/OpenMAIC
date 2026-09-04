@@ -6,9 +6,9 @@ are machine-enforced (the package version bump, and i18n key parity); the rest
 are review conventions.
 
 **Sources:** `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`,
-`.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/bug_report.yml`,
+[`.github/pull_request_template.md`](.github/pull_request_template.md), `.github/ISSUE_TEMPLATE/bug_report.yml`,
 `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/config.yml`,
-`.github/workflows/ci.yml:59-89`, `scripts/check-package-version-bumps.mjs`.
+[`.github/workflows/ci.yml:59-89`](.github/workflows/ci.yml#L59-L89), `scripts/check-package-version-bumps.mjs`.
 
 ## The contribution lifecycle
 
@@ -49,10 +49,10 @@ flowchart TD
 
 | Convention | Value | Source |
 | --- | --- | --- |
-| Base branch | `main` — `git checkout -b feat/your-feature main` | `CONTRIBUTING.md:51-54` |
-| Branch prefixes | `feat/`, `fix/`, `docs/` | `CONTRIBUTING.md:55-58` |
-| Commit format | Conventional Commits: `<type>(<scope>): <short description>` with optional body and footer | `CONTRIBUTING.md:108-118` |
-| Commit types | `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `perf`, `style` | `CONTRIBUTING.md:120` |
+| Base branch | `main` — `git checkout -b feat/your-feature main` | [`CONTRIBUTING.md:51-54`](CONTRIBUTING.md#development-workflow) |
+| Branch prefixes | `feat/`, `fix/`, `docs/` | [`CONTRIBUTING.md:55-58`](CONTRIBUTING.md#development-workflow) |
+| Commit format | Conventional Commits: `<type>(<scope>): <short description>` with optional body and footer | [`CONTRIBUTING.md:115-125`](CONTRIBUTING.md#commit-message-convention) |
+| Commit types | `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `perf`, `style` | [`CONTRIBUTING.md:127`](CONTRIBUTING.md#commit-message-convention) |
 
 The recent history follows it: `test(video-export): assert narration audio reaches
 the assembler (#16)`, `fix(instrumentation): move shutdown signal handlers to a
@@ -68,13 +68,13 @@ artefacts and the repository's own gates never invoke them.
 Branches that appear in CI triggers beyond `main` — `feat/maic-editor-v0`,
 `feat/maic-editor-v1`, `runtime-server-backend`,
 `integration/kv-asset-server-backend`, `integration/agent-workbench` — are long-lived
-integration branches, and `ci.yml:5-9` explains that they carry both a push and a
+integration branches, and [`ci.yml:5-9`](.github/workflows/ci.yml#L5-L9) explains that they carry both a push and a
 pull-request trigger because a PR run "only ever proves one part merged into the
 branch".
 
 ## PR requirements
 
-Hard requirements from `CONTRIBUTING.md:99-106`:
+Hard requirements from [`CONTRIBUTING.md:106-113`](CONTRIBUTING.md#pr-guidelines):
 
 - **Every PR must link an issue** with `Closes #123` or `Fixes #456`. "PRs without
   a linked issue will not be reviewed." If no issue exists, create one first.
@@ -91,7 +91,7 @@ status."
 
 ### The PR template
 
-`.github/pull_request_template.md` has five sections. The `Verification` section is
+[`.github/pull_request_template.md`](.github/pull_request_template.md) has five sections. The `Verification` section is
 the unusual one:
 
 | Section | Fields |
@@ -106,11 +106,11 @@ the unusual one:
 | Checklist | 4 checkboxes: coding style, self-review, documentation updated, no new warnings |
 
 Note the `CI passes` checkbox spells out only three commands and omits `pnpm test`,
-matching the same omission in `CONTRIBUTING.md:76-85`.
+matching the same omission in [`CONTRIBUTING.md:83-92`](CONTRIBUTING.md#before-you-submit-a-pr).
 
 ### AI-assisted PRs
 
-`CONTRIBUTING.md:154-162` accepts them under three conditions: **mark it** in the
+[`CONTRIBUTING.md:161-169`](CONTRIBUTING.md#ai-assisted-prs-) accepts them under three conditions: **mark it** in the
 title or description, **run an AI code review on your own diff first** and address
 the findings ("This is **required** for AI-assisted PRs to avoid dumping large
 amounts of unreviewed generated code on maintainers"), and accept responsibility —
@@ -119,7 +119,7 @@ standard as any other PR.
 
 ## Version-bump discipline for published packages
 
-This is the one convention CI enforces, and `CONTRIBUTING.md:130-152` documents it.
+This is the one convention CI enforces, and [`CONTRIBUTING.md:137-159`](CONTRIBUTING.md#changing-a-published-package) documents it.
 
 ```mermaid
 flowchart TD
@@ -137,7 +137,7 @@ flowchart TD
   K --> L["mark job writes the<br/>@openmaic/NAME@VERSION marker tag"]
 ```
 
-Choosing the number is explicitly a human judgement (`CONTRIBUTING.md:142-148`):
+Choosing the number is explicitly a human judgement ([`CONTRIBUTING.md:149-155`](CONTRIBUTING.md#changing-a-published-package)):
 
 | Level | Meaning |
 | --- | --- |
@@ -149,18 +149,18 @@ Below `1.0.0`, "a **minor** bump signals a breaking change and a **patch** bump
 signals a compatible change, following common 0.x semver practice; the **major**
 rule applies from `1.0.0`." All six packages are currently below 1.0.0.
 
-`CONTRIBUTING.md:150` singles out the dsl: "It is the contract the other packages
+[`CONTRIBUTING.md:157`](CONTRIBUTING.md#changing-a-published-package) singles out the dsl: "It is the contract the other packages
 and downstream deployments validate against, so a change that narrows what an
 existing document may contain is a breaking change even when the diff looks small."
 
 And `:152`: "You never publish anything yourself. […] That tag is a marker, not a
 trigger: pushing one does not release anything."
 
-**One factual drift to know about:** `CONTRIBUTING.md:132` says "**Four** packages
+**One factual drift to know about:** [`CONTRIBUTING.md:139`](CONTRIBUTING.md#changing-a-published-package) says "**Four** packages
 under `packages/@openmaic/` are published to npm: `dsl`, `storage`, `renderer`, and
 `importer`." The real list is **six** — `OPENMAIC_PACKAGES` at
-`scripts/openmaic-packages.mjs:34` and the six trigger paths at
-`publish-packages.yml:42-47` both include `generation` and `editor`. A contributor
+[`scripts/openmaic-packages.mjs:34`](scripts/openmaic-packages.mjs#L34) and the six trigger paths at
+[`publish-packages.yml:42-47`](.github/workflows/publish-packages.yml#L42-L47) both include `generation` and `editor`. A contributor
 following the document would not expect a bump to be required for those two.
 
 ## Changelog
@@ -204,7 +204,7 @@ Note the versions here track the **application**, not the packages. The root
 
 ## Issue templates
 
-`blank_issues_enabled: false` (`.github/ISSUE_TEMPLATE/config.yml:1`), so every
+`blank_issues_enabled: false` ([`.github/ISSUE_TEMPLATE/config.yml:1`](.github/ISSUE_TEMPLATE/config.yml#L1)), so every
 issue goes through one of the two forms or one of the two contact links.
 
 ```mermaid
@@ -254,7 +254,7 @@ second and third time on the Logs and Screenshots fields.
 
 ## Issue claiming
 
-`CONTRIBUTING.md:17-23`: comment on an issue to claim it, a maintainer assigns it,
+[`CONTRIBUTING.md:17-23`](CONTRIBUTING.md#claiming-issues): comment on an issue to claim it, a maintainer assigns it,
 and if **no PR or meaningful update** (a WIP commit or a progress comment) appears
 within **1 day** the issue may be reassigned. If an issue is already assigned,
 contact the assignee first.
@@ -267,11 +267,11 @@ release; older versions are not. Acknowledgement is promised within 48 hours, an
 confirmed vulnerability is closed out with a published GitHub Security Advisory
 crediting the reporter unless they prefer anonymity.
 
-`CONTRIBUTING.md:189-191` repeats the same rule.
+[`CONTRIBUTING.md:196-198`](CONTRIBUTING.md#security-vulnerabilities) repeats the same rule.
 
 ## Environment-variable changes
 
-`CONTRIBUTING.md:63-70` makes updating `.env.example` a **same-PR** requirement for
+[`CONTRIBUTING.md:70-77`](CONTRIBUTING.md#environment-variable-changes) makes updating `.env.example` a **same-PR** requirement for
 any operator-facing variable, and requires documenting whether it is optional, its
 safe default or example value, and whether it is read at build time or runtime.
 Variables used only by tests, CI or internal scripts are explicitly exempt, "but
@@ -283,11 +283,11 @@ against `.env.example`.
 
 ## Open questions
 
-- `CONTRIBUTING.md:132` names four published packages where the code has six. Which
+- [`CONTRIBUTING.md:139`](CONTRIBUTING.md#changing-a-published-package) names four published packages where the code has six. Which
   is intended is not recorded; the code is authoritative because
   `publish-packages.yml`'s enumerations are cross-checked against
   `OPENMAIC_PACKAGES` in both directions.
-- `CONTRIBUTING.md:164-174` "Project Structure" lists `packages/` as holding only
+- [`CONTRIBUTING.md:171-181`](CONTRIBUTING.md#project-structure) "Project Structure" lists `packages/` as holding only
   the two vendored forks and does not mention `packages/@openmaic/`,
   `render-service/`, `tests/`, `e2e/`, `eval/`, `scripts/` or `skills/`.
 - The commit convention is documented but unenforced. Whether the maintainers want

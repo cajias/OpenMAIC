@@ -12,7 +12,7 @@ high as possible and nothing but `ReactNode` crosses it.
 `components/workbench/workspace/WorkspaceShell.tsx`,
 `lib/workbench/workspace-actions.ts`,
 `components/workbench/workspace/WorkspaceRail.tsx`. Evidence:
-[`../appendix/research/app-shell-and-routing/00-overview.md`](../appendix/research/app-shell-and-routing/00-overview.md).
+[`../appendix/research/app-shell-and-routing/00-overview.md`](docs/appendix/research/app-shell-and-routing/00-overview.md).
 
 ## Server components, complete list
 
@@ -74,7 +74,7 @@ The pattern in both gated routes is the same and it is the important one: **the
 gate decision is consumed on the server and converted into control flow before
 render.** No boolean is serialised into a prop; the client never learns the
 server-only flag's value from the page payload. `/` learns it separately, and only
-indirectly, by fetching `/api/agent/runtime` (`app/page.tsx:145`).
+indirectly, by fetching `/api/agent/runtime` ([`app/page.tsx:145`](app/page.tsx#L145)).
 
 ## What crosses the boundary
 
@@ -98,7 +98,7 @@ data-dependent first paint.
 
 `lib/workbench/workspace-actions.ts` is the only `'use server'` module in the
 repository. `deleteWorkspaceSession(id)` is called from
-`components/workbench/workspace/WorkspaceRail.tsx:453` behind an optimistic
+[`components/workbench/workspace/WorkspaceRail.tsx:453`](components/workbench/workspace/WorkspaceRail.tsx#L453) behind an optimistic
 row-removal that is rolled back on failure (lines 449-470).
 
 ```mermaid
@@ -138,24 +138,24 @@ action has no `Request` object to hand it, so the module re-reads the same
 That is a deliberate duplication with a stated invariant ("an over-strict guard is
 fail-safe: visitors merely get a fresh id"), not an accident — but it *is* a second
 copy of the identity rule described in
-[`./06-api-layer-conventions.md`](./06-api-layer-conventions.md).
+[`./06-api-layer-conventions.md`](docs/03-app-and-api/06-api-layer-conventions.md).
 
 Note what this means for the access-code gate: a server action POST is a normal
 request through `middleware.ts`, so it is subject to the same cookie check as any
 page request — and because its path is the page path (`/workspace`), not `/api/*`,
 an unauthenticated invocation is **passed through** rather than 401'd. See
-[`./04-middleware.md`](./04-middleware.md).
+[`./04-middleware.md`](docs/03-app-and-api/04-middleware.md).
 
 ## `Suspense` boundaries and why they exist
 
 | Boundary | File:line | Reason |
 | --- | --- | --- |
-| `Suspense fallback={null}` around `WorkspaceEntry` | `app/workspace/page.tsx:38-40` | `WorkspaceShell` calls `useSearchParams()`, which suspends; docstring lines 21-24 |
-| `Suspense fallback={null}` around `WorkbenchLaunchBridge` | `app/workbench/new/page.tsx:17-19` | `client.tsx` reads `searchParams.get('prompt')` and `searchParams.get('skill')` |
-| `Suspense` with a pulse skeleton around `GenerationPreviewContent` | `app/generation-preview/page.tsx:1541-1552` | the content component uses client hooks under `force-dynamic` |
+| `Suspense fallback={null}` around `WorkspaceEntry` | [`app/workspace/page.tsx:38-40`](app/workspace/page.tsx#L38-L40) | `WorkspaceShell` calls `useSearchParams()`, which suspends; docstring lines 21-24 |
+| `Suspense fallback={null}` around `WorkbenchLaunchBridge` | [`app/workbench/new/page.tsx:17-19`](app/workbench/new/page.tsx#L17-L19) | `client.tsx` reads `searchParams.get('prompt')` and `searchParams.get('skill')` |
+| `Suspense` with a pulse skeleton around `GenerationPreviewContent` | [`app/generation-preview/page.tsx:1541-1552`](app/generation-preview/page.tsx#L1541-L1552) | the content component uses client hooks under `force-dynamic` |
 
 There is no `loading.tsx` anywhere, so these three are the only Suspense
-boundaries in the route tree — see [`./01-route-map.md`](./01-route-map.md).
+boundaries in the route tree — see [`./01-route-map.md`](docs/03-app-and-api/01-route-map.md).
 
 ## Consequences, stated plainly
 

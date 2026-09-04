@@ -24,7 +24,7 @@ repo root at commit `c2c9553a`. The 32-file set is exactly the file inventory in
 | Test files covering this layer | **30** | see file list below; `wc -l <30 files> \| tail -1` |
 | Lines in those test files | **7794** | same command |
 | `it(...)` cases in those test files | **388** | node walk of the same 30 files, `/^\s*it(\.skip\|\.only\|\.todo)?\(/m` |
-| `LLM_STAGES` routable stages | 20 | verbatim array at `lib/server/model-routes.ts:131` (transcribed in `02b-interfaces-server-and-usage.md`) |
+| `LLM_STAGES` routable stages | 20 | verbatim array at [`lib/server/model-routes.ts:131`](lib/server/model-routes.ts#L131) (transcribed in `02b-interfaces-server-and-usage.md`) |
 
 The 30 test files: `tests/lint-llm-entry-guard.test.ts`, `tests/providers/provider-neutrality-guard.test.ts`,
 the 13 files under `tests/ai/`, `tests/config/{apply-token-plan,feature-flags,token-plan-apply-persist}.test.ts`,
@@ -54,7 +54,7 @@ flowchart LR
 `tests/providers/provider-neutrality-guard.test.ts` (543 lines) loads the real
 TypeScript compiler API and scans every source file for a hardcoded vendor-id
 string literal that falls outside seven declared "composition root" registries,
-`PROVIDERS` in `lib/ai/providers.ts:36` among them. A new call site that writes
+`PROVIDERS` in [`lib/ai/providers.ts:36`](lib/ai/providers.ts#L36) among them. A new call site that writes
 `'openai'` directly instead of routing through the catalog fails this test rather
 than drifting silently into a second, informal vocabulary.
 
@@ -108,7 +108,7 @@ precedence for seven capability sections.
 
 **1. The `google` transport branch has zero behavioural test coverage — including
 the layer's only outbound-proxy code path.** Severity: medium.
-`getModel()`'s `google` case (`lib/ai/providers.ts:2286`) calls
+`getModel()`'s `google` case ([`lib/ai/providers.ts:2286`](lib/ai/providers.ts#L2286)) calls
 `createGoogleGenerativeAI` and, when `config.proxy` is set, wires an `undici`
 `ProxyAgent` through a dynamically-imported `fetch` (`:2294`–`:2296`) — this is
 the only proxy-egress code in the entire layer. Across all 30 test files
@@ -118,7 +118,7 @@ boilerplate, needed only so `providers.ts`'s top-level SDK imports resolve
 without hitting a real network call. No test constructs a `google` model, and
 none exercises the proxy branch at all. Contrast the other three non-`openai`
 `ProviderType` branches: `azure` is asserted directly in
-`openai-provider.test.ts:451`–`:501` (mocked `createAzure`, deployment-name
+[`openai-provider.test.ts:451`](tests/ai/openai-provider.test.ts#L451)–[`:501`](tests/ai/openai-provider.test.ts#L501) (mocked `createAzure`, deployment-name
 resolution, base-URL normalization), `anthropic` has its own
 `anthropic-provider.test.ts`, and `bedrock` has its own
 `bedrock-provider.test.ts`.
@@ -143,7 +143,7 @@ flowchart TD
 ```
 
 **2. `resolveModelFromHeaders` is a dead export.** Severity: low.
-Declared and exported at `lib/server/resolve-model.ts:162`, it is one of the
+Declared and exported at [`lib/server/resolve-model.ts:162`](lib/server/resolve-model.ts#L162), it is one of the
 three functions transcribed in `02b-interfaces-server-and-usage.md`. A repo-wide
 search (`lib/`, `app/`, `components/`, `tests/`, `packages/`, `scripts/`,
 `eval/`) for the identifier `resolveModelFromHeaders` returns exactly one hit —
@@ -174,7 +174,7 @@ The underlying functions it composes (`getServerProviders`,
 `getServerTTSProviders`, …, `getParallelSceneConcurrency`) are extensively
 covered by `provider-config.test.ts` (116 `it()` cases). But
 `app/api/server-providers/route.ts` itself — which calls all eight of those
-functions and assembles one JSON response (`route.ts:16`–`:28`) — is imported by
+functions and assembles one JSON response ([`route.ts:16`](app/api/server-providers/route.ts#L16)–`:28`) — is imported by
 zero test files in the repo. A regression in the composition itself (a dropped
 section, a renamed key in the response shape) would only surface through manual
 QA or the browser settings UI, not the test suite.

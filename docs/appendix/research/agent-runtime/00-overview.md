@@ -7,22 +7,22 @@ OpenMAIC. Everything below was read out of the working tree at commit
 ## Charter
 
 There are **two independent agent runtimes** in this repo. They share one
-harness (`@earendil-works/pi-agent-core` 0.78.0, `package.json:52-53`) and one
+harness (`@earendil-works/pi-agent-core` 0.78.0, [`package.json:52-53`](package.json#L52-L53)) and one
 LLM adapter (`lib/agent/runtime/stream-fn.ts`), and nothing else.
 
 | Runtime | Purpose | Lifetime owner | Entry |
 | --- | --- | --- | --- |
-| **Durable background runtime** ("agent runtime", "workbench agent") | One long-lived authoring conversation that builds and edits classroom *stage documents*. Survives worker death, deploys and client disconnects. | PostgreSQL lease + `startAgentRunner()` timer (`lib/server/agent-runtime/runner.ts:1861`) | `instrumentation.ts:49` |
-| **In-class chat runtime** ("Pi chat", "director loop") | The multi-agent classroom conversation the *student* sees: a director LLM delegates turns to teacher/assistant/student personas that speak and drive the slide + whiteboard. Request-scoped, fully stateless server-side. | The HTTP request (`req.signal`) | `app/api/chat/pi/route.ts:42` → `lib/chat/pi/director-loop.ts:29` |
+| **Durable background runtime** ("agent runtime", "workbench agent") | One long-lived authoring conversation that builds and edits classroom *stage documents*. Survives worker death, deploys and client disconnects. | PostgreSQL lease + `startAgentRunner()` timer ([`lib/server/agent-runtime/runner.ts:1861`](lib/server/agent-runtime/runner.ts#L1861)) | [`instrumentation.ts:49`](instrumentation.ts#L49) |
+| **In-class chat runtime** ("Pi chat", "director loop") | The multi-agent classroom conversation the *student* sees: a director LLM delegates turns to teacher/assistant/student personas that speak and drive the slide + whiteboard. Request-scoped, fully stateless server-side. | The HTTP request (`req.signal`) | [`app/api/chat/pi/route.ts:42`](app/api/chat/pi/route.ts#L42) → [`lib/chat/pi/director-loop.ts:29`](lib/chat/pi/director-loop.ts#L29) |
 
 A third, older path still ships: the LangGraph `StateGraph` director in
-`lib/orchestration/director-graph.ts:484`, driven by `app/api/chat/route.ts:44`
-via `statelessGenerate` (`lib/orchestration/stateless-generate.ts:392`). It
+[`lib/orchestration/director-graph.ts:484`](lib/orchestration/director-graph.ts#L484), driven by [`app/api/chat/route.ts:44`](app/api/chat/route.ts#L44)
+via `statelessGenerate` ([`lib/orchestration/stateless-generate.ts:392`](lib/orchestration/stateless-generate.ts#L392)). It
 produces the same `StatelessEvent` SSE protocol as the Pi path, so the browser
-loop (`lib/chat/agent-loop.ts:154`) drives either one. `NEXT_PUBLIC_PI_CHAT_ENABLED`
-selects which (`lib/config/feature-flags.ts:72`).
+loop ([`lib/chat/agent-loop.ts:154`](lib/chat/agent-loop.ts#L154)) drives either one. `NEXT_PUBLIC_PI_CHAT_ENABLED`
+selects which ([`lib/config/feature-flags.ts:72`](lib/config/feature-flags.ts#L72)).
 
-`lib/action/engine.ts:178` (`ActionEngine`) is the client-side executor for
+[`lib/action/engine.ts:178`](lib/action/engine.ts#L178) (`ActionEngine`) is the client-side executor for
 whatever the classroom agents emit — it is the sink for both classroom paths.
 
 ## Internal parts
@@ -121,7 +121,7 @@ flowchart LR
 The asymmetry is deliberate and load-bearing: the durable runtime never streams
 to a client at all — it writes durable events, and the browser reads the log.
 The classroom runtime has no durable log; the browser holds all state and
-re-posts it every iteration (`lib/chat/agent-loop.ts:181-192`).
+re-posts it every iteration ([`lib/chat/agent-loop.ts:181-192`](lib/chat/agent-loop.ts#L181-L192)).
 
 ## File inventory
 
@@ -166,18 +166,18 @@ manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file |
-| [`01a-modules-server.md`](./01a-modules-server.md) | durable runtime modules, path:line anchors |
-| [`01b-modules-classroom.md`](./01b-modules-classroom.md) | classroom runtime + orchestration + client modules |
-| [`02-interfaces.md`](./02-interfaces.md) | verbatim public types: harness, runner, recovery, skills |
-| [`02b-tool-catalogue.md`](./02b-tool-catalogue.md) | every registered tool, what it mutates, how it is authorised |
-| [`02c-interfaces-tools-and-events.md`](./02c-interfaces-tools-and-events.md) | verbatim types: tool layer and classroom |
-| [`02d-durable-events.md`](./02d-durable-events.md) | the durable event vocabulary, write channels, and storage shape |
-| [`03-flows.md`](./03-flows.md) | traced flows through the durable runtime |
-| [`03b-flows-classroom-and-external.md`](./03b-flows-classroom-and-external.md) | traced flows: in-class round, and the external `openmaic` skill driver |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | packages, env vars, config resolution |
-| [`05-failure-modes.md`](./05-failure-modes.md) | error handling and failure behaviour |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | quality observations, measured numbers with commands |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined |
+| [`01a-modules-server.md`](docs/appendix/research/agent-runtime/01a-modules-server.md) | durable runtime modules, path:line anchors |
+| [`01b-modules-classroom.md`](docs/appendix/research/agent-runtime/01b-modules-classroom.md) | classroom runtime + orchestration + client modules |
+| [`02-interfaces.md`](docs/appendix/research/agent-runtime/02-interfaces.md) | verbatim public types: harness, runner, recovery, skills |
+| [`02b-tool-catalogue.md`](docs/appendix/research/agent-runtime/02b-tool-catalogue.md) | every registered tool, what it mutates, how it is authorised |
+| [`02c-interfaces-tools-and-events.md`](docs/appendix/research/agent-runtime/02c-interfaces-tools-and-events.md) | verbatim types: tool layer and classroom |
+| [`02d-durable-events.md`](docs/appendix/research/agent-runtime/02d-durable-events.md) | the durable event vocabulary, write channels, and storage shape |
+| [`03-flows.md`](docs/appendix/research/agent-runtime/03-flows.md) | traced flows through the durable runtime |
+| [`03b-flows-classroom-and-external.md`](docs/appendix/research/agent-runtime/03b-flows-classroom-and-external.md) | traced flows: in-class round, and the external `openmaic` skill driver |
+| [`04-dependencies-and-config.md`](docs/appendix/research/agent-runtime/04-dependencies-and-config.md) | packages, env vars, config resolution |
+| [`05-failure-modes.md`](docs/appendix/research/agent-runtime/05-failure-modes.md) | error handling and failure behaviour |
+| [`06-quality-and-metrics.md`](docs/appendix/research/agent-runtime/06-quality-and-metrics.md) | quality observations, measured numbers with commands |
+| [`07-open-questions.md`](docs/appendix/research/agent-runtime/07-open-questions.md) | what could not be determined |
 
 Nothing was omitted: the subsystem has real content for every section. Pack→topic mapping
-and the shared chapter convention: [`../index.md`](../index.md).
+and the shared chapter convention: [`../index.md`](docs/appendix/research/index.md).

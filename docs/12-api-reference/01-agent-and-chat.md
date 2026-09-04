@@ -9,8 +9,8 @@ unrelated execution models that happen to share a directory prefix.
 `app/api/skills/[id]/route.ts`,
 `lib/server/agent-runtime/{owner,with-owner,limits,skills,store,session-materials}.ts`,
 `lib/persistence/server-auth.ts`, `lib/config/feature-flags.ts`; evidence
-[`../appendix/research/api-surface/01b-modules-routes-a-to-e.md`](../appendix/research/api-surface/01b-modules-routes-a-to-e.md),
-[`../appendix/research/agent-runtime/`](../appendix/research/agent-runtime/00-overview.md).
+[`../appendix/research/api-surface/01b-modules-routes-a-to-e.md`](docs/appendix/research/api-surface/01b-modules-routes-a-to-e.md),
+[`../appendix/research/agent-runtime/`](docs/appendix/research/agent-runtime/00-overview.md).
 
 ## The group at a glance
 
@@ -73,7 +73,7 @@ flowchart TD
 ```
 
 The control-plane routes never run an agent. They write to the store; a
-`setInterval` installed by `instrumentation.ts:49` claims sessions out of it.
+`setInterval` installed by [`instrumentation.ts:49`](instrumentation.ts#L49) claims sessions out of it.
 That is why `POST /api/agent/sessions` answers `202` and not `200`.
 
 ## `agent/**` — the durable control plane
@@ -81,9 +81,9 @@ That is why `POST /api/agent/sessions` answers `202` and not `200`.
 Every one of the ten files opens with the same two lines:
 `export const runtime = 'nodejs'` and
 `if (!isAgentRuntimeConfigured()) return new Response('Not found', { status: 404 })`
-(`app/api/agent/sessions/route.ts:23`, `:38-40`). `agent/runtime` is the sole
+([`app/api/agent/sessions/route.ts:23`](app/api/agent/sessions/route.ts#L23), [`:38-40`](app/api/agent/sessions/route.ts#L38-L40)). `agent/runtime` is the sole
 exception — it *reports* the flag instead of gating on it, by necessity
-(`app/api/agent/runtime/route.ts:18-25`).
+([`app/api/agent/runtime/route.ts:18-25`](app/api/agent/runtime/route.ts#L18-L25)).
 
 | Route | Method | Request | Success | Errors |
 | --- | --- | --- | --- | --- |
@@ -106,17 +106,17 @@ exception — it *reports* the flag instead of gating on it, by necessity
 ### Validation ordering is load-bearing
 
 `POST /api/agent/sessions` runs every **owner-independent** body check before
-`withRequestOwnerId` (`route.ts:49-90`, wrapper enters at `:92`). The reason is
+`withRequestOwnerId` ([`app/api/agent/sessions/route.ts:49-90`](app/api/agent/sessions/route.ts#L49-L90), wrapper enters at [`:92`](app/api/agent/sessions/route.ts#L92)). The reason is
 stated in the file: a rejected request must not mint an anonymous cookie
 partition. The one body field that cannot be checked there is `skill`, because
 resolving it needs the `ownerId` — see below. Concretely:
 
 | Rule | Line |
 | --- | --- |
-| `existingCourse` requires `stageId` | `route.ts:51-53` |
+| `existingCourse` requires `stageId` | [`app/api/agent/sessions/route.ts:51-53`](app/api/agent/sessions/route.ts#L51-L53) |
 | `existingCourse` `stageId` must pass `isValidClassroomId` | `:54-56` |
 | `prompt` required (defaulted to `stageId` for `existingCourse`) | `:58-62` |
-| `prompt.length <= MAX_SESSION_TEXT_LENGTH` (100 000, `lib/server/agent-runtime/limits.ts:9`) | `:63-69` |
+| `prompt.length <= MAX_SESSION_TEXT_LENGTH` (100 000, [`lib/server/agent-runtime/limits.ts:9`](lib/server/agent-runtime/limits.ts#L9)) | [`:63-69`](app/api/agent/sessions/route.ts#L63-L69) |
 | `materialIds` must be a string array; deduped; `<= 20`; no blanks | `:70-79` |
 | `existingCourse` rejects attachments outright | `:80-86` |
 | `decodeCourseRefs` must return `ok` | `:87-90` |
@@ -188,13 +188,13 @@ first read, and a named `caught_up` frame.
 
 Two subtleties worth carrying in your head:
 
-- Owner resolution happens **before** the session lookup (`events/route.ts:77`,
+- Owner resolution happens **before** the session lookup ([`events/route.ts:77`](app/api/agent/sessions/[id]/events/route.ts#L77),
   lookup at `:79`) so a missing session and a foreign session return
   byte-identical 404s — same status, same body, same `Set-Cookie`. The comment
   at `:68-76` states this is deliberate: the session UUID must not be an
   existence oracle.
 - `tick()` reschedules only after the previous poll *settles*
-  (`events/route.ts:260-272`). Two concurrent polls would share the cursor,
+  ([`events/route.ts:260-272`](app/api/agent/sessions/[id]/events/route.ts#L260-L272)). Two concurrent polls would share the cursor,
   emit duplicate frames, and the slower one would rewind the cursor.
 
 ## `chat/**` — the in-class stateless runtime
@@ -210,10 +210,10 @@ state; the server runs one pass and streams events back.
 
 Model resolution for both chat routes is
 `resolveModel({modelString: body.model, stage: 'chat-adapter', apiKey, baseUrl, providerType, thinkingConfig: body.thinkingConfig ?? body.thinking})`
-(`chat/route.ts:72-81`, `chat/pi/route.ts:98-107`). If
+([`chat/route.ts:72-81`](app/api/chat/route.ts#L72-L81), [`chat/pi/route.ts:98-107`](app/api/chat/pi/route.ts#L98-L107)). If
 `isProviderKeyRequired(providerId) && !resolvedApiKey`, both return
 `401 MISSING_API_KEY`. Thinking defaults to `{mode:'disabled', enabled:false}`
-for low-latency chat (`chat/route.ts:127-130`).
+for low-latency chat ([`chat/route.ts:127-130`](app/api/chat/route.ts#L127-L130)).
 
 `chat/pi` validates harder than `chat`: `agentIds` must be a non-empty array of
 unique, trimmed, non-empty strings (`:79-90`), and every id must resolve through
@@ -242,7 +242,7 @@ flowchart TD
 ```
 
 Every failed condition degrades silently to the non-native path
-(`chat/pi/route.ts:164-187`). A persistence initialisation failure is a
+([`chat/pi/route.ts:164-187`](app/api/chat/pi/route.ts#L164-L187)). A persistence initialisation failure is a
 `log.warn`, never an error response — a whiteboard is optional, the lesson is
 not.
 
@@ -251,21 +251,21 @@ not.
 Both routes return `200` the moment headers are flushed, so a mid-stream
 failure cannot change the status. They write a
 `data: {"type":"error","data":{"message":…}}` frame and close
-(`chat/route.ts:174-185`, `chat/pi/route.ts:274-282`). Only a failure *before*
+([`chat/route.ts:174-185`](app/api/chat/route.ts#L174-L185), [`chat/pi/route.ts:274-282`](app/api/chat/pi/route.ts#L274-L282)). Only a failure *before*
 the stream opens yields `500 INTERNAL_ERROR` with the raw error message
-(`chat/route.ts:201-205`).
+([`chat/route.ts:201-205`](app/api/chat/route.ts#L201-L205)).
 
 ## Notes and caveats
 
 - **`agent/skills/[id]` GET drops the owner cookie on its 404.** The response is
-  built without `responseHeaders` (`app/api/agent/skills/[id]/route.ts:22`),
+  built without `responseHeaders` ([`app/api/agent/skills/[id]/route.ts:22`](app/api/agent/skills/[id]/route.ts#L22)),
   unlike every other 404 in the family. Harmless today, but it breaks the
   invariant `withRequestOwnerId` exists to enforce.
 - **`POST /api/agent/skills` uses a fifth error envelope**: `{error, message}`
   where `error` is the `UserSkillError` code (`:87-97`). Neither `apiError` nor
   `ownerNotFound`.
 - **`messages` returns `403 Forbidden`** on `AgentSessionAccessError`
-  (`messages/route.ts:116-118`) — the one place in `agent/**` that breaks the
+  ([`messages/route.ts:116-118`](app/api/agent/sessions/[id]/messages/route.ts#L116-L118)) — the one place in `agent/**` that breaks the
   no-existence-oracle rule, though it is only reachable *after* the ownership
   pre-check at `:29` has already passed.
 - **`/api/skills/[id]` resolves in three tiers** before touching the owner store:
@@ -280,12 +280,12 @@ the stream opens yields `500 INTERNAL_ERROR` with the raw error message
 ## Open questions
 
 - `resolveRequestOwnerId` accepts an `authenticatedOwnerId` parameter that no
-  call site supplies (`lib/server/agent-runtime/owner.ts:52-56`). The comments at
-  `events/route.ts:68-76` and `owner-events/route.ts:42-47` both say a future auth
+  call site supplies ([`lib/server/agent-runtime/owner.ts:52-56`](lib/server/agent-runtime/owner.ts#L52-L56)). The comments at
+  [`events/route.ts:68-76`](app/api/agent/sessions/[id]/events/route.ts#L68-L76) and [`owner-events/route.ts:42-47`](app/api/agent/owner-events/route.ts#L42-L47) both say a future auth
   integration "must thread" it through. Which auth integration, and on what
   timeline, is not recorded in the repo.
 - `PATCH /api/agent/sessions/[id]` is the only mutation on session meta. Whether
   the store enforces a title length bound inside
   `normalizeSessionTitleOverride` was not traced here.
 
-Next: [`02-generation.md`](./02-generation.md).
+Next: [`02-generation.md`](docs/12-api-reference/02-generation.md).

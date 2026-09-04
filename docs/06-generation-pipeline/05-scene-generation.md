@@ -9,21 +9,21 @@ each must satisfy, and the generation strategy per type.
 `.../scene-types.ts`, `.../scene-builder.ts`, `.../action-parser.ts`,
 `.../interactive-post-processor.ts`, `.../pbl/planner-single-call.ts`,
 `app/api/generate/scene-content/route.ts`, `app/api/generate/scene-actions/route.ts`;
-evidence: [`02b-interfaces-scenes.md`](../appendix/research/generation-pipeline/02b-interfaces-scenes.md),
-[`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
+evidence: [`02b-interfaces-scenes.md`](docs/appendix/research/generation-pipeline/02b-interfaces-scenes.md),
+[`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
 
 ## The three hops
 
 | Hop | Function | Route | LLM calls | Failure mode |
 | --- | --- | --- | --- | --- |
-| Content | `generateSceneContent` (`scene-generator.ts:227`) | `POST /api/generate/scene-content` (`maxDuration = 300`) | 1 (2 for PBL) | returns `null`, or throws `PBLGenerationError` |
+| Content | `generateSceneContent` ([`scene-generator.ts:227`](packages/@openmaic/generation/src/scene-generator.ts#L227)) | `POST /api/generate/scene-content` (`maxDuration = 300`) | 1 (2 for PBL) | returns `null`, or throws `PBLGenerationError` |
 | Actions | `generateSceneActions` (`:1608`) | `POST /api/generate/scene-actions` (`maxDuration = 60`) | 1 | returns a canned `Action[]`, or `[]` |
-| Assembly | `buildCompleteScene` (`scene-builder.ts:22`) | inside the actions route (`:170`) | 0 | returns `null` |
+| Assembly | `buildCompleteScene` ([`scene-builder.ts:22`](packages/@openmaic/generation/src/scene-builder.ts#L22)) | inside the actions route ([`:170`](app/api/generate/scene-actions/route.ts#L170)) | 0 | returns `null` |
 
 The split is a real boundary: the two routes resolve models independently
 (`scene-content:<type>` versus `scene-actions`), so content and actions can be pinned to
 different models via `MODEL_ROUTES` — see
-[`../04-ai-provider-layer/index.md`](../04-ai-provider-layer/index.md).
+[`../04-ai-provider-layer/index.md`](docs/04-ai-provider-layer/index.md).
 
 ## Type dispatch
 
@@ -116,14 +116,14 @@ classDiagram
   SceneContentFailure ..> GeneratedSlideContent : "onFailure fires instead"
 ```
 
-`GeneratedSlideData` (`pipeline-types.ts:31`) is the *raw* parse target — an index-signature
+`GeneratedSlideData` ([`pipeline-types.ts:31`](packages/@openmaic/generation/src/pipeline-types.ts#L31)) is the *raw* parse target — an index-signature
 element shape with `type`, `left`, `top`, `width`, `height` required and everything else
 `unknown`. `GeneratedSlideContent.elements` is `PPTElement[]`, the DSL contract. The
 transformation between them is the five-pass repair pipeline below.
 
 The failure contract is a callback, not a throw:
 `SceneContentFailureCode = 'prompt-unavailable' | 'invalid-model-output'`
-(`scene-generator.ts:75`), delivered via `options.onFailure` and *always* accompanied by a
+([`scene-generator.ts:75`](packages/@openmaic/generation/src/scene-generator.ts#L75)), delivered via `options.onFailure` and *always* accompanied by a
 `null` return. The slide, quiz and widget branches use it; PBL does not — it throws.
 
 ## Slide generation
@@ -162,7 +162,7 @@ wrapped in `<<<INSTRUCTION … INSTRUCTION>>>` markers so it cannot be read as s
 conditional "KEEP existing images" rule when the baseline has image elements. Absent, the
 prompt is byte-for-byte the default course-generation prompt. This is the seam the MAIC
 editor agent's `regenerate_scene` tool uses — see
-[`../07-dsl-renderer-editor/index.md`](../07-dsl-renderer-editor/index.md).
+[`../07-dsl-renderer-editor/index.md`](docs/07-dsl-renderer-editor/index.md).
 
 ### The five-pass repair pipeline
 
@@ -237,7 +237,7 @@ sequenceDiagram
 ```
 
 Both stops degrade rather than fail: `VISION_RESOLUTION_BUDGET_MS = 15_000`
-(`app/api/generate/scene-content/route.ts:49`) raced against every probe, and
+([`app/api/generate/scene-content/route.ts:49`](app/api/generate/scene-content/route.ts#L49)) raced against every probe, and
 `MAX_CONSECUTIVE_UNRESOLVABLE_VISION_IMAGES = 3` (`:57`) as a store-is-down fuse. Every
 candidate that did not resolve — unresolvable *or* unprobed when a stop fired — is
 stripped from both structures (`:290-300`), so a model reference to a dropped id takes the
@@ -248,13 +248,13 @@ clean "no mapping → remove element" path instead of writing a dangling allocat
 
 This section outgrew the file-size ceiling and was split. The quiz, widget and PBL content
 branches, action generation and parsing, the canned fallbacks, DSL assembly, and the open
-questions are in [`./05b-scene-types-and-assembly.md`](./05b-scene-types-and-assembly.md).
+questions are in [`./05b-scene-types-and-assembly.md`](docs/06-generation-pipeline/05b-scene-types-and-assembly.md).
 
 ## Related
 
-- [`./05b-scene-types-and-assembly.md`](./05b-scene-types-and-assembly.md) — the remaining
+- [`./05b-scene-types-and-assembly.md`](docs/06-generation-pipeline/05b-scene-types-and-assembly.md) — the remaining
   content branches, actions, assembly.
-- [`./06-prompt-architecture.md`](./06-prompt-architecture.md) — the templates every branch
+- [`./06-prompt-architecture.md`](docs/06-generation-pipeline/06-prompt-architecture.md) — the templates every branch
   above builds.
-- [`./07-concurrency-and-retry.md`](./07-concurrency-and-retry.md) — how the two routes are
+- [`./07-concurrency-and-retry.md`](docs/06-generation-pipeline/07-concurrency-and-retry.md) — how the two routes are
   driven, retried and cancelled.

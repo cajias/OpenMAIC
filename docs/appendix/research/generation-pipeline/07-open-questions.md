@@ -44,8 +44,8 @@ flowchart TD
    resolves to.
 
 3. **Whether MinerU Cloud / AliDocMind response shapes still match the
-   parsers.** `extractMinerUResult` (`lib/pdf/mineru-parser.ts:13`) and
-   `aliDocMindLayoutsToParsedPdf` (`lib/pdf/pdf-providers.ts:511`) encode
+   parsers.** `extractMinerUResult` ([`lib/pdf/mineru-parser.ts:13`](lib/pdf/mineru-parser.ts#L13)) and
+   `aliDocMindLayoutsToParsedPdf` ([`lib/pdf/pdf-providers.ts:511`](lib/pdf/pdf-providers.ts#L511)) encode
    assumptions about upstream JSON. Without credentials I could not exercise
    either. `tests/document/alidocmind.smoke.test.ts` and
    `tests/document/mineru-cloud.test.ts` exist and presumably use fixtures — I
@@ -60,12 +60,12 @@ flowchart TD
 
 5. **When generated-media placeholders get backfilled.** The scene generator
    deliberately keeps `gen_img_*` / `gen_vid_*` placeholders in elements
-   (`scene-generator.ts:386`) and the route passes an empty
+   ([`scene-generator.ts:386`](packages/@openmaic/generation/src/scene-generator.ts#L386)) and the route passes an empty
    `generatedMediaMapping` with the comment "Media generation is handled
    client-side in parallel (media-orchestrator.ts)"
-   (`scene-content/route.ts:312`). `generateMediaForOutlines`
-   (`lib/media/media-orchestrator.ts:41`) is launched fire-and-forget from
-   `use-scene-generator.ts:672`. I did not trace how or when the resolved URLs
+   ([`scene-content/route.ts:312`](app/api/generate/scene-content/route.ts#L312)). `generateMediaForOutlines`
+   ([`lib/media/media-orchestrator.ts:41`](lib/media/media-orchestrator.ts#L41)) is launched fire-and-forget from
+   [`use-scene-generator.ts:672`](lib/hooks/use-scene-generator.ts#L672). I did not trace how or when the resolved URLs
    are written back into already-stored scenes — that is the media subsystem's
    contract, not this one's.
 
@@ -73,18 +73,18 @@ flowchart TD
    distinguishes a "browser-backed" pool (mapping values are base64 data URLs)
    from a "server-backed" pool (mapping values are allocated asset ids) and the
    comments say the *shape of `imageMapping`* is the whole switch
-   (`scene-generator.ts:342-353`). I did not find the module that decides which
+   ([`scene-generator.ts:342-353`](packages/@openmaic/generation/src/scene-generator.ts#L342-L353)). I did not find the module that decides which
    pool a deployment gets; `resolveVisionImagesForPrompt`
-   (`lib/persistence/resolve-vision-images.ts:59`) and `storeImages`
-   (`lib/utils/image-storage.ts:64`) are the two ends I saw. Owner:
+   ([`lib/persistence/resolve-vision-images.ts:59`](lib/persistence/resolve-vision-images.ts#L59)) and `storeImages`
+   ([`lib/utils/image-storage.ts:64`](lib/utils/image-storage.ts#L64)) are the two ends I saw. Owner:
    persistence-storage-state pack.
 
 7. **What the workbench material-extraction queue is *for*, relative to the
    generation routes.** `startMaterialExtractionRunner` is launched from
-   `instrumentation.ts:51` when the agent runtime is configured, so it is live —
+   [`instrumentation.ts:51`](instrumentation.ts#L51) when the agent runtime is configured, so it is live —
    but nothing in the generation UI path reaches it, and it duplicates provider
    selection, media flattening (`mediaArtifactText`,
-   `lib/server/material-extraction/extract.ts:59`) and error classification.
+   [`lib/server/material-extraction/extract.ts:59`](lib/server/material-extraction/extract.ts#L59)) and error classification.
    Whether `/api/extract-document` is meant to migrate onto this queue, or the
    two are permanently separate (session materials vs generation materials), I
    could not tell.
@@ -111,49 +111,49 @@ flowchart TD
 
 10. **Is `generateWidgetContent` returning `null` a fallback or an error?** The
     warn text says "falling back to standard interactive"
-    (`scene-generator.ts:1132`) but the function returns `null` and
+    ([`scene-generator.ts:1132`](packages/@openmaic/generation/src/scene-generator.ts#L1132)) but the function returns `null` and
     `generateSceneContent` propagates it, which the route turns into a 500
-    (`scene-content/route.ts:346`). Either the comment is stale or a
+    ([`scene-content/route.ts:346`](app/api/generate/scene-content/route.ts#L346)). Either the comment is stale or a
     standard-interactive fallback path was removed. Same question for the
     procedural-skill gate at `:1210`, which also warns and returns `null` even
     though the *outline* layer has a real demotion path
     (`sanitizeProceduralSkillOutline`).
 
 11. **Deprecation timeline for `interactiveConfig`.** Marked
-    `@deprecated` (`outline-types.ts:88`) yet still load-bearing:
+    `@deprecated` ([`outline-types.ts:88`](packages/@openmaic/generation/src/outline-types.ts#L88)) yet still load-bearing:
     `convertInteractiveConfigToWidget` + `inferWidgetType` (a keyword regex)
     run whenever it is present, and `generateSceneActions` still reads
     `outline.interactiveConfig` for `conceptName`/`designIdea`
-    (`scene-generator.ts:1701`). I cannot tell whether the regex inference is
+    ([`scene-generator.ts:1701`](packages/@openmaic/generation/src/scene-generator.ts#L1701)). I cannot tell whether the regex inference is
     expected to survive or whether a migration is planned.
 
 12. **Why the outline stream retries without backoff.** The scene calls use
     `withGenerationRetry` (exponential + jitter); the outline stream retries
-    immediately up to twice (`scene-outlines-stream/route.ts:519`). Given that
+    immediately up to twice ([`scene-outlines-stream/route.ts:519`](app/api/generate/scene-outlines-stream/route.ts#L519)). Given that
     the most likely reason for an empty attempt is a rate limit, an immediate
     retry looks like it could compound. It may be intentional (the SSE client
     is waiting, latency matters more) but nothing in the code says so.
 
 13. **What `courseTitle` at 120 chars vs the prompt's "≤30 chars" is for.** The
     template asks for ≤ 30 characters
-    (`templates/requirements-to-outlines/user.md:57`) while both the
-    non-streaming parser (`outline-generator.ts:161`) and the streaming
-    normaliser (`scene-outlines-stream/route.ts:87`) cap at 120. Whether 120 is
+    ([`templates/requirements-to-outlines/user.md:57`](packages/@openmaic/generation/templates/requirements-to-outlines/user.md)) while both the
+    non-streaming parser ([`outline-generator.ts:161`](packages/@openmaic/generation/src/outline-generator.ts#L161)) and the streaming
+    normaliser ([`scene-outlines-stream/route.ts:87`](app/api/generate/scene-outlines-stream/route.ts#L87)) cap at 120. Whether 120 is
     a deliberate defensive margin or a stale number is unclear.
 
 14. **Whether `DocumentTransform` was meant to run before outline generation.**
     The framework's `DocumentTransformPurpose` union includes
     `'course-generation'` as its **first** member
-    (`lib/document/transforms/types.ts:3`), which strongly suggests generation
+    ([`lib/document/transforms/types.ts:3`](lib/document/transforms/types.ts#L3)), which strongly suggests generation
     was an intended consumer, but the only caller is RAG ingestion. Was this
     descoped, or is wiring it still open work?
 
 15. **Why `DocumentExtractorProvider.version` exists, and what happened to the
     derivation cache.** The field's doc comment says it is the version half of
     a derivation cache key and that "Nothing consumes it yet"
-    (`lib/document/types.ts:40-46`), while the manifest header says the two
+    ([`lib/document/types.ts:40-46`](lib/document/types.ts#L40-L46)), while the manifest header says the two
     client pages need it for `resolveExpectedExtractor` / `extractorVersionFor`
-    in `lib/document/extraction-cache.ts` (`extractors/manifest.ts:5-8`). That
+    in `lib/document/extraction-cache.ts` ([`extractors/manifest.ts:5-8`](lib/document/extractors/manifest.ts#L5-L8)). That
     file is absent from the repo (`ls lib/document/extraction-cache.ts` → not
     found). So either the cache was removed and both comments are stale, or it
     lives under a different name I did not find. All five manifest versions are
@@ -162,7 +162,7 @@ flowchart TD
 16. **Nothing pins the two `MAX_VISION_IMAGES` / `MAX_PDF_CONTENT_CHARS`
     copies together.** They agree today (20 / 50 000).
     `grep -rn "MAX_VISION_IMAGES" tests` returns exactly one hit, and it is a
-    comment in `tests/generation/scene-content-asset-id-vision.test.ts:273`
+    comment in [`tests/generation/scene-content-asset-id-vision.test.ts:273`](tests/generation/scene-content-asset-id-vision.test.ts#L273)
     ("25 candidates (> MAX_VISION_IMAGES = 20)") — a hard-coded assumption, not
     an equality assertion. Whether the duplication is intended (the package
     must not import app code) with the pinning simply missing, or whether one
@@ -171,7 +171,7 @@ flowchart TD
 17. **The intended relationship between `languageDirective` and
     `targetLanguage`.** The first is model-inferred prose reaching every prompt;
     the second is the authoritative UI locale reaching only the PBL planner
-    (`scene-content/route.ts:322` → `scene-generator.ts:1018`). It is unclear
+    ([`scene-content/route.ts:322`](app/api/generate/scene-content/route.ts#L322) → [`scene-generator.ts:1018`](packages/@openmaic/generation/src/scene-generator.ts#L1018)). It is unclear
     whether the narrow scope is deliberate (only PBL needs a hard locale) or an
     unfinished rollout, and what should happen when the two disagree.
 

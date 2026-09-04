@@ -14,8 +14,8 @@ middleware and treat the caller's credentials as request data.
 `lib/constants/generation.ts`, `lib/server/agent-runtime/config.ts`,
 `lib/workbench/material-upload-policy.ts`,
 `lib/persistence/resolve-server-asset.ts`; evidence
-[`../appendix/research/api-surface/01b-modules-routes-a-to-e.md`](../appendix/research/api-surface/01b-modules-routes-a-to-e.md),
-[`../appendix/research/generation-pipeline/`](../appendix/research/generation-pipeline/00-overview.md).
+[`../appendix/research/api-surface/01b-modules-routes-a-to-e.md`](docs/appendix/research/api-surface/01b-modules-routes-a-to-e.md),
+[`../appendix/research/generation-pipeline/`](docs/appendix/research/generation-pipeline/00-overview.md).
 
 ## The group
 
@@ -84,7 +84,7 @@ flowchart TD
 Checks, in order: file present → `400 MISSING_REQUIRED_FIELD`;
 `normalizeDocumentMimeType({mimeType, fileName})` must resolve → `400` naming
 the file (`:474-480`); `size <= MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES`
-(50 MiB, `lib/constants/generation.ts:16`) → `413` (`:481-489`). The route's
+(50 MiB, [`lib/constants/generation.ts:16`](lib/constants/generation.ts#L16)) → `413` ([`:481-489`](app/api/extract-document/route.ts#L481-L489)). The route's
 comment states this form's observable behaviour is frozen for backward
 compatibility (`:442-444`).
 
@@ -213,12 +213,12 @@ and the catch-all 500 — carries `x-request-id` (`:363`, `:166`, `:392`).
 
 | Limit | Value | Source |
 | --- | --- | --- |
-| Media MIME cap | `agentRuntimeConfig.maxUploadBytes`, default 50 MiB, env `OPENMAIC_AGENT_MAX_UPLOAD_BYTES` | `lib/server/agent-runtime/config.ts:46` |
-| Everything else | `min(maxDocumentBytes, maxUploadBytes)`, both default 50 MiB | `route.ts:70-73`, `config.ts:48` |
-| Materials per owner | 100, env `MATERIALS_MAX_COUNT_PER_OWNER` | `config.ts:50` |
-| Total bytes per owner | 2 GiB, env `MATERIALS_MAX_TOTAL_BYTES_PER_OWNER` | `config.ts:52-55` |
-| List page ceiling | 200 | `route.ts:77` |
-| Filename length | 512 chars after `basename` | `route.ts:91` |
+| Media MIME cap | `agentRuntimeConfig.maxUploadBytes`, default 50 MiB, env `OPENMAIC_AGENT_MAX_UPLOAD_BYTES` | [`lib/server/agent-runtime/config.ts:46`](lib/server/agent-runtime/config.ts#L46) |
+| Everything else | `min(maxDocumentBytes, maxUploadBytes)`, both default 50 MiB | [`app/api/materials/route.ts:70-73`](app/api/materials/route.ts#L70-L73), [`lib/server/agent-runtime/config.ts:48`](lib/server/agent-runtime/config.ts#L48) |
+| Materials per owner | 100, env `MATERIALS_MAX_COUNT_PER_OWNER` | [`lib/server/agent-runtime/config.ts:50`](lib/server/agent-runtime/config.ts#L50) |
+| Total bytes per owner | 2 GiB, env `MATERIALS_MAX_TOTAL_BYTES_PER_OWNER` | [`lib/server/agent-runtime/config.ts:52-55`](lib/server/agent-runtime/config.ts#L52-L55) |
+| List page ceiling | 200 | [`app/api/materials/route.ts:77`](app/api/materials/route.ts#L77) |
+| Filename length | 512 chars after `basename` | [`app/api/materials/route.ts:91`](app/api/materials/route.ts#L91) |
 
 `x-material-filename` is percent-decoded (failure preserved verbatim), `\` is
 normalised to `/`, `basename` is taken, and the result is trimmed and truncated
@@ -281,13 +281,13 @@ This is the most observable route in the surface.
 ## Notes and caveats
 
 - **`materials/[id]` exposes no DELETE.** The file states why: the underlying
-  session-material store has no delete operation yet (`materials/[id]/route.ts:10-13`).
+  session-material store has no delete operation yet ([`materials/[id]/route.ts:10-13`](app/api/materials/[id]/route.ts#L10-L13)).
 - **Two of these five routes have no upload cap at all.** `parse-pdf` and
   `transcription` both `arrayBuffer()`/`formData()` the whole body. Only
   `extract-document` (50 MiB) and `materials` (per-class, byte-counted) bound it.
 - **SSRF strictness differs.** All three extraction routes gate the client base
   URL check on `NODE_ENV === 'production'`; `generate/tts` does not. See
-  [`09-conventions.md`](./09-conventions.md).
+  [`09-conventions.md`](docs/12-api-reference/09-conventions.md).
 - **`extract-document` is the only route that sanitises log values.** Every other
   route interpolates caller-controlled strings into log lines unchanged.
 - **No rate limiting.** `POST /api/materials` is bounded by the per-owner quota,
@@ -301,8 +301,8 @@ This is the most observable route in the surface.
   credential (the persistence dev token? the anonymous owner?) was not traced from
   the route.
 - `publicMaterialView` versus `publicMaterial` — the list/detail routes use the
-  former and the upload success path the latter (`materials/route.ts:352`,
-  `[id]/route.ts:42`). Whether the two projections are field-identical was not
+  former and the upload success path the latter ([`materials/route.ts:352`](app/api/materials/route.ts#L352),
+  [`app/api/materials/[id]/route.ts:42`](app/api/materials/[id]/route.ts#L42)). Whether the two projections are field-identical was not
   verified.
 
-Next: [`04-classroom-and-pbl.md`](./04-classroom-and-pbl.md).
+Next: [`04-classroom-and-pbl.md`](docs/12-api-reference/04-classroom-and-pbl.md).

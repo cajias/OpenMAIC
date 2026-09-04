@@ -14,10 +14,10 @@ URL, no credentials) and `azure-voices`. Those six are exactly the callers of
 
 The other six do not reach a caller-chosen host. `web-search` accepts a client
 `baseUrl` but allowlists it against `OFFICIAL_CLIENT_BASE_URLS` before use
-(`lib/server/web-search-config.ts:74-77`). The four `export-video/**` routes take
+([`lib/server/web-search-config.ts:74-77`](lib/server/web-search-config.ts#L74-L77)). The four `export-video/**` routes take
 no credentials at all and reach only the operator-configured `RENDER_SERVICE_URL`,
 deliberately left un-guarded because it is *meant* to point at an internal service
-(`lib/server/render-service.ts:25-39`). `comfyui-workflows` reads no request data
+([`lib/server/render-service.ts:25-39`](lib/server/render-service.ts#L25-L39)). `comfyui-workflows` reads no request data
 whatsoever — just local disk.
 
 **Sources:** `app/api/generate/{tts,voice,image,video}/route.ts`,
@@ -25,8 +25,8 @@ whatsoever — just local disk.
 `app/api/azure-voices/route.ts`, `app/api/comfyui-workflows/route.ts`,
 `app/api/web-search/route.ts`, `lib/server/{ssrf-guard,proxy-fetch,render-service,capped-stream,web-search-config}.ts`,
 `lib/server/provider-config.ts`; evidence
-[`../appendix/research/media-audio-video/`](../appendix/research/media-audio-video/00-overview.md),
-[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](../appendix/research/api-surface/01d-modules-routes-p-to-w.md).
+[`../appendix/research/media-audio-video/`](docs/appendix/research/media-audio-video/00-overview.md),
+[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](docs/appendix/research/api-surface/01d-modules-routes-p-to-w.md).
 
 ## The group and its egress paths
 
@@ -234,11 +234,11 @@ sequenceDiagram
   end
 ```
 
-The 300 MiB cap is only the *route's* ceiling. `next.config.ts:36` sets
+The 300 MiB cap is only the *route's* ceiling. [`next.config.ts:36`](next.config.ts#L36) sets
 `experimental.proxyClientMaxBodySize: '200mb'` for every request, so on a proxied
 or Vercel deployment the smaller number wins and 300 MiB is unreachable
-([`09-conventions.md`](./09-conventions.md#size-limits),
-[`../15-cross-cutting/04-threat-secrets-and-uploads.md`](../15-cross-cutting/04-threat-secrets-and-uploads.md)).
+([`09-conventions.md`](docs/12-api-reference/09-conventions.md#size-limits),
+[`../15-cross-cutting/04-threat-secrets-and-uploads.md`](docs/15-cross-cutting/04-threat-secrets-and-uploads.md)).
 
 `x-openmaic-client` is the closest thing the surface has to rate limiting, and it
 is enforced **downstream** in the render service, not here. The default collapses
@@ -327,14 +327,14 @@ in the surface that converts a failure into an empty success. Note it does not u
   and `render-service.ts` go through `proxyFetch`, so only those honour
   `https_proxy`/`no_proxy`.
 - **`validateUrlForSSRF` short-circuits to `null` when `ALLOW_LOCAL_NETWORKS` is
-  `'true'` or `'1'`** (`lib/server/ssrf-guard.ts:266-269`). That single env var
+  `'true'` or `'1'`** ([`lib/server/ssrf-guard.ts:266-269`](lib/server/ssrf-guard.ts#L266-L269)). That single env var
   disables the guard for all 13 routes that call it.
 - **Check-then-fetch gap.** `validateUrlForSSRF` resolves DNS itself and the
   subsequent `fetch` resolves again, so a rebinding record can differ between the
   two. `proxy-media`'s per-hop re-validation narrows but does not close it.
 - **`RENDER_SERVICE_URL` is deliberately not SSRF-guarded** — it is operator
   configuration, not caller input; the reasoning is written at
-  `lib/server/render-service.ts:25-35`.
+  [`lib/server/render-service.ts:25-35`](lib/server/render-service.ts#L25-L35).
 - **No rate limiting on any of these routes.** `generate/image` and
   `generate/video` each spend a vendor credit per unauthenticated request.
 
@@ -342,9 +342,9 @@ in the surface that converts a failure into an empty success. Note it does not u
 
 - The render service enforces a per-identity guard keyed on `x-openmaic-client`.
   Its actual limits live in `render-service/` and were not read for this
-  reference — see [`../09-media-and-export/index.md`](../09-media-and-export/index.md).
+  reference — see [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md).
 - `generate/tts` returns base64 audio inside JSON. Whether that was chosen for
   caching, for the client's Dexie write path, or for provider-format uniformity is
   not recorded in the route.
 
-Next: [`06-providers-and-verification.md`](./06-providers-and-verification.md).
+Next: [`06-providers-and-verification.md`](docs/12-api-reference/06-providers-and-verification.md).

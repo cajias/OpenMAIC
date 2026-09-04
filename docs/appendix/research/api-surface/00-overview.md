@@ -31,7 +31,7 @@ There is no OpenAPI/spec artifact and no versioned contract other than
 despite the directory name. It is an in-process toolkit that mutates a
 Zustand-style stage store for AI agents — `createStageAPI(stageStore)` with
 `api.scene.create`, `api.element.add`, `api.canvas.highlight`
-(`lib/api/stage-api.ts:14-34`, `lib/api/stage-api-types.ts:71-82`). No route
+([`lib/api/stage-api.ts:14-34`](lib/api/stage-api.ts#L14-L34), [`lib/api/stage-api-types.ts:71-82`](lib/api/stage-api-types.ts#L71-L82)). No route
 file imports it. Documented here only so a reader does not go looking.
 
 ## Where the cross-cutting behaviour lives
@@ -94,8 +94,8 @@ flowchart TD
   L --> M["apiSuccess / apiError / SSE stream"]
 ```
 
-Access-code enforcement is entirely in `middleware.ts:60-85`; **no route file
-re-checks it**. The allowlist is exactly two paths (`middleware.ts:66`).
+Access-code enforcement is entirely in [`middleware.ts:60-85`](middleware.ts#L60-L85); **no route file
+re-checks it**. The allowlist is exactly two paths ([`middleware.ts:66`](middleware.ts#L66)).
 
 ## Family inventory
 
@@ -140,7 +140,7 @@ segment. Total: 9435 lines.
 uses the Node.js server runtime for App Router handlers unless `'edge'` is
 declared. **No route in the repo declares `runtime = 'edge'`** — only
 `middleware.ts` runs on the edge, and it explicitly branches on
-`process.env.NEXT_RUNTIME !== 'edge'` (`middleware.ts:53`) because it cannot
+`process.env.NEXT_RUNTIME !== 'edge'` ([`middleware.ts:53`](middleware.ts#L53)) because it cannot
 trust server-only variables there.
 
 ## Notes pack index
@@ -151,18 +151,18 @@ manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file |
-| [`01a-modules-shared-helpers.md`](./01a-modules-shared-helpers.md) | the cross-cutting helper modules with path:line anchors |
-| [`01b-modules-routes-a-to-e.md`](./01b-modules-routes-a-to-e.md) | per-route reference: `access-code` → `extract-document` |
-| [`01c-modules-routes-f-to-p.md`](./01c-modules-routes-f-to-p.md) | per-route reference: `folders` → `pbl/v2` |
-| [`01d-modules-routes-p-to-w.md`](./01d-modules-routes-p-to-w.md) | per-route reference: `persistence` → `web-search` |
-| [`02a-interfaces-envelope-identity-model.md`](./02a-interfaces-envelope-identity-model.md) | verbatim signatures: envelope, identity, model resolution, request bodies |
-| [`02b-interfaces-egress-body-sse.md`](./02b-interfaces-egress-body-sse.md) | verbatim signatures: egress guards, body helpers, tenancy, SSE contracts |
-| [`03-flows.md`](./03-flows.md) | five traced end-to-end flows, hop tables + sequence/state diagrams |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | env vars, npm deps, `MODEL_ROUTES` stage map, config resolution |
-| [`05-failure-modes.md`](./05-failure-modes.md) | error handling and failure behaviour |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | quality observations, every metric with its command |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined |
+| [`01a-modules-shared-helpers.md`](docs/appendix/research/api-surface/01a-modules-shared-helpers.md) | the cross-cutting helper modules with path:line anchors |
+| [`01b-modules-routes-a-to-e.md`](docs/appendix/research/api-surface/01b-modules-routes-a-to-e.md) | per-route reference: `access-code` → `extract-document` |
+| [`01c-modules-routes-f-to-p.md`](docs/appendix/research/api-surface/01c-modules-routes-f-to-p.md) | per-route reference: `folders` → `pbl/v2` |
+| [`01d-modules-routes-p-to-w.md`](docs/appendix/research/api-surface/01d-modules-routes-p-to-w.md) | per-route reference: `persistence` → `web-search` |
+| [`02a-interfaces-envelope-identity-model.md`](docs/appendix/research/api-surface/02a-interfaces-envelope-identity-model.md) | verbatim signatures: envelope, identity, model resolution, request bodies |
+| [`02b-interfaces-egress-body-sse.md`](docs/appendix/research/api-surface/02b-interfaces-egress-body-sse.md) | verbatim signatures: egress guards, body helpers, tenancy, SSE contracts |
+| [`03-flows.md`](docs/appendix/research/api-surface/03-flows.md) | five traced end-to-end flows, hop tables + sequence/state diagrams |
+| [`04-dependencies-and-config.md`](docs/appendix/research/api-surface/04-dependencies-and-config.md) | env vars, npm deps, `MODEL_ROUTES` stage map, config resolution |
+| [`05-failure-modes.md`](docs/appendix/research/api-surface/05-failure-modes.md) | error handling and failure behaviour |
+| [`06-quality-and-metrics.md`](docs/appendix/research/api-surface/06-quality-and-metrics.md) | quality observations, every metric with its command |
+| [`07-open-questions.md`](docs/appendix/research/api-surface/07-open-questions.md) | what could not be determined |
 
 No section is omitted; every deliverable file has real content. `01` and `02` are
 split because each exceeded the 350-line ceiling. Pack→topic mapping:
-[`../index.md`](../index.md).
+[`../index.md`](docs/appendix/research/index.md).

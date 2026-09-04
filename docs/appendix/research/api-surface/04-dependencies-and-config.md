@@ -57,27 +57,27 @@ Nine, measured by scanning `process.env.X` in the 69 route files.
 
 | Var | Read at | Effect on the HTTP surface |
 | --- | --- | --- |
-| `OPENMAIC_AGENT_RUNTIME_ENABLED` | `lib/config/feature-flags.ts:19` | with `DATABASE_URL`, un-404s 29 routes |
-| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | `feature-flags.ts:33` | `/workbench*` page gate in middleware only |
-| `NEXT_PUBLIC_PI_CHAT_ENABLED` | `feature-flags.ts:73` | `chat/pi` 404s when off |
-| `OPENMAIC_ENABLE_PI_NATIVE_CHILD_RUNTIME` | `feature-flags.ts:81` | selects the native vs legacy Pi child harness |
-| `OPENMAIC_ENABLE_PI_NATIVE_CHILD_SPOTLIGHT` | `feature-flags.ts:89` | native spotlight capability |
-| `OPENMAIC_ENABLE_VOCATIONAL` | `feature-flags.ts:98` | server-authoritative gate for `taskEngineMode` in the two outline/content routes |
-| `ALLOW_LOCAL_NETWORKS` | `lib/server/ssrf-guard.ts:266` | `true`/`1` disables the SSRF guard for all 13 calling routes |
-| `DEFAULT_MODEL` | `lib/server/resolve-model.ts:65` | last-resort model; no hardcoded vendor fallback exists |
+| `OPENMAIC_AGENT_RUNTIME_ENABLED` | [`lib/config/feature-flags.ts:19`](lib/config/feature-flags.ts#L19) | with `DATABASE_URL`, un-404s 29 routes |
+| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | [`feature-flags.ts:33`](lib/config/feature-flags.ts#L33) | `/workbench*` page gate in middleware only |
+| `NEXT_PUBLIC_PI_CHAT_ENABLED` | [`feature-flags.ts:73`](lib/config/feature-flags.ts#L73) | `chat/pi` 404s when off |
+| `OPENMAIC_ENABLE_PI_NATIVE_CHILD_RUNTIME` | [`feature-flags.ts:81`](lib/config/feature-flags.ts#L81) | selects the native vs legacy Pi child harness |
+| `OPENMAIC_ENABLE_PI_NATIVE_CHILD_SPOTLIGHT` | [`feature-flags.ts:89`](lib/config/feature-flags.ts#L89) | native spotlight capability |
+| `OPENMAIC_ENABLE_VOCATIONAL` | [`feature-flags.ts:98`](lib/config/feature-flags.ts#L98) | server-authoritative gate for `taskEngineMode` in the two outline/content routes |
+| `ALLOW_LOCAL_NETWORKS` | [`lib/server/ssrf-guard.ts:266`](lib/server/ssrf-guard.ts#L266) | `true`/`1` disables the SSRF guard for all 13 calling routes |
+| `DEFAULT_MODEL` | [`lib/server/resolve-model.ts:65`](lib/server/resolve-model.ts#L65) | last-resort model; no hardcoded vendor fallback exists |
 | `MODEL_ROUTES` | `lib/server/model-routes.ts` | JSON map of the 20 `LLM_STAGES` keys to a model plus optional thinking config |
-| `RENDER_SERVICE_URL` | `lib/server/render-service.ts:16` | unset ⇒ all four `export-video` routes report `501` / `enabled:false`; deliberately not SSRF-guarded |
+| `RENDER_SERVICE_URL` | [`lib/server/render-service.ts:16`](lib/server/render-service.ts#L16) | unset ⇒ all four `export-video` routes report `501` / `enabled:false`; deliberately not SSRF-guarded |
 | `ASSET_COLLECTION_GRACE_MS` | via `resolveAssetCollectionGraceMs` in `persistence/[...path]:67` | must be ≥ 10× the signed-URL TTL for `ASSET_BYTE_EGRESS=redirect` to take effect |
-| `https_proxy`, `HTTPS_PROXY`, `http_proxy`, `HTTP_PROXY` | `lib/server/proxy-fetch.ts:30-38` | forward proxy for render-service traffic |
-| `no_proxy`, `NO_PROXY` | `proxy-fetch.ts:41` | proxy bypass list, curl-style suffix matching |
-| `OPENMAIC_AGENT_MAX_UPLOAD_BYTES` | `agent-runtime/config.ts:46` | media material cap, default 50 MiB |
-| `MATERIALS_MAX_DOCUMENT_BYTES` | `config.ts:48` | document/image material cap, default 50 MiB |
-| `MATERIALS_MAX_COUNT_PER_OWNER` | `config.ts:50` | 429 threshold, default 100 |
-| `MATERIALS_MAX_TOTAL_BYTES_PER_OWNER` | `config.ts:52` | 429 threshold, default 2 GiB |
-| `OPENMAIC_AGENT_SKILLS_DIR` | `config.ts:44` | where `listSkills`/`buildBuiltinSkillZip` read from |
-| `SEARXNG_BASE_URL` | named by `web-search` error text (`route.ts:191`) | the only way to point at SearXNG; client values are always discarded |
-| `TAVILY_API_KEY`, `EXA_API_KEY`, `BAIDU_API_KEY`, `BOCHA_API_KEY`, `BRAVE_API_KEY`, `WEB_SEARCH_CLAUDE_API_KEY`, `WEB_SEARCH_MINIMAX_API_KEY`, `WEB_SEARCH_DOUBAO_API_KEY` | named by `getWebSearchEnvKey` (`web-search/route.ts:196-218`) | per-provider web-search keys |
-| `WEB_SEARCH_CLAUDE_MODELS` | referenced in `web-search/route.ts:167-171` via `resolveWebSearchModel` | server-pinned Claude model wins over the client's |
+| `https_proxy`, `HTTPS_PROXY`, `http_proxy`, `HTTP_PROXY` | [`lib/server/proxy-fetch.ts:30-38`](lib/server/proxy-fetch.ts#L30-L38) | forward proxy for render-service traffic |
+| `no_proxy`, `NO_PROXY` | [`proxy-fetch.ts:41`](lib/server/proxy-fetch.ts#L41) | proxy bypass list, curl-style suffix matching |
+| `OPENMAIC_AGENT_MAX_UPLOAD_BYTES` | [`agent-runtime/config.ts:46`](lib/server/agent-runtime/config.ts#L46) | media material cap, default 50 MiB |
+| `MATERIALS_MAX_DOCUMENT_BYTES` | [`config.ts:48`](lib/server/agent-runtime/config.ts#L48) | document/image material cap, default 50 MiB |
+| `MATERIALS_MAX_COUNT_PER_OWNER` | [`config.ts:50`](lib/server/agent-runtime/config.ts#L50) | 429 threshold, default 100 |
+| `MATERIALS_MAX_TOTAL_BYTES_PER_OWNER` | [`config.ts:52`](lib/server/agent-runtime/config.ts#L52) | 429 threshold, default 2 GiB |
+| `OPENMAIC_AGENT_SKILLS_DIR` | [`config.ts:44`](lib/server/agent-runtime/config.ts#L44) | where `listSkills`/`buildBuiltinSkillZip` read from |
+| `SEARXNG_BASE_URL` | named by `web-search` error text ([`route.ts:191`](app/api/web-search/route.ts#L191)) | the only way to point at SearXNG; client values are always discarded |
+| `TAVILY_API_KEY`, `EXA_API_KEY`, `BAIDU_API_KEY`, `BOCHA_API_KEY`, `BRAVE_API_KEY`, `WEB_SEARCH_CLAUDE_API_KEY`, `WEB_SEARCH_MINIMAX_API_KEY`, `WEB_SEARCH_DOUBAO_API_KEY` | named by `getWebSearchEnvKey` ([`web-search/route.ts:196-218`](app/api/web-search/route.ts#L196-L218)) | per-provider web-search keys |
+| `WEB_SEARCH_CLAUDE_MODELS` | referenced in [`web-search/route.ts:167-171`](app/api/web-search/route.ts#L167-L171) via `resolveWebSearchModel` | server-pinned Claude model wins over the client's |
 | `ALIDOCMIND_ACCESS_KEY_ID`, `ALIDOCMIND_ACCESS_KEY_SECRET`, `ALIDOCMIND_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `IMAGE_OPENAI_BASE_URL`, `BEDROCK_API_KEY`, `BEDROCK_BASE_URL`, `BEDROCK_MODELS`, `BEDROCK_REGION`, `AWS_BEARER_TOKEN_BEDROCK`, `PARALLEL_SCENE_CONCURRENCY`, `TTS_QWEN_VOICE_CLONE_MODEL` | `lib/server/provider-config.ts` (13 direct `process.env` reads in a 1117-line module) | provider credentials and pins surfaced through `server-providers` and every `verify-*` route |
 
 `provider-config.ts` resolves most provider settings from a YAML/env layer
@@ -91,18 +91,18 @@ From the route files' own `resolveModelFromRequest` / `resolveModel` call sites.
 
 | Stage key | Route and line |
 | --- | --- |
-| `scene-outlines-stream` | `app/api/generate/scene-outlines-stream/route.ts:299` |
-| `scene-content`, `scene-content:<type>` | `app/api/generate/scene-content/route.ts:110-116` |
-| `scene-actions` | `app/api/generate/scene-actions/route.ts:91` |
-| `agent-profiles` | `app/api/generate/agent-profiles/route.ts:166` |
-| `quiz-grade` | `app/api/quiz-grade/route.ts:47-51` |
-| `chat-adapter` | `app/api/chat/route.ts:74` and `app/api/chat/pi/route.ts:100` |
-| `web-search-query-rewrite` | `app/api/web-search/route.ts:127-131` |
-| `pbl-v2-runtime:instructor` | `app/api/pbl/v2/instructor/route.ts:55` |
-| `pbl-v2-runtime:open-task` | `app/api/pbl/v2/open-task/route.ts:57` |
-| `pbl-v2-runtime:evaluate` | `app/api/pbl/v2/evaluate/route.ts:84` |
-| `pbl-v2-runtime:simulator` | `app/api/pbl/v2/simulator/route.ts:53` |
-| (no stage) | `app/api/verify-model/route.ts:22-27` — passes only `modelString`/`apiKey`/`baseUrl`/`providerType`, so `MODEL_ROUTES` cannot pin it |
+| `scene-outlines-stream` | [`app/api/generate/scene-outlines-stream/route.ts:299`](app/api/generate/scene-outlines-stream/route.ts#L299) |
+| `scene-content`, `scene-content:<type>` | [`app/api/generate/scene-content/route.ts:110-116`](app/api/generate/scene-content/route.ts#L110-L116) |
+| `scene-actions` | [`app/api/generate/scene-actions/route.ts:91`](app/api/generate/scene-actions/route.ts#L91) |
+| `agent-profiles` | [`app/api/generate/agent-profiles/route.ts:166`](app/api/generate/agent-profiles/route.ts#L166) |
+| `quiz-grade` | [`app/api/quiz-grade/route.ts:47-51`](app/api/quiz-grade/route.ts#L47-L51) |
+| `chat-adapter` | [`app/api/chat/route.ts:74`](app/api/chat/route.ts#L74) and [`app/api/chat/pi/route.ts:100`](app/api/chat/pi/route.ts#L100) |
+| `web-search-query-rewrite` | [`app/api/web-search/route.ts:127-131`](app/api/web-search/route.ts#L127-L131) |
+| `pbl-v2-runtime:instructor` | [`app/api/pbl/v2/instructor/route.ts:55`](app/api/pbl/v2/instructor/route.ts#L55) |
+| `pbl-v2-runtime:open-task` | [`app/api/pbl/v2/open-task/route.ts:57`](app/api/pbl/v2/open-task/route.ts#L57) |
+| `pbl-v2-runtime:evaluate` | [`app/api/pbl/v2/evaluate/route.ts:84`](app/api/pbl/v2/evaluate/route.ts#L84) |
+| `pbl-v2-runtime:simulator` | [`app/api/pbl/v2/simulator/route.ts:53`](app/api/pbl/v2/simulator/route.ts#L53) |
+| (no stage) | [`app/api/verify-model/route.ts:22-27`](app/api/verify-model/route.ts#L22-L27) — passes only `modelString`/`apiKey`/`baseUrl`/`providerType`, so `MODEL_ROUTES` cannot pin it |
 
 `pbl-chat`, the bare `pbl-v2-runtime`, `generate-classroom`, `maic-agent` and
 `maic-agent-driver` are declared routable in `LLM_STAGES` but have no
@@ -154,7 +154,7 @@ Two precedence rules matter most and are consistently applied:
 2. **Managed providers are admin-owned**: client `apiKey`/`baseUrl` are dropped
    rather than rejected, so a stale client config degrades to the operator's
    backend instead of failing (`generate/image:64-67`, `web-search:92-98`,
-   `resolve-model.ts:82-87`).
+   [`resolve-model.ts:82-87`](lib/server/resolve-model.ts#L82-L87)).
 
 ## Where the SSRF guard is and is not gated on `NODE_ENV`
 

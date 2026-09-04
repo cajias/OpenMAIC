@@ -7,7 +7,7 @@ written and cannot prove a code path is never taken.
 
 **No duplication tool is installed.** `grep -rn "knip\|madge\|jscpd\|dependency-cruiser\|ts-prune" package.json packages/@openmaic/*/package.json render-service/package.json packages/docs/package.json`
 returns nothing, and adding one changes the tree being measured
-([01-method.md](./01-method.md)). What follows is produced by two purpose-written passes
+([01-method.md](docs/14-code-quality/01-method.md)). What follows is produced by two purpose-written passes
 whose code is printed below, so the numbers are reproducible without a new dependency.
 
 ## The two passes
@@ -94,7 +94,7 @@ matters (see below).
 | --- | --- | --- |
 | `packages/@openmaic/editor/src/ui/adapters/shapeFormulas.ts` ↔ `packages/@openmaic/importer/src/openmaic/configs/shapes.ts` | 216 | two published packages carrying the same shape-geometry table. Neither depends on the other, so there is no obvious owner |
 | `components/settings/image-settings.tsx` ↔ `components/settings/video-settings.tsx` | 43 | two provider-settings panels differing mostly in modality. Plain intra-app duplication |
-| `app/classroom/[id]/page.tsx` ↔ `components/classroom/ClassroomSurface.tsx` | 20 | the classroom-load duplication the evidence pack flags (`../appendix/research/classroom-runtime/00-overview.md`) — the route and the surface component each build the load path |
+| `app/classroom/[id]/page.tsx` ↔ `components/classroom/ClassroomSurface.tsx` | 20 | the classroom-load duplication the evidence pack flags ([`../appendix/research/classroom-runtime/00-overview.md`](docs/appendix/research/classroom-runtime/00-overview.md)) — the route and the surface component each build the load path |
 | `packages/@openmaic/editor/src/ui/{audio/AudioToolbarOverlay,element/ElementToolbarOverlay,video/VideoToolbarOverlay}.tsx` | 18, three-way | three overlays with one shape |
 
 **Confidence: high** for the measurement, **medium** for the judgement — 30 identical
@@ -128,14 +128,14 @@ system rather than just about a symbol:
 
 | Symbol | Why it matters |
 | --- | --- |
-| `BrandProvider` (`lib/brand/brand-context.tsx:27`) | the white-label provider is **never mounted**. Its three consumers — `components/edit/SlideNavRail/SlideNavRail.tsx:54`, `components/workbench/workspace/WorkspaceHome.tsx:65`, `components/workbench/workspace/WorkspaceRail.tsx:234` — call `useBrand()` and therefore read the context *default* (`DEFAULT_BRAND`, `lib/brand/brand-config.ts:27`). The file says so itself (`brand-context.tsx:8-11`: "accepts the values as props (for future wiring)") |
-| `AgentConfigPanel` (`components/agent/agent-config-panel.tsx:17`) | 152 lines of in-class agent configuration UI with zero references anywhere (`grep -rn "AgentConfigPanel\|agent-config-panel" app components lib tests` → the declaration only) |
-| `useAssetUrl` / `useAssetUrls` / `runWithAssetUrls` (`lib/media/use-asset-url.ts:237,267,169`) | three of the module's exports are unreachable while the module itself is live |
-| `initDatabase`, `getScenesByStageId`, `getDatabaseStats` (`lib/utils/database.ts:578,941,1026`) | Dexie helpers in the largest client-storage module |
-| `isRenderServiceConfigured` (`lib/server/render-service.ts:21`) | superseded by `resolveRenderServiceUrl`, which the relay route actually calls |
-| `importEligibleLegacyWhiteboard` (`lib/whiteboard/runtime/legacy-import.ts:130`) | a legacy-import entry point with no caller |
-| `getAllModels` (`lib/ai/providers.ts:2397`) | in a 2 400-line registry, the "give me everything" accessor is the one nobody uses |
-| `getActionDisplayName`, `getMessageTextParts`, `getMessageActionParts` (`lib/chat/action-translations.ts:24,72,84`) | all three exports of the module that also holds one of the five `lib/**` → `components/**` imports ([09](./09-architectural-consistency.md)) — the whole file is a deletion candidate |
+| `BrandProvider` ([`lib/brand/brand-context.tsx:27`](lib/brand/brand-context.tsx#L27)) | the white-label provider is **never mounted**. Its three consumers — [`components/edit/SlideNavRail/SlideNavRail.tsx:54`](components/edit/SlideNavRail/SlideNavRail.tsx#L54), [`components/workbench/workspace/WorkspaceHome.tsx:65`](components/workbench/workspace/WorkspaceHome.tsx#L65), [`components/workbench/workspace/WorkspaceRail.tsx:234`](components/workbench/workspace/WorkspaceRail.tsx#L234) — call `useBrand()` and therefore read the context *default* (`DEFAULT_BRAND`, [`lib/brand/brand-config.ts:27`](lib/brand/brand-config.ts#L27)). The file says so itself ([`brand-context.tsx:8-11`](lib/brand/brand-context.tsx#L8-L11): "accepts the values as props (for future wiring)") |
+| `AgentConfigPanel` ([`components/agent/agent-config-panel.tsx:17`](components/agent/agent-config-panel.tsx#L17)) | 152 lines of in-class agent configuration UI with zero references anywhere (`grep -rn "AgentConfigPanel\|agent-config-panel" app components lib tests` → the declaration only) |
+| `useAssetUrl` / `useAssetUrls` / `runWithAssetUrls` ([`lib/media/use-asset-url.ts:237,267,169`](lib/media/use-asset-url.ts#L237)) | three of the module's exports are unreachable while the module itself is live |
+| `initDatabase`, `getScenesByStageId`, `getDatabaseStats` ([`lib/utils/database.ts:578,941,1026`](lib/utils/database.ts#L578)) | Dexie helpers in the largest client-storage module |
+| `isRenderServiceConfigured` ([`lib/server/render-service.ts:21`](lib/server/render-service.ts#L21)) | superseded by `resolveRenderServiceUrl`, which the relay route actually calls |
+| `importEligibleLegacyWhiteboard` ([`lib/whiteboard/runtime/legacy-import.ts:130`](lib/whiteboard/runtime/legacy-import.ts#L130)) | a legacy-import entry point with no caller |
+| `getAllModels` ([`lib/ai/providers.ts:2397`](lib/ai/providers.ts#L2397)) | in a 2 400-line registry, the "give me everything" accessor is the one nobody uses |
+| `getActionDisplayName`, `getMessageTextParts`, `getMessageActionParts` ([`lib/chat/action-translations.ts:24,72,84`](lib/chat/action-translations.ts#L24)) | all three exports of the module that also holds one of the five `lib/**` → `components/**` imports ([09](docs/14-code-quality/09-architectural-consistency.md)) — the whole file is a deletion candidate |
 
 ## Dead-code finding 2 — 121 exports that should not be exports
 
@@ -162,11 +162,11 @@ module".
 
 ## Dead-code finding 3 — a fetch to a route that does not exist
 
-`lib/storage/client.ts:25` posts to `/api/storage/upload`. There is no
+[`lib/storage/client.ts:25`](lib/storage/client.ts#L25) posts to `/api/storage/upload`. There is no
 `app/api/storage/` directory (`find app/api -type d -name 'storage*'` → nothing; the
 tree has 69 `route.ts` files and none of them serves that path). `uploadBlobToStorage`
 catches everything and returns `null` (`:29-31`), so its one live caller —
-`components/scene-renderers/pbl/v2/submission.tsx:1016,1065` — always takes the fallback
+[`components/scene-renderers/pbl/v2/submission.tsx:1016,1065`](components/scene-renderers/pbl/v2/submission.tsx#L1016) — always takes the fallback
 branch: base64-inline for images under `IMAGE_BASE64_CAP`, a localized
 `imageTooLargeNoStorage` error above it, and `setFileUrl(undefined)` for PDFs.
 
@@ -177,13 +177,13 @@ which is worse, because the fallback masks it.
 ## Dead-code finding 4 — one inherited claim that did not survive
 
 `../appendix/research/media-audio-video/` records `lib/video-export/legacy/` as a dead
-path. It is not. `lib/video-export/passes/visuals.ts:20-24` imports
+path. It is not. [`lib/video-export/passes/visuals.ts:20-24`](lib/video-export/passes/visuals.ts#L20-L24) imports
 `isRunnablePblV2CoverProject`, `isUsableLegacyCoverConfig` and `pblLegacyCover` from
-`../legacy/read`, and `eslint.config.mjs:419-423` deliberately widens the
+`../legacy/read`, and [`eslint.config.mjs:419-423`](eslint.config.mjs#L419-L423) deliberately widens the
 `lib/video-export` boundary block to cover `legacy/**` — a wall is maintained around it.
 Only one of that module's exports is unreachable, `hasPblV2CoverContainers`
-(`lib/video-export/legacy/read.ts:40`). The correction is also recorded in
-[01-method.md](./01-method.md).
+([`lib/video-export/legacy/read.ts:40`](lib/video-export/legacy/read.ts#L40)). The correction is also recorded in
+[01-method.md](docs/14-code-quality/01-method.md).
 
 ## Open questions
 
@@ -199,7 +199,7 @@ Only one of that module's exports is unreachable, `hasPblV2CoverContainers`
 
 ---
 
-Next: [11-strengths.md](./11-strengths.md) — what this codebase does better than its
+Next: [11-strengths.md](docs/14-code-quality/11-strengths.md) — what this codebase does better than its
 peers, with the evidence. Then
-[12-remediation-backlog.md](./12-remediation-backlog.md) ranks everything.
-Back to [index.md](./index.md) · set root [../README.md](../README.md).
+[12-remediation-backlog.md](docs/14-code-quality/12-remediation-backlog.md) ranks everything.
+Back to [index.md](docs/14-code-quality/index.md) · set root [../README.md](docs/README.md).

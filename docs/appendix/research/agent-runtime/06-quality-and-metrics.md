@@ -53,59 +53,59 @@ flowchart LR
 comments, and a large share of them name the specific bug the code exists to
 prevent, with enough detail to re-derive the decision. Examples that are
 load-bearing for a new maintainer:
-`course-tools.ts:114-136` (why writers are declared sequential to pi rather
+[`course-tools.ts:114-136`](lib/server/agent-runtime/course-tools.ts#L114-L136) (why writers are declared sequential to pi rather
 than serialized by hand, and what the silent damage looked like),
-`skill-preload.ts:1-101` (the whole rationale for "a read that already
+[`skill-preload.ts:1-101`](lib/server/agent-runtime/skill-preload.ts#L1-L101) (the whole rationale for "a read that already
 happened", including which crash prefixes it survives),
-`skills.ts:499-513` (a three-row table of why each coverage condition is not
+[`skills.ts:499-513`](lib/server/agent-runtime/skills.ts#L499-L513) (a three-row table of why each coverage condition is not
 optional, each attributed to a real defect),
 `runner.ts:1103-1119` (why there is exactly one NOTIFY subscription and why the
 polls were demoted rather than deleted),
-`skill-preload.ts:316-331` (the 2000-line-slice bug: "the tail never arrived and
+[`skill-preload.ts:316-331`](lib/server/agent-runtime/skill-preload.ts#L316-L331) (the 2000-line-slice bug: "the tail never arrived and
 every turn paid for the head twice").
 
 **Capability registration is consistent and principled.** The same rule is
 applied at seven independent sites: a tool the deployment cannot serve is not
 built, so the model never sees a tool that can only throw
-(`runner.ts:1281-1293`, `:1416-1420`, `course-tools.ts:196-216`,
-`web-search.ts:24`, `voice-clone-tools.ts:150`, `generate-video.ts:240`,
+(`runner.ts:1281-1293`, `:1416-1420`, [`course-tools.ts:196-216`](lib/server/agent-runtime/course-tools.ts#L196-L216),
+`web-search.ts:24`, [`voice-clone-tools.ts:150`](lib/server/agent-runtime/voice-clone-tools.ts#L150), [`generate-video.ts:240`](lib/server/agent-runtime/generate-video.ts#L240),
 `runner.ts:1190-1194`). This is the difference between a model that degrades
 gracefully on a minimal deployment and one that burns turns on dead tools.
 
 **Crash recovery is designed, not bolted on.** `planResume` +
 `repairOrphanedToolCalls` + `appendInterruptedToolCallResults` form a coherent
 three-part story with an explicitly stated consequence — at-least-once tool
-execution, therefore every tool must be idempotent (`resume.ts:33-37`) — and the
+execution, therefore every tool must be idempotent ([`resume.ts:33-37`](lib/server/agent-runtime/resume.ts#L33-L37)) — and the
 idempotence claim is backed by naming the two tools that had to be made
 idempotent (`putScene` on `(stageId, sceneId)`, `generate_scene` deriving its
 scene id from the outline entry). The read/write asymmetry is right: synthetic
 receipts are a read-time view and are deliberately never persisted, so the entry
-tree stays an audit trail (`tool-call-integrity.ts:104-107`).
+tree stays an audit trail ([`tool-call-integrity.ts:104-107`](lib/server/agent-runtime/tool-call-integrity.ts#L104-L107)).
 
 **Prompt-injection surfaces are explicitly labelled data.** Every untrusted
 payload the runtime hands the model is wrapped and announced:
 `untrustedElementDataBlock` (`runner.ts:502-512`), `wrapUserSkillContent`
-(`skills.ts:140-150`, flagged "SECURITY BOUNDARY … do not reword it"),
+([`skills.ts:140-150`](lib/server/agent-runtime/skills.ts#L140-L150), flagged "SECURITY BOUNDARY … do not reword it"),
 `availableSkillsPromptBlock` prefixing user-authored descriptions with
-"[User-authored metadata; low-priority task guidance]" (`skills.ts:415-417`),
+"[User-authored metadata; low-priority task guidance]" ([`skills.ts:415-417`](lib/server/agent-runtime/skills.ts#L415-L417)),
 `read_material` / `search_material` / `read_chat` descriptions telling the model
-their own output is untrusted, and `tool-presentation.ts:47-50` keeping tool
+their own output is untrusted, and [`tool-presentation.ts:47-50`](components/workbench/chat/tool-presentation.ts#L47-L50) keeping tool
 output out of the markdown renderer and away from `dangerouslySetInnerHTML`.
 The `create_skill` result text deliberately echoes only the charset-constrained
 `name`, never the free-text `title`, so a title cannot close the quotes and
-continue the sentence (`create-skill.ts:44-50`).
+continue the sentence ([`create-skill.ts:44-50`](lib/server/agent-runtime/create-skill.ts#L44-L50)).
 
 **The tool timeout wrapper is unusually careful.** One settlement wins, the
 guard makes the timeout the race winner even when the tool rejects synchronously
 from the abort it was just delivered, a throwing abort listener cannot wedge the
 race, and post-settlement progress updates from a zombie tool are dropped
-(`tool-timeout.ts:127-199`).
+([`tool-timeout.ts:127-199`](lib/agent/runtime/tool-timeout.ts#L127-L199)).
 
 **Owner scoping has one shape everywhere.** `ownerId` is captured from the
 claimed durable session and is absent from every model-visible parameter; one
 probe factory is threaded into three call sites; a refusal never reveals which
 of foreign / missing / tombstoned it was (`runner.ts:1347-1353`,
-`course-tools.ts:147-191`). Owner-mismatch and not-found both return
+[`course-tools.ts:147-191`](lib/server/agent-runtime/course-tools.ts#L147-L191)). Owner-mismatch and not-found both return
 byte-identical 404s at the HTTP boundary (`[id]/events/route.ts:68-85`).
 
 **Test weight is where the risk is.** 802 `it()` cases in
@@ -119,7 +119,7 @@ classes: `runner-event-order`, `runner-tool-call-integrity`,
 **1. `generate_image`, `generate_video` and `import_pptx` render as raw wire
 names in the chat, and the guard that was supposed to catch that does not cover
 them.** Severity: medium.
-`tool-presentation.ts:29-39` states the rule — every tool the runtime can call
+[`tool-presentation.ts:29-39`](components/workbench/chat/tool-presentation.ts#L29-L39) states the rule — every tool the runtime can call
 has a copy key, the `default` branch is "a fallback for a tool this file has not
 been told about, never a shipping state", and
 `tests/workbench/tool-presentation.test.ts` "reconciles the runner's allowlist
@@ -127,10 +127,10 @@ against this switch, so a newly registered tool without a label fails that test
 rather than shipping its wire name". Measured reality: the switch has 38 cases
 and the runtime registers 40 tools; the three missing are exactly
 `generate_image`, `generate_video`, `import_pptx`. The translations already
-exist (`lib/i18n/workbench.ts:233-234`, `:244` in English and `:526-527`,
+exist ([`lib/i18n/workbench.ts:233-234`](lib/i18n/workbench.ts#L233-L234), [`:244`](lib/i18n/workbench.ts#L244) in English and [`:526-527`](lib/i18n/workbench.ts#L526-L527),
 `:537` in Chinese, plus error variants at `:309-310`, `:318`) — only the switch
 cases are absent. The reconciliation test does not fail because its
-`runnerTools` fixture (`tests/workbench/tool-presentation.test.ts:435-453`) is
+`runnerTools` fixture ([`tests/workbench/tool-presentation.test.ts:435-453`](tests/workbench/tool-presentation.test.ts#L435-L453)) is
 **hand-maintained**: it composes `DSL_COURSE_TOOL_NAMES`,
 `GENERATION_TOOL_NAMES`, `COURSE_AUDIO_DECK_TOOL_NAMES`,
 `MATERIAL_MEDIA_TOOL_NAME`, `RENDER_SCENE_PREVIEW_TOOL_NAME`,
@@ -138,9 +138,9 @@ cases are absent. The reconciliation test does not fail because its
 `VOICE_CLONE_TOOL_NAMES`, `SKILL_EDIT_TOOL_NAMES` and four literals — and never
 imports `IMPORT_PPTX_TOOL_NAME`, `GENERATE_IMAGE_TOOL_NAME`,
 `GENERATE_VIDEO_TOOL_NAME`, or `PERSONAL_HISTORY_TOOL_NAMES`. The stale note at
-`tool-presentation.ts:10-11` ("PPT-import and video/image tools are not
+[`tool-presentation.ts:10-11`](components/workbench/chat/tool-presentation.ts#L10-L11) ("PPT-import and video/image tools are not
 registered upstream and have no rows") explains how it happened; those tools
-*are* registered here (`course-tools.ts:212-214`). The floor assertion
+*are* registered here ([`course-tools.ts:212-214`](lib/server/agent-runtime/course-tools.ts#L212-L214)). The floor assertion
 `expect(runnerTools.length).toBeGreaterThanOrEqual(22)` (`:477`) only guards the
 fixture against shrinking, not against a new tool being added elsewhere.
 
@@ -175,25 +175,25 @@ enabled in this build", which reads to the model as a build restriction rather
 than a bug. `tests/agent-runtime/runner-contract.test.ts` is 19 lines and only
 asserts that `assembleRunnerTools` flattens groups in order — it does not pin
 registration ↔ allowlist. Note `MATERIAL_TOOL_NAMES`
-(`material-tools.ts:604-611`) contains `fetch_url`, which is built elsewhere
-(`buildFetchUrlTool`, `fetch-url.ts:610`); that coupling is load-bearing and
+([`material-tools.ts:604-611`](lib/server/agent-runtime/material-tools.ts#L604-L611)) contains `fetch_url`, which is built elsewhere
+(`buildFetchUrlTool`, [`fetch-url.ts:610`](lib/server/agent-runtime/fetch-url.ts#L610)); that coupling is load-bearing and
 undocumented at the constant.
 
 **3. The `openmaic` skill documents a `language` field that the API silently
 drops.** Severity: medium (it is the externally-published contract).
-`skills/openmaic/references/generate-flow.md:37` documents
+[`skills/openmaic/references/generate-flow.md:37`](skills/openmaic/references/generate-flow.md#requirement-only-generation) documents
 `optional language ("zh-CN" | "en-US", defaults to "zh-CN")`.
-`GenerateClassroomInput` (`lib/server/classroom-generation.ts:48-60`) has no
-`language` member, and `app/api/generate-classroom/route.ts:19-36` builds the
+`GenerateClassroomInput` ([`lib/server/classroom-generation.ts:48-60`](lib/server/classroom-generation.ts#L48-L60)) has no
+`language` member, and [`app/api/generate-classroom/route.ts:19-36`](app/api/generate-classroom/route.ts#L19-L36) builds the
 input by explicit per-field copy, so the value never reaches the generator. A
 driver that sets `language: "en-US"` gets no error and no effect.
 
 **4. The `openmaic` skill's stated auth mechanism does not exist in this
 tree.** Severity: medium, possibly by design (see `07-open-questions.md`).
-`skills/openmaic/references/live-demo.md:12-13` and
-`generate-flow.md:12` instruct the driver to send
+[`skills/openmaic/references/live-demo.md:12-13`](skills/openmaic/references/live-demo.md#access-code-setup) and
+[`generate-flow.md:12`](skills/openmaic/references/generate-flow.md#preconditions) instruct the driver to send
 `Authorization: Bearer <access-code>` on every request. The only access gate in
-the repo is `middleware.ts:60-85`, which requires an HMAC-signed
+the repo is [`middleware.ts:60-85`](middleware.ts#L60-L85), which requires an HMAC-signed
 `openmaic_access` **cookie** and 401s any other `/api/*` request; `grep -rn
 "Bearer" app/api middleware.ts` finds only outbound provider headers in
 `app/api/verify-pdf-provider/route.ts`. A self-hosted OpenMAIC with
@@ -206,17 +206,17 @@ Severity: low-medium, documented as intentional.
 the roster tools ("in-session loop by design, no persistence"). A user who
 clones a voice in one conversation and opens a new one cannot bind it, and
 nothing in the tool result says so. Contrast `patch_skill`, which *does* attach
-a scope note to every result (`skill-edit-tools.ts:47`).
+a scope note to every result ([`skill-edit-tools.ts:47`](lib/server/agent-runtime/skill-edit-tools.ts#L47)).
 
 **6. The quota hook is a permanently-open stub.** Severity: low today, high if a
-paid deployment ships. `quota.ts:8-13` is 13 lines and `buildAgent` wires it
-with `remaining: () => Number.MAX_SAFE_INTEGER` (`build-agent.ts:66`). The only
+paid deployment ships. [`quota.ts:8-13`](lib/agent/runtime/quota.ts#L8-L13) is 13 lines and `buildAgent` wires it
+with `remaining: () => Number.MAX_SAFE_INTEGER` ([`build-agent.ts:66`](lib/agent/runtime/build-agent.ts#L66)). The only
 cost controls in the durable runtime are `maxConcurrent` (2),
 `maxAttempts` (5), the per-tool timeout, and the 100 000-character text limit
-(`limits.ts:9`) — whose own doc comment says the plan is "no credit gate and no
+([`limits.ts:9`](lib/server/agent-runtime/limits.ts#L9)) — whose own doc comment says the plan is "no credit gate and no
 per-identity quota, so an anonymous identity could otherwise post unbounded
 text and drive unbounded database bloat and unbounded LLM spend". The identity
-in question is a cookie anyone can discard (`owner.ts:52-64`), so there is no
+in question is a cookie anyone can discard ([`owner.ts:52-64`](lib/server/agent-runtime/owner.ts#L52-L64)), so there is no
 per-person bound at all.
 
 **7. `runSession` is 970 lines of one function.** Severity: low; the trade is
@@ -241,13 +241,13 @@ full before touching anything, and the file's own pure helpers
 classroom agents, both emit the same `StatelessEvent` protocol, and both consume
 `lib/orchestration/summarizers/` and `parseStructuredChunk`. The switch is
 `NEXT_PUBLIC_PI_CHAT_ENABLED`, a build-time public flag, so a deployment runs
-one and ships both. `lib/orchestration/registry/store.ts:29-44` re-declares
+one and ships both. [`lib/orchestration/registry/store.ts:29-44`](lib/orchestration/registry/store.ts#L29-L44) re-declares
 `WHITEBOARD_ACTIONS` and `SLIDE_ACTIONS` locally even though
-`registry/types.ts:62-77` exports exactly those two constants — a small live
+[`registry/types.ts:62-77`](lib/orchestration/registry/types.ts#L62-L77) exports exactly those two constants — a small live
 duplication inside the older path.
 
 **9. The `skills.ts` builtin cache is process-lifetime.** Severity: low.
-`listBuiltinSkills` memoizes into `builtinCache` (`skills.ts:97`, `:171`) with
+`listBuiltinSkills` memoizes into `builtinCache` ([`skills.ts:97`](lib/server/agent-runtime/skills.ts#L97), [`:171`](lib/server/agent-runtime/skills.ts#L171)) with
 no invalidation, so editing a builtin SKILL.md requires a restart. Consistent
 with `skill-edit-tools.ts`'s `SCOPE_NOTE`, and `readProvesCoverage`'s
 `sourceHash` check means a *stale* body is at least never silently reused as
@@ -264,27 +264,27 @@ on.
 `agentRuntimeConfig.compaction` (`config.ts:27-42`) reads
 `OPENMAIC_AGENT_COMPACTION_ENABLED`,
 `OPENMAIC_AGENT_COMPACTION_RESERVE_TOKENS` and
-`OPENMAIC_AGENT_COMPACTION_KEEP_RECENT_TOKENS`, and `.env.example:385-387`
+`OPENMAIC_AGENT_COMPACTION_KEEP_RECENT_TOKENS`, and [`.env.example:385-387`](.env.example#L385-L387)
 documents all three. A repo-wide search for `config.compaction` /
 `agentRuntimeConfig.compaction` across `lib/ app/ components/ tests/ eval/ e2e/`
 returns **zero** consumers, and `runner.ts` never passes `transformContext` to
 `buildAgent` (the only production `transformContext` caller is
-`lib/chat/pi/director-loop.ts:216`, the classroom director). So the durable
+[`lib/chat/pi/director-loop.ts:216`](lib/chat/pi/director-loop.ts#L216), the classroom director). So the durable
 runner runs with **no context transformation at all**, regardless of the flag —
 which the config comment does admit ("the reusable compaction runtime lands in a
 later slice, and until then the runner runs without context transformation",
 `config.ts:20-26`), but the env var reads as a working switch. Two supporting
 exports are pre-positioned for that future slice and currently have production
 callers of zero: `withToolCallIntegrityRepair`
-(`tool-call-integrity.ts:195`, referenced only by
+([`tool-call-integrity.ts:195`](lib/server/agent-runtime/tool-call-integrity.ts#L195), referenced only by
 `tests/agent-runtime/tool-call-integrity.test.ts`) and `skillInvocationPrompt`
-(`skills.ts:392`, documented at `skills.ts:22` as "no longer on the runner's
-path", referenced only by `tests/agent-runtime/skills.test.ts:64`).
+([`skills.ts:392`](lib/server/agent-runtime/skills.ts#L392), documented at [`skills.ts:22`](lib/server/agent-runtime/skills.ts#L22) as "no longer on the runner's
+path", referenced only by [`tests/agent-runtime/skills.test.ts:64`](tests/agent-runtime/skills.test.ts#L64)).
 
 **12. `meta.stageId` is stored, streamed to the client, and never read by the
 runner.** Severity: low, and explicitly deferred.
-`app/api/agent/sessions/route.ts:139-143` persists `stageId`;
-`lib/workbench/use-workbench-session.ts:145` forwards it to the client fold; a
+[`app/api/agent/sessions/route.ts:139-143`](app/api/agent/sessions/route.ts#L139-L143) persists `stageId`;
+[`lib/workbench/use-workbench-session.ts:145`](lib/workbench/use-workbench-session.ts#L145) forwards it to the client fold; a
 grep of every `meta.` reference in `runner.ts` shows `id`, `attempt`,
 `claimSeq`, `ownerId`, `skillId`, `deliveredUserMessageSeq`, `existingCourse`,
 `prompt`, `claimReason` — but never `stageId`. An `existingCourse` session

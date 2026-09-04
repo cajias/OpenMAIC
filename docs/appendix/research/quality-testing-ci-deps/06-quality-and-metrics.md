@@ -10,7 +10,7 @@ unless it says "heuristic".
 (`test -d node_modules` → absent), so no suite was executed. Every count here is
 **static**: file counts, `it(`/`test(` call counts, regex densities. Runtime
 figures (actual pass counts, durations, real line coverage) are listed as
-unmeasurable in `07-open-questions.md`.
+unmeasurable in [`07-open-questions.md`](docs/appendix/research/quality-testing-ci-deps/07-open-questions.md).
 
 ## Test volume
 
@@ -97,7 +97,7 @@ surface is provider SDKs and a database.
 
 Only three snapshot files exist
 (`packages/@openmaic/generation/test/__snapshots__/outline-prompt.test.ts.snap`,
-`.../scene-prompt-golden.test.ts.snap`,
+`packages/@openmaic/generation/test/__snapshots__/scene-prompt-golden.test.ts.snap`,
 `tests/video-export/__snapshots__/emit-hyperframes.test.ts.snap`), so the suite is
 assertion-driven rather than snapshot-driven.
 
@@ -218,7 +218,7 @@ grep -rn --include='*.ts' --include='*.tsx' \
 | --- | --- | --- |
 | `as any` | 31 | 0.09 |
 | explicit `: any` — raw regex hits | 23 | 0.07 |
-| `@ts-ignore` | **0** in code (1 hit is inside `packages/@openmaic/importer/SKILL.md`) | 0 |
+| `@ts-ignore` | **0** in code (1 hit is inside [`packages/@openmaic/importer/SKILL.md`](packages/@openmaic/importer/SKILL.md)) | 0 |
 | `@ts-expect-error` | 31 across 17 files, **all in test files or a tsconfig** | — |
 | non-null assertion `!` (heuristic regex) | 307 | 0.90 |
 
@@ -230,11 +230,11 @@ paths (`app`, `components`, `lib`, `packages/@openmaic`, `render-service/src`,
 Every count in the table above is a **raw regex hit over that path set**, which
 includes each package's own `test/` tree. The `: any` row in particular is not a
 count of type annotations: of the 23 hits, 10 are the English word "any" inside a
-doc comment (`packages/@openmaic/dsl/src/runtime.ts:228` *"any value EXCEPT"*,
-`packages/@openmaic/importer/src/serializer/mathSerializer.ts:267` *"Catch-all:
+doc comment ([`packages/@openmaic/dsl/src/runtime.ts:228`](packages/@openmaic/dsl/src/runtime.ts#L228) *"any value EXCEPT"*,
+[`packages/@openmaic/importer/src/serializer/mathSerializer.ts:267`](packages/@openmaic/importer/src/serializer/mathSerializer.ts#L267) *"Catch-all:
 any Mathematical Alphanumeric Symbol"*, and eight more). Restricted to code lines
 the figure is **13**, across 6 files all in `lib/` — see
-[`../../../14-code-quality/03-type-safety.md`](../../../14-code-quality/03-type-safety.md),
+[`../../../14-code-quality/03-type-safety.md`](docs/14-code-quality/03-type-safety.md),
 which publishes that narrower count. Both numbers are correct for their own
 predicate; neither replaces the other.
 
@@ -259,7 +259,7 @@ Worst `: any` offenders: `lib/orchestration/summarizers/whiteboard-conflicts.ts`
 tree), `render-service/src` and `types` — with 31 `as any`, 23 raw `: any` hits
 (13 of them actual annotations) and zero `@ts-ignore` in shipping code is
 an order of magnitude tighter than typical. And all 31 `@ts-expect-error` are in
-tests — several of them deliberately, as *negative type assertions*: `ci.yml:181-184`
+tests — several of them deliberately, as *negative type assertions*: [`ci.yml:181-184`](.github/workflows/ci.yml#L181-L184)
 records that storage's device-scope guard "is written as `@ts-expect-error` probes
 in those tests, and a probe nothing type-checks proves nothing", which is why
 storage gets a second `tsc -p tsconfig.test.json`.
@@ -325,13 +325,13 @@ python3   # walker over app, components, lib, render-service/src,
 | `TODO`/`FIXME`/`HACK`/`XXX` | **9**, all `TODO` |
 
 All 13 bare catches are inside injected browser-context storage shims — see
-`05-failure-modes.md` for the enumeration and the documented reason. Only 5
+[`05-failure-modes.md`](docs/appendix/research/quality-testing-ci-deps/05-failure-modes.md) for the enumeration and the documented reason. Only 5
 `console.log` calls in 340 kLOC — the same 333 699-line `.ts`/`.tsx` path set as
 the type-safety table above — and 9 TODO markers, are both remarkable.
 
 ## Continued
 
 Scale, module-size distribution, the top-25 largest modules, dependency/lockfile
-counts and the full gate inventory are in `06c-metrics-scale-and-gates.md`.
+counts and the full gate inventory are in [`06c-metrics-scale-and-gates.md`](docs/appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md).
 Ranked observations drawn from all of these numbers are in
-`06b-quality-observations.md`.
+[`06b-quality-observations.md`](docs/appendix/research/quality-testing-ci-deps/06b-quality-observations.md).

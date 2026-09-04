@@ -11,20 +11,20 @@ i18n, the formatters that produce prompt *content*, and one real assembled promp
 `packages/@openmaic/generation/templates/**`, `packages/@openmaic/generation/snippets/**`,
 `lib/prompts/{loader,types}.ts`, `lib/prompts/templates/**`,
 `packages/@openmaic/generation/src/pbl/prompts/loader.ts`; evidence:
-[`02e-interfaces-prompt-system.md`](../appendix/research/generation-pipeline/02e-interfaces-prompt-system.md),
-[`02d-interfaces-wire-and-prompt.md`](../appendix/research/generation-pipeline/02d-interfaces-wire-and-prompt.md).
+[`02e-interfaces-prompt-system.md`](docs/appendix/research/generation-pipeline/02e-interfaces-prompt-system.md),
+[`02d-interfaces-wire-and-prompt.md`](docs/appendix/research/generation-pipeline/02d-interfaces-wire-and-prompt.md).
 
 ## The whole template language is three regexes
 
 | Phase | Regex | Source |
 | --- | --- | --- |
-| snippet include | `/\{\{snippet:(\w[\w-]*)\}\}/g` | `prompts/loader.ts:46` |
-| conditional block | `/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g` | `prompts/loader.ts:57` |
-| variable | `/\{\{(\w+)\}\}/g` | `prompts/loader.ts:101` |
+| snippet include | `/\{\{snippet:(\w[\w-]*)\}\}/g` | [`prompts/loader.ts:46`](packages/@openmaic/generation/src/prompts/loader.ts#L46) |
+| conditional block | `/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g` | [`prompts/loader.ts:57`](packages/@openmaic/generation/src/prompts/loader.ts#L57) |
+| variable | `/\{\{(\w+)\}\}/g` | [`prompts/loader.ts:101`](packages/@openmaic/generation/src/prompts/loader.ts#L101) |
 
 No loops, no nesting, no expressions, no helpers. `\w+` on the variable regex is
 deliberate: kebab-case placeholders such as `{{next-agent}}` pass through untouched
-(`prompts/loader.ts:100`).
+([`prompts/loader.ts:100`](packages/@openmaic/generation/src/prompts/loader.ts#L100)).
 
 ## Composition order
 
@@ -50,10 +50,10 @@ flowchart TD
 
 Ordering is load-bearing:
 
-- **Snippets splice in during `loadPrompt`, before conditionals** (`loader.ts:79`, `:89`),
+- **Snippets splice in during `loadPrompt`, before conditionals** ([`loader.ts:79`](packages/@openmaic/generation/src/prompts/loader.ts#L79), `:89`),
   so a snippet may itself contain `{{#if}}` blocks and `{{variable}}` placeholders that the
   caller's variables then resolve.
-- **Conditionals run before interpolation** (`loader.ts:137` and `:141` nest
+- **Conditionals run before interpolation** ([`loader.ts:137`](packages/@openmaic/generation/src/prompts/loader.ts#L137) and `:141` nest
   `processConditionalBlocks` *inside* `interpolateVariables`), so a removed block's
   placeholders are never evaluated.
 
@@ -61,15 +61,15 @@ Two asymmetric failure modes, both intentional:
 
 | Condition | Behaviour | Rationale |
 | --- | --- | --- |
-| Missing snippet file | **throws** `Snippet not found: <id>` | "Fail loud rather than silently shipping `{{snippet:foo}}` to the model" (`loader.ts:36`) |
+| Missing snippet file | **throws** `Snippet not found: <id>` | "Fail loud rather than silently shipping `{{snippet:foo}}` to the model" ([`loader.ts:36`](packages/@openmaic/generation/src/prompts/loader.ts#L36)) |
 | Missing `system.md` | returns `null` | every caller detects prompt-unavailable from this |
-| Missing `user.md` | tolerated, `''` — **only on ENOENT** (`loader.ts:87`) | user templates are genuinely optional for some prompts |
-| Undefined variable | leaves the literal `{{token}}` in place (`loader.ts:103`) | silent passthrough; see [Silent passthrough](#silent-passthrough) |
-| Object-valued variable | `JSON.stringify(value, null, 2)` (`loader.ts:104`) | lets `prescribedNodes` and `scoring` be passed as data |
+| Missing `user.md` | tolerated, `''` — **only on ENOENT** ([`loader.ts:87`](packages/@openmaic/generation/src/prompts/loader.ts#L87)) | user templates are genuinely optional for some prompts |
+| Undefined variable | leaves the literal `{{token}}` in place ([`loader.ts:103`](packages/@openmaic/generation/src/prompts/loader.ts#L103)) | silent passthrough; see [Silent passthrough](#silent-passthrough) |
+| Object-valued variable | `JSON.stringify(value, null, 2)` ([`loader.ts:104`](packages/@openmaic/generation/src/prompts/loader.ts#L104)) | lets `prescribedNodes` and `scoring` be passed as data |
 
 ## Prompt ids are closed unions
 
-Package (`prompts/types.ts:6`) — 13 ids, all with a template directory on disk:
+Package ([`prompts/types.ts:6`](packages/@openmaic/generation/src/prompts/types.ts#L6)) — 13 ids, all with a template directory on disk:
 
 ```
 requirements-to-outlines   slide-content            quiz-content
@@ -79,20 +79,20 @@ slide-actions              quiz-actions             interactive-actions
 pbl-actions
 ```
 
-`PROMPT_IDS` (`prompts/index.ts:13`) is
+`PROMPT_IDS` ([`prompts/index.ts:13`](packages/@openmaic/generation/src/prompts/index.ts#L13)) is
 `as const satisfies Record<string, PromptId>`, so a constant whose value is not in the
 union fails to compile.
 
-Package snippets (`prompts/types.ts:22`) — 7 ids, 7 files:
+Package snippets ([`prompts/types.ts:22`](packages/@openmaic/generation/src/prompts/types.ts#L22)) — 7 ids, 7 files:
 
 ```
 json-output-rules  image-instructions  video-instructions  media-safety-guidelines
 slide-image-instructions  slide-generated-image-instructions  slide-video-instructions
 ```
 
-App (`lib/prompts/types.ts:8`) — 8 ids, of which two belong to generation
+App ([`lib/prompts/types.ts:8`](lib/prompts/types.ts#L8)) — 8 ids, of which two belong to generation
 (`interactive-outlines`, `task-engine-outlines`) and six to chat/agents/search. App snippet
-ids number 11 (`lib/prompts/types.ts:21`) but only **four** exist as local files
+ids number 11 ([`lib/prompts/types.ts:21`](lib/prompts/types.ts#L21)) but only **four** exist as local files
 (`action-types.md`, `element-types.md`, `speech-guidelines.md`,
 `whiteboard-reference.md`); the other seven resolve through the loader's fallback into the
 package snippet store.
@@ -130,41 +130,41 @@ The differences are small and each has a reason:
 
 - **The package resolves its prompts dir from `import.meta.url`** via `path` operations
   rather than a static import, "so app bundlers do not mistake the Markdown directory for a
-  statically imported module asset" (`prompts/loader.ts:10-13`). `src/prompts` and
+  statically imported module asset" ([`prompts/loader.ts:10-13`](packages/@openmaic/generation/src/prompts/loader.ts#L10-L13)). `src/prompts` and
   `dist/prompts` are at the same depth below the package root, so one expression works for
   both.
-- **The app loader falls back to the package snippet store** (`lib/prompts/loader.ts:38-41`),
+- **The app loader falls back to the package snippet store** ([`lib/prompts/loader.ts:38-41`](lib/prompts/loader.ts#L38-L41)),
   which is what lets `interactive-outlines` reuse `image-instructions`,
   `video-instructions` and `media-safety-guidelines` without a second on-disk copy.
 - **The app loader is more forgiving**: any `readFileSync` failure on `system.md` becomes a
-  logged `null` (`lib/prompts/loader.ts:101-104`), where the package rethrows anything that
+  logged `null` ([`lib/prompts/loader.ts:101-104`](lib/prompts/loader.ts#L101-L104)), where the package rethrows anything that
   is not `ENOENT`.
 - **The PBL loader is deliberately separate** — adding its prompts to `PromptId` would touch
   a type shared across every generation surface. It does variable interpolation only, with
   no snippets and no conditionals, and caches by file name.
 
 `applyPromptVariableDefaults` in the app loader is an identity function
-(`lib/prompts/loader.ts:124-129`) kept only for structural symmetry with the package.
+([`lib/prompts/loader.ts:124-129`](lib/prompts/loader.ts#L124-L129)) kept only for structural symmetry with the package.
 
 ## Where each prompt id is built
 
 | Prompt id | Built at | Conditional variables |
 | --- | --- | --- |
-| `requirements-to-outlines` | `outline-generator.ts:99` | `hasSourceImages`, `imageEnabled`, `videoEnabled`, `mediaEnabled` |
-| `slide-content` | `scene-generator.ts:710` | `imageElementEnabled`, `generatedImageEnabled`, `generatedVideoEnabled`, `mediaElementEnabled` |
-| `quiz-content` | `scene-generator.ts:867` | none |
-| `simulation-content` | `scene-generator.ts:1142` | none |
-| `diagram-content` | `scene-generator.ts:1155` | `hasNodeCount`, `hasPrescribedNodes` |
-| `code-content` | `scene-generator.ts:1171` | none |
-| `game-content` | `scene-generator.ts:1185` | none |
-| `visualization3d-content` | `scene-generator.ts:1197` | none |
-| `procedural-skill-content` | `scene-generator.ts:1214` | none (gated by `allowProceduralSkill`) |
-| `slide-actions` | `scene-generator.ts:1634` | none |
-| `quiz-actions` | `scene-generator.ts:1664` | none |
-| `interactive-actions` | `scene-generator.ts:1697` | none; receives `elementInventory` |
-| `pbl-actions` | `scene-generator.ts:1734` | none; `projectSummary` has a loader default |
-| `interactive-outlines` (app) | `scene-outlines-stream/route.ts:436` | same media flags as the outline template |
-| `task-engine-outlines` (app) | `scene-outlines-stream/route.ts:436` | receives the same media flags, but **the template declares no `{{#if}}` blocks and no snippet sites** |
+| `requirements-to-outlines` | [`outline-generator.ts:99`](packages/@openmaic/generation/src/outline-generator.ts#L99) | `hasSourceImages`, `imageEnabled`, `videoEnabled`, `mediaEnabled` |
+| `slide-content` | [`scene-generator.ts:710`](packages/@openmaic/generation/src/scene-generator.ts#L710) | `imageElementEnabled`, `generatedImageEnabled`, `generatedVideoEnabled`, `mediaElementEnabled` |
+| `quiz-content` | [`scene-generator.ts:867`](packages/@openmaic/generation/src/scene-generator.ts#L867) | none |
+| `simulation-content` | [`scene-generator.ts:1142`](packages/@openmaic/generation/src/scene-generator.ts#L1142) | none |
+| `diagram-content` | [`scene-generator.ts:1155`](packages/@openmaic/generation/src/scene-generator.ts#L1155) | `hasNodeCount`, `hasPrescribedNodes` |
+| `code-content` | [`scene-generator.ts:1171`](packages/@openmaic/generation/src/scene-generator.ts#L1171) | none |
+| `game-content` | [`scene-generator.ts:1185`](packages/@openmaic/generation/src/scene-generator.ts#L1185) | none |
+| `visualization3d-content` | [`scene-generator.ts:1197`](packages/@openmaic/generation/src/scene-generator.ts#L1197) | none |
+| `procedural-skill-content` | [`scene-generator.ts:1214`](packages/@openmaic/generation/src/scene-generator.ts#L1214) | none (gated by `allowProceduralSkill`) |
+| `slide-actions` | [`scene-generator.ts:1634`](packages/@openmaic/generation/src/scene-generator.ts#L1634) | none |
+| `quiz-actions` | [`scene-generator.ts:1664`](packages/@openmaic/generation/src/scene-generator.ts#L1664) | none |
+| `interactive-actions` | [`scene-generator.ts:1697`](packages/@openmaic/generation/src/scene-generator.ts#L1697) | none; receives `elementInventory` |
+| `pbl-actions` | [`scene-generator.ts:1734`](packages/@openmaic/generation/src/scene-generator.ts#L1734) | none; `projectSummary` has a loader default |
+| `interactive-outlines` (app) | [`scene-outlines-stream/route.ts:436`](app/api/generate/scene-outlines-stream/route.ts#L436) | same media flags as the outline template |
+| `task-engine-outlines` (app) | [`scene-outlines-stream/route.ts:436`](app/api/generate/scene-outlines-stream/route.ts#L436) | receives the same media flags, but **the template declares no `{{#if}}` blocks and no snippet sites** |
 
 Only six template files carry conditionals at all: `slide-content/system.md` (6 sites),
 `requirements-to-outlines/system.md` (5), `slide-content/user.md` (3),
@@ -175,12 +175,12 @@ Snippet include sites, all 15 of them:
 
 | Template | Snippets |
 | --- | --- |
-| `requirements-to-outlines/system.md:125,129,133` | `image-instructions`, `video-instructions`, `media-safety-guidelines` |
-| `slide-content/system.md:105,109,113` | `slide-image-instructions`, `slide-generated-image-instructions`, `slide-video-instructions` |
-| `quiz-content/system.md:5` | `json-output-rules` |
-| `lib/prompts/templates/interactive-outlines/system.md:240,244,248` | `image-instructions`, `video-instructions`, `media-safety-guidelines` |
-| `lib/prompts/templates/web-search-query-rewrite/system.md:5` | `json-output-rules` |
-| `lib/prompts/templates/agent-system/system.md:26` | `speech-guidelines` |
+| [`requirements-to-outlines/system.md:125,129,133`](packages/@openmaic/generation/templates/requirements-to-outlines/system.md) | `image-instructions`, `video-instructions`, `media-safety-guidelines` |
+| [`slide-content/system.md:105,109,113`](packages/@openmaic/generation/templates/slide-content/system.md) | `slide-image-instructions`, `slide-generated-image-instructions`, `slide-video-instructions` |
+| [`quiz-content/system.md:5`](packages/@openmaic/generation/templates/quiz-content/system.md) | `json-output-rules` |
+| [`lib/prompts/templates/interactive-outlines/system.md:240,244,248`](lib/prompts/templates/interactive-outlines/system.md) | `image-instructions`, `video-instructions`, `media-safety-guidelines` |
+| [`lib/prompts/templates/web-search-query-rewrite/system.md:5`](lib/prompts/templates/web-search-query-rewrite/system.md) | `json-output-rules` |
+| [`lib/prompts/templates/agent-system/system.md:26`](lib/prompts/templates/agent-system/system.md) | `speech-guidelines` |
 | `lib/prompts/templates/agent-system-wb-{teacher,assistant,student}/system.md` | `whiteboard-reference` |
 
 Largest template files: `slide-content/system.md` at 937 lines,
@@ -197,34 +197,34 @@ never by selecting a translated template.
 That variable is `languageDirective`, a 2–5 sentence prose instruction:
 
 - `requirements-to-outlines` is the only template that *produces* it — its system prompt
-  declares it a required output key (`requirements-to-outlines/system.md:21`, `:374`) and the
+  declares it a required output key ([`requirements-to-outlines/system.md:21`](packages/@openmaic/generation/templates/requirements-to-outlines/system.md), [`:374`](packages/@openmaic/generation/templates/requirements-to-outlines/system.md#important-reminders)) and the
   outline model infers it
   from the requirement. When the model omits it, the package substitutes
   `DEFAULT_LANGUAGE_DIRECTIVE = 'Teach in the language that matches the user requirement.'`
-  (`outline-generator.ts:20`).
+  ([`outline-generator.ts:20`](packages/@openmaic/generation/src/outline-generator.ts#L20)).
 - Exactly **12 templates consume it** as a `{{languageDirective}}` placeholder — every
   package prompt id except `requirements-to-outlines`, always in `user.md`: the eight content
   templates and the four action templates. Neither app outline template declares the
   placeholder.
-- Every call site passes `languageDirective || ''` (`scene-generator.ts:719`, `:874`,
+- Every call site passes `languageDirective || ''` ([`scene-generator.ts:719`](packages/@openmaic/generation/src/scene-generator.ts#L719), [`:874`](packages/@openmaic/generation/src/scene-generator.ts#L874),
   `:1149`, `:1165`, `:1180`, `:1192`, `:1205`, `:1225`, `:1642`, `:1671`, `:1708`, `:1743`),
   so an absent directive collapses the line rather than shipping a literal
   `{{languageDirective}}` — see [Silent passthrough](#silent-passthrough). The PBL path is
   the one exception: it defaults to `DEFAULT_LANGUAGE_DIRECTIVE` instead of `''` (`:1009`).
 
 Full propagation path — session, stage, then per-scene request bodies — in
-[`03b` → Output-language control](./03b-outline-streaming.md#output-language-control).
+[`03b` → Output-language control](docs/06-generation-pipeline/03b-outline-streaming.md#output-language-control).
 
 Two sites bypass the directive channel entirely:
 
 | Site | Mechanism |
 | --- | --- |
-| `POST /api/quiz-grade` | branches its whole system **and** user prompt on `language === 'zh-CN'` (`app/api/quiz-grade/route.ts:53-61`, `:63-69`) — a hard-coded bilingual pair built in TypeScript, not a template, and it never receives `languageDirective` |
-| the four canned action fallbacks | ship hard-coded Chinese `title`/`text` (`scene-generator.ts:1766`, `:1877`, `:1908`, `:1922`) that reach the learner whatever the directive says — see [`05b` → The canned fallbacks](./05b-scene-types-and-assembly.md#the-canned-fallbacks) |
+| `POST /api/quiz-grade` | branches its whole system **and** user prompt on `language === 'zh-CN'` ([`app/api/quiz-grade/route.ts:53-61`](app/api/quiz-grade/route.ts#L53-L61), [`:63-69`](app/api/quiz-grade/route.ts#L63-L69)) — a hard-coded bilingual pair built in TypeScript, not a template, and it never receives `languageDirective` |
+| the four canned action fallbacks | ship hard-coded Chinese `title`/`text` ([`scene-generator.ts:1766`](packages/@openmaic/generation/src/scene-generator.ts#L1766), [`:1877`](packages/@openmaic/generation/src/scene-generator.ts#L1877), [`:1908`](packages/@openmaic/generation/src/scene-generator.ts#L1908), [`:1922`](packages/@openmaic/generation/src/scene-generator.ts#L1922)) that reach the learner whatever the directive says — see [`05b` → The canned fallbacks](docs/06-generation-pipeline/05b-scene-types-and-assembly.md#the-canned-fallbacks) |
 
 The templates themselves are English instructions, but the TypeScript around them is not
 locale-neutral: `generateSlideContent` seeds `assignedImagesText` to the Chinese literal
-`'无可用图片，禁止插入任何 image 元素'` (`scene-generator.ts:618`) and then detects its own
+`'无可用图片，禁止插入任何 image 元素'` ([`scene-generator.ts:618`](packages/@openmaic/generation/src/scene-generator.ts#L618)) and then detects its own
 sentinel with `.includes('禁止插入')` (`:696`), so that string cannot be translated without
 breaking the generated-media branch.
 
@@ -234,7 +234,7 @@ Templates hold structure; these functions produce the strings that fill the hole
 
 | Function | Output |
 | --- | --- |
-| `buildCourseContext(ctx)` (`prompt-formatters.ts:9`) | the full title list with a ` ← current` marker on the active page, a same-session instruction, a first/middle/last position line, and the last 150 characters of the previous page's final speech |
+| `buildCourseContext(ctx)` ([`prompt-formatters.ts:9`](packages/@openmaic/generation/src/prompt-formatters.ts#L9)) | the full title list with a ` ← current` marker on the active page, a same-session instruction, a first/middle/last position line, and the last 150 characters of the previous page's final speech |
 | `formatAgentsForPrompt(agents)` (`:53`) | `- id: "x", name: "y", role: z — persona` per agent |
 | `formatTeacherPersonaForPrompt(agents)` (`:65`) | `''` unless a `teacher`-role agent has a `persona`; otherwise the persona plus an explicit instruction that the teacher's name must not appear on the slides |
 | `formatImageDescription(img)` (`:78`) | `- **img_2**: from biology.pdf page 2 \| size: 800×600 (aspect ratio 1.33) \| <description>` |
@@ -255,15 +255,15 @@ text part followed by the image part, so the model can bind each id to its pictu
 accepts only http(s) URLs or raw base64 (`:126-132`).
 
 **`formatImageDescription` and `formatImagePlaceholder` are byte-duplicated inside the
-package** — defined at `prompt-formatters.ts:78`/`:93` and again at
-`outline-formatters.ts:3`/`:14`, with only the `prompt-formatters` pair exported from the
-barrel. `sortDocumentImagesForVision` is likewise defined in `outline-formatters.ts:24`
-**and** re-implemented in `lib/document/bundle.ts:165`.
+package** — defined at [`prompt-formatters.ts:78`](packages/@openmaic/generation/src/prompt-formatters.ts#L78)/[`:93`](packages/@openmaic/generation/src/prompt-formatters.ts#L93) and again at
+[`outline-formatters.ts:3`](packages/@openmaic/generation/src/outline-formatters.ts#L3)/[`:14`](packages/@openmaic/generation/src/outline-formatters.ts#L14), with only the `prompt-formatters` pair exported from the
+barrel. `sortDocumentImagesForVision` is likewise defined in [`outline-formatters.ts:24`](packages/@openmaic/generation/src/outline-formatters.ts#L24)
+**and** re-implemented in [`lib/document/bundle.ts:165`](lib/document/bundle.ts#L165).
 
 ## One real assembled prompt
 
 Verbatim from the golden snapshot
-`packages/@openmaic/generation/test/__snapshots__/outline-prompt.test.ts.snap:928`, the case
+[`packages/@openmaic/generation/test/__snapshots__/outline-prompt.test.ts.snap:928`](packages/@openmaic/generation/test/__snapshots__/outline-prompt.test.ts.snap#L928), the case
 that pins every conditional *on*: vision enabled, one mapped image, image and video
 generation on, research context and teacher persona present.
 
@@ -323,7 +323,7 @@ Use a Socratic style.
 | `requirements-to-outlines/user.md` line | Placeholder | Filled by |
 | --- | --- | --- |
 | 7 | `{{requirement}}` | `requirements.requirement` |
-| 11 | `{{userProfile}}` | built **in TypeScript**, not in the template (`outline-generator.ts:89-92`) — the `## Student Profile` heading and the trailing `---` are part of the interpolated value |
+| 11 | `{{userProfile}}` | built **in TypeScript**, not in the template ([`outline-generator.ts:89-92`](packages/@openmaic/generation/src/outline-generator.ts#L89-L92)) — the `## Student Profile` heading and the trailing `---` are part of the interpolated value |
 | 26 | `{{pdfContent}}` | `pdfText.substring(0, MAX_PDF_CONTENT_CHARS)`, or the literal `None` |
 | 30 | `{{availableImages}}` | `buildAvailableImages` (`:46`); the `[see attached]` suffix comes from `formatImagePlaceholder` |
 | 34 | `{{researchContext}}` | web-search context, or the literal `None` |
@@ -343,15 +343,15 @@ as a diff rather than as degraded model output. A second golden file,
 ## Silent passthrough
 
 `interpolateVariables` returns the literal `{{token}}` for an undefined value
-(`prompts/loader.ts:103`). That is safer than throwing at request time but it means a
+([`prompts/loader.ts:103`](packages/@openmaic/generation/src/prompts/loader.ts#L103)). That is safer than throwing at request time but it means a
 typo'd placeholder ships to the model. The defences are:
 
 1. Tests that render templates and assert no surviving `{{…}}` remains
    (`tests/prompts/templates.test.ts` scans for non-conforming placeholders,
-   per the comment at `lib/prompts/loader.ts:112-115`).
+   per the comment at [`lib/prompts/loader.ts:112-115`](lib/prompts/loader.ts#L112-L115)).
 2. `PROMPT_VARIABLE_DEFAULTS` for the one case where a missing value is expected: the
    `pbl-actions` `projectSummary` defaults to `'(No generated milestones are available;
-   introduce the project topic without inventing any.)'` (`prompts/loader.ts:15-20`).
+   introduce the project topic without inventing any.)'` ([`prompts/loader.ts:15-20`](packages/@openmaic/generation/src/prompts/loader.ts#L15-L20)).
 
 Neither is a runtime check, and the test coverage only extends to the templates those tests
 render.
@@ -359,7 +359,7 @@ render.
 ## Prompts are configuration
 
 The `files` array ships `dist`, `templates`, `snippets`, `prompts-pbl`
-(`packages/@openmaic/generation/package.json:15-22`) — the Markdown is part of the published
+([`packages/@openmaic/generation/package.json:15-22`](packages/@openmaic/generation/package.json#L15-L22)) — the Markdown is part of the published
 artifact. Both loaders read from disk on every call with no caching (only the PBL loader
 caches), so a prompt edit takes effect without a rebuild in a running dev server.
 
@@ -380,7 +380,7 @@ flowchart LR
   fallback into the package. The app's `applyPromptVariableDefaults` is dead weight.
 - **Why `task-engine-outlines` receives media conditional flags it cannot use.** The route
   passes `imageEnabled`, `videoEnabled` and `mediaEnabled` to both app outline templates
-  (`scene-outlines-stream/route.ts:442-444`), but only `interactive-outlines` declares
+  ([`scene-outlines-stream/route.ts:442-444`](app/api/generate/scene-outlines-stream/route.ts#L442-L444)), but only `interactive-outlines` declares
   `{{#if}}` sites for them.
 - **Whether the duplicated formatters are intended.** Nothing pins
   `outline-formatters.ts`'s copies of `formatImageDescription` / `formatImagePlaceholder` to

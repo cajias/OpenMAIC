@@ -10,7 +10,7 @@ MP4 rendering — are present.
 
 The load-bearing facts of this topic:
 
-- `next.config.ts:4` sets `output: 'standalone'` **unless** `process.env.VERCEL`
+- [`next.config.ts:4`](next.config.ts#L4) sets `output: 'standalone'` **unless** `process.env.VERCEL`
   is set. One config, two fundamentally different runtime shapes.
 - Three subsystems write to the **local filesystem under `process.cwd()`**
   (`data/classrooms`, `data/classroom-jobs`, `data/usage`, `data/` material
@@ -125,37 +125,37 @@ Primary code and configuration read for this topic: `Dockerfile`,
 `app/api/classroom-media/[classroomId]/[...path]/route.ts`.
 
 Evidence packs:
-[`quality-testing-ci-deps`](../appendix/research/quality-testing-ci-deps/00-overview.md),
-[`media-audio-video`](../appendix/research/media-audio-video/00-overview.md),
-[`persistence-storage-state`](../appendix/research/persistence-storage-state/00-overview.md),
-[`api-surface`](../appendix/research/api-surface/00-overview.md),
-[`app-shell-and-routing`](../appendix/research/app-shell-and-routing/00-overview.md).
+[`quality-testing-ci-deps`](docs/appendix/research/quality-testing-ci-deps/00-overview.md),
+[`media-audio-video`](docs/appendix/research/media-audio-video/00-overview.md),
+[`persistence-storage-state`](docs/appendix/research/persistence-storage-state/00-overview.md),
+[`api-surface`](docs/appendix/research/api-surface/00-overview.md),
+[`app-shell-and-routing`](docs/appendix/research/app-shell-and-routing/00-overview.md).
 
 ## Section files
 
 | File | Contents |
 | --- | --- |
-| [`01-topologies-overview.md`](./01-topologies-overview.md) | The four supported topologies compared: processes, external services, feature completeness, and what each one gives up |
-| [`02-local-dev.md`](./02-local-dev.md) | `pnpm dev` on port 3000: one process, browser-resident storage, and the subsystems that are absent rather than mocked |
-| [`03-docker-compose.md`](./03-docker-compose.md) | The three compose services, two networks, two volumes, two profiles, build arguments, and the first-boot sequence |
-| [`04-serverless-vercel.md`](./04-serverless-vercel.md) | `vercel.json`, the `output` switch, and the six capability classes that cannot survive serverless constraints |
-| [`05-render-service-deployment.md`](./05-render-service-deployment.md) | The render service as its own deployable: image, six HTTP routes, admission control, resource profiles, capability discovery |
-| [`06-dockerfiles.md`](./06-dockerfiles.md) | Both Dockerfiles stage by stage: layering, build arguments, what is baked in versus mounted, the `.dockerignore` interaction |
-| [`07-scaling-and-state.md`](./07-scaling-and-state.md) | In-process state inventory, what each item costs at N>1 replicas, and the long-running/streaming endpoint table |
-| [`08-operations-runbook.md`](./08-operations-runbook.md) | Health endpoints, signals worth watching, the backup surface, upgrade/migration steps, and a triage decision tree |
+| [`01-topologies-overview.md`](docs/17-deployment-view/01-topologies-overview.md) | The four supported topologies compared: processes, external services, feature completeness, and what each one gives up |
+| [`02-local-dev.md`](docs/17-deployment-view/02-local-dev.md) | `pnpm dev` on port 3000: one process, browser-resident storage, and the subsystems that are absent rather than mocked |
+| [`03-docker-compose.md`](docs/17-deployment-view/03-docker-compose.md) | The three compose services, two networks, two volumes, two profiles, build arguments, and the first-boot sequence |
+| [`04-serverless-vercel.md`](docs/17-deployment-view/04-serverless-vercel.md) | `vercel.json`, the `output` switch, and the six capability classes that cannot survive serverless constraints |
+| [`05-render-service-deployment.md`](docs/17-deployment-view/05-render-service-deployment.md) | The render service as its own deployable: image, six HTTP routes, admission control, resource profiles, capability discovery |
+| [`06-dockerfiles.md`](docs/17-deployment-view/06-dockerfiles.md) | Both Dockerfiles stage by stage: layering, build arguments, what is baked in versus mounted, the `.dockerignore` interaction |
+| [`07-scaling-and-state.md`](docs/17-deployment-view/07-scaling-and-state.md) | In-process state inventory, what each item costs at N>1 replicas, and the long-running/streaming endpoint table |
+| [`08-operations-runbook.md`](docs/17-deployment-view/08-operations-runbook.md) | Health endpoints, signals worth watching, the backup surface, upgrade/migration steps, and a triage decision tree |
 
 ## Related topics
 
-- [`../16-development-view/index.md`](../16-development-view/index.md) — how the
+- [`../16-development-view/index.md`](docs/16-development-view/index.md) — how the
   artefacts this view deploys are built and gated.
-- [`../02-container-view/index.md`](../02-container-view/index.md) — the logical
+- [`../02-container-view/index.md`](docs/02-container-view/index.md) — the logical
   containers; this view is where they land on hardware.
-- [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md)
+- [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md)
   — the storage primitives whose backends this view selects.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — the
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — the
   video-export pipeline whose second half is a separate deployable.
-- [`../15-cross-cutting/index.md`](../15-cross-cutting/index.md) — access
+- [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md) — access
   control, SSRF egress policy, and logging as they cut across topologies.
-- [`../12-api-reference/index.md`](../12-api-reference/index.md) — the endpoint
+- [`../12-api-reference/index.md`](docs/12-api-reference/index.md) — the endpoint
   inventory referenced by the streaming/long-running table.
-- [`../README.md`](../README.md) — the documentation set root.
+- [`../README.md`](docs/README.md) — the documentation set root.

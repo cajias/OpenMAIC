@@ -13,18 +13,18 @@ them is enforced at runtime.
 
 | Key | Written by | Read by | Cleared by |
 | --- | --- | --- | --- |
-| `generationSession` | `app/page.tsx:671`, then re-written on every phase change by `persistSession` (`app/generation-preview/page.tsx:178`) | `app/generation-preview/page.tsx:223` | `app/generation-preview/page.tsx:1050` (success), `:1060` (error), `:1077` (back to home) |
-| `generationParams` | `app/generation-preview/page.tsx:1040` | `app/classroom/[id]/page.tsx:159` | never |
-| `workbench.launchPrompt` | older deployments only (rolling-deploy handoff; no current writer in this tree) | `app/workbench/new/client.tsx:61` | `app/workbench/new/client.tsx:88` |
+| `generationSession` | [`app/page.tsx:671`](app/page.tsx#L671), then re-written on every phase change by `persistSession` ([`app/generation-preview/page.tsx:178`](app/generation-preview/page.tsx#L178)) | [`app/generation-preview/page.tsx:223`](app/generation-preview/page.tsx#L223) | [`app/generation-preview/page.tsx:1050`](app/generation-preview/page.tsx#L1050) (success), [`:1060`](app/generation-preview/page.tsx#L1060) (error), [`:1077`](app/generation-preview/page.tsx#L1077) (back to home) |
+| `generationParams` | [`app/generation-preview/page.tsx:1040`](app/generation-preview/page.tsx#L1040) | [`app/classroom/[id]/page.tsx:159`](app/classroom/[id]/page.tsx#L159) | never |
+| `workbench.launchPrompt` | older deployments only (rolling-deploy handoff; no current writer in this tree) | [`app/workbench/new/client.tsx:61`](app/workbench/new/client.tsx#L61) | [`app/workbench/new/client.tsx:88`](app/workbench/new/client.tsx#L88) |
 
 `generationParams` is never removed. A later visit to any classroom re-reads
 whatever was left there, and the resume effect guards against acting on it only by
-checking store state (`app/classroom/[id]/page.tsx:143-153`), not by checking
+checking store state ([`app/classroom/[id]/page.tsx:143-153`](app/classroom/[id]/page.tsx#L143-L153)), not by checking
 whether the params belong to this course.
 
 ## `generationSession` — the typed one
 
-`app/generation-preview/types.ts:12`
+[`app/generation-preview/types.ts:12`](app/generation-preview/types.ts#L12)
 
 ```ts
 // Session state stored in sessionStorage
@@ -63,7 +63,7 @@ export interface GenerationSessionState {
 ```
 
 Only `sessionId`, `requirements`, `pdfText`, and `currentStep` are required. The
-producer at `app/page.tsx:655-670` supplies `pdfText: ''`, `pdfImages: []`,
+producer at [`app/page.tsx:655-670`](app/page.tsx#L655-L670) supplies `pdfText: ''`, `pdfImages: []`,
 `imageStorageIds: []`, and `sceneOutlines: null` — every meaningful field arrives
 later, written back by `persistSession`.
 
@@ -89,7 +89,7 @@ stateDiagram-v2
 ```
 
 Line anchors for the transitions: `handleExpandStreamingOutline`
-(`app/generation-preview/page.tsx:1083-1092`), `handleCollapseEditor`
+([`app/generation-preview/page.tsx:1083-1092`](app/generation-preview/page.tsx#L1083-L1092)), `handleCollapseEditor`
 (`:1099-1119`), the 2500 ms `OUTLINE_REVIEW_AUTO_CONTINUE_MS` timer (`:66,210-215`),
 and `goBackToHome` (`:1073-1079`).
 
@@ -102,7 +102,7 @@ was restored mid-review and there is no parked promise, builds
 and calls `startGeneration` itself (`:1181-1188`). The comment at `:1175-1179`
 records exactly this asymmetry.
 
-Backfill on load, `app/generation-preview/page.tsx:227-235`:
+Backfill on load, [`app/generation-preview/page.tsx:227-235`](app/generation-preview/page.tsx#L227-L235):
 
 ```ts
 if (!parsed.previewPhase) {
@@ -158,7 +158,7 @@ back to an extension allowlist (`MEDIA_EXTENSIONS`, line 53).
 
 ## `generationParams` — the untyped one
 
-Written as an object literal at `app/generation-preview/page.tsx:1040-1048`:
+Written as an object literal at [`app/generation-preview/page.tsx:1040-1048`](app/generation-preview/page.tsx#L1040-L1048):
 
 ```ts
 sessionStorage.setItem(
@@ -173,7 +173,7 @@ sessionStorage.setItem(
 ```
 
 There is **no declared type**. The consumer re-declares the only part it needs
-inline (`app/classroom/[id]/page.tsx:170-172`):
+inline ([`app/classroom/[id]/page.tsx:170-172`](app/classroom/[id]/page.tsx#L170-L172)):
 
 ```ts
 const pdfImages = (params.pdfImages || []) as Array<
@@ -233,7 +233,7 @@ const initialFormState: FormState = {
 };
 ```
 
-`vocationalTestMode` does not survive as itself: `app/page.tsx:613-614` folds it
+`vocationalTestMode` does not survive as itself: [`app/page.tsx:613-614`](app/page.tsx#L613-L614) folds it
 into `interactiveMode: true` plus `taskEngineMode: true` on the
 `UserRequirements` that goes into the session.
 
@@ -299,6 +299,6 @@ Anyone describing "how a course gets generated" will be tempted to draw a server
 pipeline. The route-level truth is: the browser holds the whole session, the three
 page segments communicate through two `sessionStorage` keys, and the server sees
 only individual stateless `/api/*` calls carrying credentials in headers
-(`app/generation-preview/page.tsx:254-278`). A hard refresh mid-generation is
+([`app/generation-preview/page.tsx:254-278`](app/generation-preview/page.tsx#L254-L278)). A hard refresh mid-generation is
 recoverable **only** because `generationSession` is on disk in the tab; closing the
 tab loses it.

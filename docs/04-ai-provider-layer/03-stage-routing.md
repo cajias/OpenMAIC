@@ -6,8 +6,8 @@ discarded when a route wins.
 
 **Sources:** `lib/server/model-routes.ts`, `lib/server/resolve-model.ts`,
 `lib/server/agent-runtime/agent-driver-model.ts`, `lib/server/classroom-generation.ts`,
-`lib/server/agent-runtime/generation-ai-call.ts`, `.env.example:411-449`;
-[../appendix/research/ai-provider-layer/03-flows.md](../appendix/research/ai-provider-layer/03-flows.md).
+`lib/server/agent-runtime/generation-ai-call.ts`, [`.env.example:411-449`](.env.example#L411-L449);
+[../appendix/research/ai-provider-layer/03-flows.md](docs/appendix/research/ai-provider-layer/03-flows.md).
 
 ## Surface: one env var
 
@@ -71,34 +71,34 @@ Traced by locating each `resolveModel*` call in `app/` and `lib/`.
 
 | Stage | Resolution call site | `callLLM` source label |
 | --- | --- | --- |
-| `scene-outlines-stream` | `app/api/generate/scene-outlines-stream/route.ts:299` | `scene-outlines-stream` |
-| `scene-content` + 4 composites | `app/api/generate/scene-content/route.ts:116` (key built at `:110`); `lib/server/agent-runtime/generation-ai-call.ts:23` via `sceneContentStage()` `:9` | `scene-content` |
-| `scene-actions` | `app/api/generate/scene-actions/route.ts:91` | `scene-actions` |
-| `agent-profiles` | `app/api/generate/agent-profiles/route.ts:166` | `agent-profiles` |
-| `quiz-grade` | `app/api/quiz-grade/route.ts:47` | `quiz-grade` |
+| `scene-outlines-stream` | [`app/api/generate/scene-outlines-stream/route.ts:299`](app/api/generate/scene-outlines-stream/route.ts#L299) | `scene-outlines-stream` |
+| `scene-content` + 4 composites | [`app/api/generate/scene-content/route.ts:116`](app/api/generate/scene-content/route.ts#L116) (key built at [`:110`](app/api/generate/scene-content/route.ts#L110)); [`lib/server/agent-runtime/generation-ai-call.ts:23`](lib/server/agent-runtime/generation-ai-call.ts#L23) via `sceneContentStage()` [`:9`](lib/server/agent-runtime/generation-ai-call.ts#L9) | `scene-content` |
+| `scene-actions` | [`app/api/generate/scene-actions/route.ts:91`](app/api/generate/scene-actions/route.ts#L91) | `scene-actions` |
+| `agent-profiles` | [`app/api/generate/agent-profiles/route.ts:166`](app/api/generate/agent-profiles/route.ts#L166) | `agent-profiles` |
+| `quiz-grade` | [`app/api/quiz-grade/route.ts:47`](app/api/quiz-grade/route.ts#L47) | `quiz-grade` |
 | `pbl-chat` | **none** | — |
 | `pbl-v2-runtime` | reachable only as composite fallback | — |
-| `pbl-v2-runtime:instructor` | `app/api/pbl/v2/instructor/route.ts:55` | — |
-| `pbl-v2-runtime:open-task` | `app/api/pbl/v2/open-task/route.ts:57` | — |
-| `pbl-v2-runtime:evaluate` | `app/api/pbl/v2/evaluate/route.ts:84` | — |
-| `pbl-v2-runtime:simulator` | `app/api/pbl/v2/simulator/route.ts:53` | — |
-| `chat-adapter` | `app/api/chat/route.ts:72` and `app/api/chat/pi/route.ts:98` | `pi-chat-director`, `pi-chat-child`, `pi-chat-native-child` |
-| `generate-classroom` | `lib/server/classroom-generation.ts:199` | `generate-classroom` |
-| `web-search-query-rewrite` | `app/api/web-search/route.ts:127`; `lib/server/classroom-generation.ts:427` | — |
+| `pbl-v2-runtime:instructor` | [`app/api/pbl/v2/instructor/route.ts:55`](app/api/pbl/v2/instructor/route.ts#L55) | — |
+| `pbl-v2-runtime:open-task` | [`app/api/pbl/v2/open-task/route.ts:57`](app/api/pbl/v2/open-task/route.ts#L57) | — |
+| `pbl-v2-runtime:evaluate` | [`app/api/pbl/v2/evaluate/route.ts:84`](app/api/pbl/v2/evaluate/route.ts#L84) | — |
+| `pbl-v2-runtime:simulator` | [`app/api/pbl/v2/simulator/route.ts:53`](app/api/pbl/v2/simulator/route.ts#L53) | — |
+| `chat-adapter` | [`app/api/chat/route.ts:72`](app/api/chat/route.ts#L72) and [`app/api/chat/pi/route.ts:98`](app/api/chat/pi/route.ts#L98) | `pi-chat-director`, `pi-chat-child`, `pi-chat-native-child` |
+| `generate-classroom` | [`lib/server/classroom-generation.ts:199`](lib/server/classroom-generation.ts#L199) | `generate-classroom` |
+| `web-search-query-rewrite` | [`app/api/web-search/route.ts:127`](app/api/web-search/route.ts#L127); [`lib/server/classroom-generation.ts:427`](lib/server/classroom-generation.ts#L427) | — |
 | `maic-agent` | **none** | — |
-| `maic-agent-driver` | `lib/server/agent-runtime/agent-driver-model.ts:93` | `agent-runtime` |
+| `maic-agent-driver` | [`lib/server/agent-runtime/agent-driver-model.ts:93`](lib/server/agent-runtime/agent-driver-model.ts#L93) | `agent-runtime` |
 
 Two dead routing keys:
 
-- **`pbl-chat`** appears in `LLM_STAGES` and in the `.env.example:446` example, but no
+- **`pbl-chat`** appears in `LLM_STAGES` and in the [`.env.example:446`](.env.example#L446) example, but no
   `resolveModel({stage: 'pbl-chat'})` call exists anywhere in `app/` or `lib/`. Boot validation
   accepts the key, `getStageRoute('pbl-chat')` would return the route — nothing asks.
 - **`maic-agent`** exists only as the *default* `callLLM` source label at
-  `lib/agent/runtime/stream-fn.ts:417` (`opts.source ?? 'maic-agent'`). All four
+  [`lib/agent/runtime/stream-fn.ts:417`](lib/agent/runtime/stream-fn.ts#L417) (`opts.source ?? 'maic-agent'`). All four
   `createCallLlmStreamFn` call sites set `source` explicitly
-  (`lib/server/agent-runtime/runner.ts:1268` → `agent-runtime`,
-  `lib/chat/pi/director-loop.ts:122` → `pi-chat-director`,
-  `lib/chat/pi/tools/call-agent.ts:775`/`:877` → `pi-chat-native-child`/`pi-chat-child`), so the
+  ([`lib/server/agent-runtime/runner.ts:1268`](lib/server/agent-runtime/runner.ts#L1268) → `agent-runtime`,
+  [`lib/chat/pi/director-loop.ts:122`](lib/chat/pi/director-loop.ts#L122) → `pi-chat-director`,
+  [`lib/chat/pi/tools/call-agent.ts:775`](lib/chat/pi/tools/call-agent.ts#L775)/[`:877`](lib/chat/pi/tools/call-agent.ts#L877) → `pi-chat-native-child`/`pi-chat-child`), so the
   default never fires and `maic-agent` is unreachable as both a route key and a usage label.
 
 ## Composite keys resolve most-specific-first
@@ -125,9 +125,9 @@ generic over any number of colon segments, but only two levels exist in `LLM_STA
 The composite key for scene content is built in two places from the same rule — `outline.type`
 must be one of the four core scene types:
 
-- `app/api/generate/scene-content/route.ts:110`:
+- [`app/api/generate/scene-content/route.ts:110`](app/api/generate/scene-content/route.ts#L110):
   `` outline.type ? `scene-content:${outline.type}` : 'scene-content' ``
-- `lib/server/agent-runtime/generation-ai-call.ts:9`: `sceneContentStage()` guards against
+- [`lib/server/agent-runtime/generation-ai-call.ts:9`](lib/server/agent-runtime/generation-ai-call.ts#L9): `sceneContentStage()` guards against
   `CONTENT_TYPES = new Set(['slide','quiz','interactive','pbl'])` (`:7`) before building the key.
 
 The route version does **not** guard, so an `outline.type` outside the four would produce a key
@@ -136,7 +136,7 @@ Harmless, but the two implementations are not identical.
 
 ## Parsing and memoisation
 
-`loadRoutes()` (`lib/server/model-routes.ts:214`) memoises into the module-level `_routes`
+`loadRoutes()` ([`lib/server/model-routes.ts:214`](lib/server/model-routes.ts#L214)) memoises into the module-level `_routes`
 (`:157`), so `MODEL_ROUTES` is read **once per process**. Changing it requires a restart; tests
 reset via `vi.resetModules`, per the comment at `:156`.
 
@@ -164,7 +164,7 @@ warning happens once at parse.
 
 ## The precedence resolution, every decision point
 
-`resolveModel` at `lib/server/resolve-model.ts:41`. The order is fixed and there is no
+`resolveModel` at [`lib/server/resolve-model.ts:41`](lib/server/resolve-model.ts#L41). The order is fixed and there is no
 configuration for it.
 
 ```mermaid
@@ -229,7 +229,7 @@ flowchart TD
 
 ### Why routing drops the client's connection params
 
-The comment at `lib/server/resolve-model.ts:73`–`:77` is the whole argument: the client's
+The comment at [`lib/server/resolve-model.ts:73`](lib/server/resolve-model.ts#L73)–[`:77`](lib/server/resolve-model.ts#L77) is the whole argument: the client's
 `apiKey` / `baseUrl` / `providerType` belong to the client's *other* model. Without the drop, a
 route to `anthropic:claude-sonnet-5` would be built with the browser's OpenAI `providerType` and
 key. A routed model therefore resolves purely from server config, "as if no x-model was sent".
@@ -238,13 +238,13 @@ That has an operational consequence worth stating plainly: **routing a stage mak
 responsible for that stage's credentials.** Boot validation reflects it —
 `checkModelString(..., routed=true)` emits a hard warning ("requests using it will fail") when a
 routed provider has no server key, while the same condition on `DEFAULT_MODEL` is only a note
-because a client key can still fill in (`lib/server/config-validation.ts:89`–`:99`).
+because a client key can still fill in ([`lib/server/config-validation.ts:89`](lib/server/config-validation.ts#L89)–[`:99`](lib/server/config-validation.ts#L99)).
 
 ### Why a route wins over `x-model`
 
-The browser always sends its saved model in `x-model` (`lib/hooks/use-scene-generator.ts:79`,
-`app/generation-preview/page.tsx:261`, etc.). If `x-model` outranked the route, every route would
-be shadowed by the UI. The comment at `resolve-model.ts:56`–`:62` states this and the absence of
+The browser always sends its saved model in `x-model` ([`lib/hooks/use-scene-generator.ts:79`](lib/hooks/use-scene-generator.ts#L79),
+[`app/generation-preview/page.tsx:261`](app/generation-preview/page.tsx#L261), etc.). If `x-model` outranked the route, every route would
+be shadowed by the UI. The comment at [`resolve-model.ts:56`](lib/server/resolve-model.ts#L56)–`:62` states this and the absence of
 any vendor fallback: *"There is intentionally no hardcoded model fallback — if nothing resolves we
 fail loud rather than silently pick a vendor default."*
 
@@ -263,14 +263,14 @@ Reads exactly four headers: `x-model`, `x-api-key`, `x-base-url`, `x-provider-ty
 `requiresApiKey` is deliberately **never** taken from a header — it is derived server-side from the
 registry, and the docstring at `:159`–`:160` names auth-bypass prevention as the reason. (The
 settings UI does send a `requiresApiKey` body field via `createVerifyModelRequest`
-(`components/settings/utils.ts:103`); `app/api/verify-model/route.ts` never reads it.)
+([`components/settings/utils.ts:103`](components/settings/utils.ts#L103)); `app/api/verify-model/route.ts` never reads it.)
 
 `resolveModelFromRequest` (`:183`) additionally pulls the body's `thinkingConfig` or legacy
 `thinking` through `getThinkingConfigFromBody` (`:148`) and hands it to the single arbiter.
 
 ## Thinking arbitration mirrors model routing
 
-Three cases, documented at `lib/server/resolve-model.ts:125`–`:134` and implemented at `:132`:
+Three cases, documented at [`lib/server/resolve-model.ts:125`](lib/server/resolve-model.ts#L125)–[`:134`](lib/server/resolve-model.ts#L134) and implemented at [`:132`](lib/server/resolve-model.ts#L132):
 
 | Case | Result |
 | --- | --- |
@@ -279,12 +279,12 @@ Three cases, documented at `lib/server/resolve-model.ts:125`–`:134` and implem
 | unrouted | client thinking honoured |
 
 Downstream, `callLLM` resolves `effectiveThinking = thinking ?? getGlobalThinkingConfig()`
-(`lib/ai/llm.ts:342`). Because that is `??` and not the other way round, an explicit per-call
+([`lib/ai/llm.ts:342`](lib/ai/llm.ts#L342)). Because that is `??` and not the other way round, an explicit per-call
 thinking config **overrides** the `LLM_THINKING_DISABLED` kill switch rather than being overridden
-by it. `app/api/verify-model/route.ts:47` depends on that: it forces
+by it. [`app/api/verify-model/route.ts:47`](app/api/verify-model/route.ts#L47) depends on that: it forces
 `{ mode: 'disabled', enabled: false }` and gets it regardless of the env var.
 
-`injectProviderOptions` (`lib/ai/llm.ts:247`) returns the params untouched if the caller already
+`injectProviderOptions` ([`lib/ai/llm.ts:247`](lib/ai/llm.ts#L247)) returns the params untouched if the caller already
 set `providerOptions` (`:251`), so a caller-supplied `providerOptions` is the true top of the
 thinking chain.
 
@@ -316,7 +316,7 @@ is caught here. The comment at `:420`–`:423` says exactly that.
 ## Open questions
 
 - `pbl-chat` and `maic-agent` are advertised as routable in both `LLM_STAGES` and
-  `.env.example:423-426` but have no consumer. Whether they are forward declarations or leftovers
+  [`.env.example:423-426`](.env.example#L423-L426) but have no consumer. Whether they are forward declarations or leftovers
   from a removed path is not determinable from the code.
 - `contextWindow` and `api` are parsed for all 20 stages and honoured by one. There is no warning
   when an operator sets them on an inert stage, so the misconfiguration is invisible.

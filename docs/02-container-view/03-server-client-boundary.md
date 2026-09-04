@@ -14,9 +14,9 @@ inside a route handler, with an HTTP hop and a header contract in between.
 `app/api/server-providers/route.ts`, `app/api/health/route.ts`,
 `app/generation-preview/page.tsx`, `lib/persistence/bootstrap.ts`,
 `next.config.ts`, `Dockerfile`.
-Evidence: [app-shell-and-routing/00](../appendix/research/app-shell-and-routing/00-overview.md),
-[api-surface/02a](../appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
-[ai-provider-layer/00](../appendix/research/ai-provider-layer/00-overview.md).
+Evidence: [app-shell-and-routing/00](docs/appendix/research/app-shell-and-routing/00-overview.md),
+[api-surface/02a](docs/appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
+[ai-provider-layer/00](docs/appendix/research/ai-provider-layer/00-overview.md).
 
 ## The boundary in one picture
 
@@ -135,14 +135,14 @@ flowchart LR
 
 The flag/capability distinction is load-bearing: 26 route files gate on
 `isAgentRuntimeConfigured()`, and the intent flag alone is never enough
-([api-surface/00](../appendix/research/api-surface/00-overview.md)).
+([api-surface/00](docs/appendix/research/api-surface/00-overview.md)).
 
 A `NEXT_PUBLIC_*` value must be present during `pnpm build` to have any effect.
 The `Dockerfile` builder stage declares ten of them as `ARG`+`ENV`
-(`Dockerfile:51-72`, eleven `ARG`s in all — the eleventh is
+([`Dockerfile:51-72`](Dockerfile#L51-L72), eleven `ARG`s in all — the eleventh is
 `ALLOWED_FRAME_ANCESTORS` at `:51`, a server-side header input with no
 `NEXT_PUBLIC_` prefix); compose forwards the same ten
-(`docker-compose.yml:12-21`) plus that one as `build.args`. Anything supplied only through `env_file` reaches
+([`docker-compose.yml:12-21`](docker-compose.yml#L12-L21)) plus that one as `build.args`. Anything supplied only through `env_file` reaches
 the *runtime* container and is inert in the browser bundle.
 
 ## How operator secrets stay server-side
@@ -160,7 +160,7 @@ Worth stating plainly: this is currently true but **unguarded**. The
 `server-only` npm package is not used anywhere (zero imports across the same
 scan), and `eslint.config.mjs` has no rule for `lib/server/`, even though it
 carries seven other machine-enforced module walls
-([04-logical-layering.md](./04-logical-layering.md)).
+([04-logical-layering.md](docs/02-container-view/04-logical-layering.md)).
 
 ### 2. Managed providers discard client credentials
 
@@ -172,7 +172,7 @@ via API") and implements it in two four-line resolvers:
   return the operator's key; otherwise return the client's.
 - `resolveSectionBaseUrl` — same shape, same precedence.
 
-`lib/server/resolve-model.ts:78-104` then makes the consequence explicit: when a
+[`lib/server/resolve-model.ts:78-104`](lib/server/resolve-model.ts#L78-L104) then makes the consequence explicit: when a
 `MODEL_ROUTES` stage route overrides the client's model, `clientApiKey`,
 `clientProviderType` and `clientBaseUrlParam` are all forced to `undefined`,
 because "the client-sent connection params belong to the client's *other* model
@@ -183,11 +183,11 @@ an unmanaged, client-supplied base URL, and only in production (`:104-110`).
 
 | Endpoint | Returns | Never returns |
 | --- | --- | --- |
-| `GET /api/server-providers` | per-section maps of provider id → `{ models?: string[] }`, plus `generation.parallelSceneConcurrency` (`app/api/server-providers/route.ts:18-29`) | API keys, base URLs — the docstring on `getServerProviders()` says base URLs are withheld because they "can reveal internal gateway/proxy infrastructure" |
-| `GET /api/health` | `{ status, version, capabilities: { webSearch, imageGeneration, videoGeneration, tts } }` — four booleans derived from *enabled* providers (`app/api/health/route.ts:12-23`) | provider identities, queue depths, anything per-user |
+| `GET /api/server-providers` | per-section maps of provider id → `{ models?: string[] }`, plus `generation.parallelSceneConcurrency` ([`app/api/server-providers/route.ts:18-29`](app/api/server-providers/route.ts#L18-L29)) | API keys, base URLs — the docstring on `getServerProviders()` says base URLs are withheld because they "can reveal internal gateway/proxy infrastructure" |
+| `GET /api/health` | `{ status, version, capabilities: { webSearch, imageGeneration, videoGeneration, tts } }` — four booleans derived from *enabled* providers ([`app/api/health/route.ts:12-23`](app/api/health/route.ts#L12-L23)) | provider identities, queue depths, anything per-user |
 
 `/api/health` is one of exactly two paths the access-code gate allowlists
-(`middleware.ts:66`), so its response is the deployment's public capability
+([`middleware.ts:66`](middleware.ts#L66)), so its response is the deployment's public capability
 surface.
 
 ## What the browser holds that the server does not
@@ -195,7 +195,7 @@ surface.
 The inverse leak matters just as much, and it is intentional: OpenMAIC is a
 bring-your-own-key product for any provider the operator has not configured.
 
-`app/generation-preview/page.tsx:254-278` builds fourteen request headers from
+[`app/generation-preview/page.tsx:254-278`](app/generation-preview/page.tsx#L254-L278) builds fourteen request headers from
 `useSettingsStore.getState()` — the store persisted to `localStorage`:
 
 ```
@@ -213,9 +213,9 @@ Consequences a joiner needs to internalise:
 - `GET /api/server-providers` is a **one-way pull**: the settings store applies
   `isServerConfigured` / `serverModels` / `serverDisabled` with reset-then-apply
   and never touches user-entered keys, failing silently
-  ([persistence-storage-state/00](../appendix/research/persistence-storage-state/00-overview.md)).
+  ([persistence-storage-state/00](docs/appendix/research/persistence-storage-state/00-overview.md)).
 - `NEXT_PUBLIC_PERSISTENCE_TOKEN` is, by name and by design, a bearer token
-  compiled into the browser bundle (`lib/persistence/bootstrap.ts:34-38`). The
+  compiled into the browser bundle ([`lib/persistence/bootstrap.ts:34-38`](lib/persistence/bootstrap.ts#L34-L38)). The
   server-mode persistence authenticator is explicitly development-only.
 
 ## Boundary crossings, catalogued
@@ -259,4 +259,4 @@ purpose, so the surface is not an existence oracle.
 - `middleware.ts` never compares the signed timestamp in the access cookie
   against the current time (`verifyToken`, `:18-44`), so a minted cookie never
   expires. The timestamp is signed but unused as a lifetime. No test covers this
-  file ([quality-testing-ci-deps](../appendix/research/quality-testing-ci-deps/00-overview.md)).
+  file ([quality-testing-ci-deps](docs/appendix/research/quality-testing-ci-deps/00-overview.md)).

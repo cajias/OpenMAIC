@@ -14,8 +14,8 @@ owner-scoped. `usage` is deployment-wide.
 `app/api/verify-{model,image-provider,video-provider,pdf-provider}/route.ts`,
 `lib/server/{provider-config,resolve-model,model-fetch,usage-storage,ssrf-guard}.ts`;
 evidence
-[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](../appendix/research/api-surface/01d-modules-routes-p-to-w.md),
-[`../appendix/research/ai-provider-layer/`](../appendix/research/ai-provider-layer/00-overview.md).
+[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](docs/appendix/research/api-surface/01d-modules-routes-p-to-w.md),
+[`../appendix/research/ai-provider-layer/`](docs/appendix/research/ai-provider-layer/00-overview.md).
 
 ## The group
 
@@ -161,7 +161,7 @@ The catch block **string-matches the error message** and rewrites it (`:57-73`):
 
 Always `500 INTERNAL_ERROR`, whatever the upstream status was. **This route has no
 SSRF guard of its own** — it relies on `resolveModel`'s production-only check on a
-client base URL (`lib/server/resolve-model.ts:105-110`).
+client base URL ([`lib/server/resolve-model.ts:105-110`](lib/server/resolve-model.ts#L105-L110)).
 
 ### `verify-image-provider` and `verify-video-provider`
 
@@ -283,6 +283,6 @@ erDiagram
 - `getServerProviders()` and its six siblings are the whole capability contract
   for the settings store, but the exact per-provider record shape lives in
   `lib/server/provider-config.ts` and was not enumerated here — see
-  [`../04-ai-provider-layer/index.md`](../04-ai-provider-layer/index.md).
+  [`../04-ai-provider-layer/index.md`](docs/04-ai-provider-layer/index.md).
 
-Next: [`07-persistence-and-auth.md`](./07-persistence-and-auth.md).
+Next: [`07-persistence-and-auth.md`](docs/12-api-reference/07-persistence-and-auth.md).

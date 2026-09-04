@@ -5,7 +5,7 @@ them, doc comments trimmed.
 
 ## 1. Constants and identity
 
-`lib/whiteboard/runtime/types.ts:3-8`
+[`lib/whiteboard/runtime/types.ts:3-8`](lib/whiteboard/runtime/types.ts#L3-L8)
 
 ```ts
 export const WHITEBOARD_RUNTIME_KIND = 'whiteboard';
@@ -18,7 +18,7 @@ export type Sha256Digest = `sha256:${string}`;
 
 ## 2. The five operations
 
-`lib/whiteboard/runtime/types.ts:10`, `:19`, `:24`, `:29`, `:33`, `:49`, `:55`
+[`lib/whiteboard/runtime/types.ts:10`](lib/whiteboard/runtime/types.ts#L10), [`:19`](lib/whiteboard/runtime/types.ts#L19), [`:24`](lib/whiteboard/runtime/types.ts#L24), [`:29`](lib/whiteboard/runtime/types.ts#L29), [`:33`](lib/whiteboard/runtime/types.ts#L33), [`:49`](lib/whiteboard/runtime/types.ts#L49), [`:55`](lib/whiteboard/runtime/types.ts#L55)
 
 ```ts
 export interface LegacySnapshotImportedOperation {
@@ -76,12 +76,12 @@ export type WhiteboardRuntimeOperationV1 =
 
 There is no freehand/stroke primitive: every drawable is a `PPTElement` from
 `@openmaic/dsl`, the same element model the slide canvas uses — which is why
-`components/whiteboard/whiteboard-canvas.tsx:15` can render board elements with
+[`components/whiteboard/whiteboard-canvas.tsx:15`](components/whiteboard/whiteboard-canvas.tsx#L15) can render board elements with
 the slide renderer's `ScreenElement`.
 
 ## 3. Record envelope and folded state
 
-`lib/whiteboard/runtime/types.ts:62`, `:68`, `:74`, `:86`, `:92`, `:164`
+[`lib/whiteboard/runtime/types.ts:62`](lib/whiteboard/runtime/types.ts#L62), [`:68`](lib/whiteboard/runtime/types.ts#L68), [`:74`](lib/whiteboard/runtime/types.ts#L74), [`:86`](lib/whiteboard/runtime/types.ts#L86), [`:92`](lib/whiteboard/runtime/types.ts#L92), [`:164`](lib/whiteboard/runtime/types.ts#L164)
 
 ```ts
 export interface WhiteboardRuntimePayloadV1 {
@@ -125,8 +125,8 @@ export type WhiteboardRuntimeRecord = RuntimeRecord<WhiteboardRuntimePayloadV1>;
 
 ## 4. Error classes with stable codes
 
-`lib/whiteboard/runtime/types.ts:98`, `:107`, `:122`, `:136`, `:150`, `:152`;
-`lib/whiteboard/runtime/store.ts:26`, `:31`
+[`lib/whiteboard/runtime/types.ts:98`](lib/whiteboard/runtime/types.ts#L98), [`:107`](lib/whiteboard/runtime/types.ts#L107), [`:122`](lib/whiteboard/runtime/types.ts#L122), [`:136`](lib/whiteboard/runtime/types.ts#L136), [`:150`](lib/whiteboard/runtime/types.ts#L150), [`:152`](lib/whiteboard/runtime/types.ts#L152);
+[`lib/whiteboard/runtime/store.ts:26`](lib/whiteboard/runtime/store.ts#L26), [`:31`](lib/whiteboard/runtime/store.ts#L31)
 
 ```ts
 export class WhiteboardRuntimeElementNotFoundError extends Error {
@@ -184,7 +184,7 @@ classes, all from `runtime/fold.ts` / `runtime/store.ts`:
 
 ## 5. Fold and service
 
-`lib/whiteboard/runtime/fold.ts:51`, `:170`, `:218`, `:228`
+[`lib/whiteboard/runtime/fold.ts:51`](lib/whiteboard/runtime/fold.ts#L51), [`:170`](lib/whiteboard/runtime/fold.ts#L170), [`:218`](lib/whiteboard/runtime/fold.ts#L218), [`:228`](lib/whiteboard/runtime/fold.ts#L228)
 
 ```ts
 export async function applyWhiteboardRuntimeOperation(
@@ -205,7 +205,7 @@ export function publicWhiteboardRuntimeState(
 export const EMPTY_WHITEBOARD_RUNTIME_STATE: FoldedWhiteboardRuntimeState;
 ```
 
-`lib/whiteboard/runtime/store.ts:36`, `:43`, `:57`, `:170`, `:314`
+[`lib/whiteboard/runtime/store.ts:36`](lib/whiteboard/runtime/store.ts#L36), [`:43`](lib/whiteboard/runtime/store.ts#L43), [`:57`](lib/whiteboard/runtime/store.ts#L57), [`:170`](lib/whiteboard/runtime/store.ts#L170), [`:314`](lib/whiteboard/runtime/store.ts#L314)
 
 ```ts
 export interface WhiteboardRuntimeServiceDeps {
@@ -238,7 +238,7 @@ export function getWhiteboardRuntimeService(): WhiteboardRuntimeService;
 
 ## 6. Projection and viewport
 
-`lib/whiteboard/runtime/browser-projection.ts:8`; `lib/whiteboard/viewport.ts:12`, `:22`
+[`lib/whiteboard/runtime/browser-projection.ts:8`](lib/whiteboard/runtime/browser-projection.ts#L8); [`lib/whiteboard/viewport.ts:12`](lib/whiteboard/viewport.ts#L12), [`:22`](lib/whiteboard/viewport.ts#L22)
 
 ```ts
 export async function refreshWhiteboardRuntimeProjection(
@@ -253,7 +253,7 @@ export function normalizeWhiteboardViewportRatio(ratio: number): number;
 
 `viewportRatio` is **height/width**: canonical landscape 16:9 (1000 × 562.5) is
 `9/16 = 0.5625`, never `16/9`. A persisted value > 1 is an inverted ratio written
-by the old stage API and is reciprocated on read (`viewport.ts:1-9`).
+by the old stage API and is reciprocated on read ([`viewport.ts:1-9`](lib/whiteboard/viewport.ts#L1-L9)).
 
 ## 7. Relationships
 

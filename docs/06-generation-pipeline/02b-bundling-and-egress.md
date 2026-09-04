@@ -1,20 +1,20 @@
 # Ingestion, Part 2: Bundling and Egress
 
 Part 2 of the ingestion walkthrough. Extractors, selection, and the normalised
-intermediate representation are in [`./02-document-ingestion.md`](./02-document-ingestion.md).
+intermediate representation are in [`./02-document-ingestion.md`](docs/06-generation-pipeline/02-document-ingestion.md).
 This half covers the multi-document bundler, the managed-credential and SSRF rules on
 outbound extractor traffic, the two request forms, and ingestion's partial-failure
 behaviour.
 
 **Sources:** `lib/document/bundle.ts`, `lib/constants/generation.ts`,
 `app/api/extract-document/route.ts`, `lib/server/provider-config.ts`,
-`lib/server/ssrf-guard.ts`, `app/generation-preview/page.tsx:340`; evidence:
-[`01b-modules-app-ingestion.md`](../appendix/research/generation-pipeline/01b-modules-app-ingestion.md),
-[`04-dependencies-and-config.md`](../appendix/research/generation-pipeline/04-dependencies-and-config.md).
+`lib/server/ssrf-guard.ts`, [`app/generation-preview/page.tsx:340`](app/generation-preview/page.tsx#L340); evidence:
+[`01b-modules-app-ingestion.md`](docs/appendix/research/generation-pipeline/01b-modules-app-ingestion.md),
+[`04-dependencies-and-config.md`](docs/appendix/research/generation-pipeline/04-dependencies-and-config.md).
 
 ## Multi-document bundling
 
-`buildDocumentBundle` (`lib/document/bundle.ts:181`) is the only place several uploaded
+`buildDocumentBundle` ([`lib/document/bundle.ts:181`](lib/document/bundle.ts#L181)) is the only place several uploaded
 documents become one prompt input. Four passes, in order:
 
 1. **Stable ids** — sort by `source.order`, rewrite each part's image ids to
@@ -51,8 +51,8 @@ flowchart TD
 ```
 
 Caps: `MAX_DOCUMENT_BUNDLE_FILES = 5`, `MAX_DOCUMENT_BUNDLE_TOTAL_SIZE_BYTES = 150 MiB`
-(`bundle.ts:4-5`); defaults `maxChars = MAX_PDF_CONTENT_CHARS` (50 000) and
-`maxVisionImages = MAX_VISION_IMAGES` (20) from `lib/constants/generation.ts:7,10`.
+([`bundle.ts:4-5`](lib/document/bundle.ts#L4-L5)); defaults `maxChars = MAX_PDF_CONTENT_CHARS` (50 000) and
+`maxVisionImages = MAX_VISION_IMAGES` (20) from [`lib/constants/generation.ts:7,10`](lib/constants/generation.ts#L7).
 
 ### Why the id renumbering happens twice
 
@@ -75,8 +75,8 @@ flowchart LR
 
 The `visionPriority` this pass emits is the *only* input to the ordering used downstream by
 `sortDocumentImagesForVision` and `partitionImagesForVision` — see
-[`./03-outline-generation.md`](./03-outline-generation.md#the-vision-split) and
-[`./05-scene-generation.md`](./05-scene-generation.md#vision-pre-resolution).
+[`./03-outline-generation.md`](docs/06-generation-pipeline/03-outline-generation.md#the-vision-split) and
+[`./05-scene-generation.md`](docs/06-generation-pipeline/05-scene-generation.md#vision-pre-resolution).
 
 ## Managed credentials and third-party egress
 
@@ -98,14 +98,14 @@ flowchart TD
 The self-hosted-MinerU branch is the strongest privacy default in the subsystem: a
 deployment that selected self-hosted MinerU but has no base URL configured fails loudly
 rather than silently forwarding documents to a third-party cloud. The 422 message names
-both remedies explicitly (`app/api/extract-document/route.ts:375-383`), and the opt-in is
+both remedies explicitly ([`app/api/extract-document/route.ts:375-383`](app/api/extract-document/route.ts#L375-L383)), and the opt-in is
 a separate env var read at `:144`.
 
 The same managed/unmanaged decision, including the SSRF check, is applied to the media
-branch at `route.ts:248-263` — a separate code path, but the same rules.
+branch at [`route.ts:248-263`](app/api/extract-document/route.ts#L248-L263) — a separate code path, but the same rules.
 
 Note the ordering: the SSRF check runs on the **client-supplied** base URL only, and only
-in production (`route.ts:386`, `:258`). A managed provider's own base URL, resolved from
+in production ([`route.ts:386`](app/api/extract-document/route.ts#L386), `:258`). A managed provider's own base URL, resolved from
 `resolvePDFBaseUrl` or `resolveManagedAliDocMindCredentials`, is trusted without a check
 because the operator configured it.
 
@@ -114,7 +114,7 @@ because the operator configured it.
 | Var | Required for | Effect |
 | --- | --- | --- |
 | `PDF_MINERU_API_KEY`, `PDF_MINERU_BASE_URL` | self-hosted `mineru` | absence of the base URL is what triggers the 422-or-cloud-fallback branch |
-| `PDF_MINERU_CLOUD_API_KEY`, `PDF_MINERU_CLOUD_BASE_URL` | `mineru-cloud` | base defaults to `https://mineru.net/api/v4` (`lib/pdf/constants.ts:8`) |
+| `PDF_MINERU_CLOUD_API_KEY`, `PDF_MINERU_CLOUD_BASE_URL` | `mineru-cloud` | base defaults to `https://mineru.net/api/v4` ([`lib/pdf/constants.ts:8`](lib/pdf/constants.ts#L8)) |
 | `ALIDOCMIND_ACCESS_KEY_ID`, `ALIDOCMIND_ACCESS_KEY_SECRET`, `ALIDOCMIND_BASE_URL` | `alidocmind`, document **and** media | also the credential the media `availability()` probe checks |
 | `ALLOW_MINERU_CLOUD_FALLBACK` | nothing (default OFF) | `'true'` or `'1'` opts a self-hosted deployment into the cloud fallback |
 | `PDF_MINERU_BACKEND` | nothing (default `pipeline`) | value of the `backend` multipart field on `POST {baseUrl}/file_parse` |
@@ -123,7 +123,7 @@ because the operator configured it.
 | `DATABASE_URL` | the asset-id request form | absent means no server asset store, so only the multipart form works |
 
 `unpdf` needs neither key nor base URL (`requiresApiKey: false`,
-`lib/pdf/constants.ts:15-21`), and `plain-text` needs nothing at all — which is why a
+[`lib/pdf/constants.ts:15-21`](lib/pdf/constants.ts#L15-L21)), and `plain-text` needs nothing at all — which is why a
 deployment with zero ingestion credentials can still generate from `.txt`, `.md` and PDF.
 
 ## Two request forms, deliberately different error text
@@ -138,9 +138,9 @@ deployment with zero ingestion credentials can still generate from `.txt`, `.md`
 | Asset store failure | n/a | logged server-side, fixed generic 500 |
 | Persistence off / unauthenticated / asset missing | n/a | 503 / 401 / 404 from `resolveServerAsset` |
 
-Both share one `runExtraction` helper (`route.ts:219`) so the paths cannot drift; the
+Both share one `runExtraction` helper ([`route.ts:219`](app/api/extract-document/route.ts#L219)) so the paths cannot drift; the
 `isAssetIdForm` flag switches only the handful of messages that must not echo
-caller-controlled input or raw extractor text (`route.ts:215-218`).
+caller-controlled input or raw extractor text ([`route.ts:215-218`](app/api/extract-document/route.ts#L215-L218)).
 
 ```mermaid
 flowchart TD
@@ -154,20 +154,20 @@ flowchart TD
   msgs -->|no| interp["interpolated messages,<br/>frozen for backward compatibility"]
 ```
 
-The multipart form's observable behaviour is explicitly frozen (`route.ts:442-444`); the
+The multipart form's observable behaviour is explicitly frozen ([`route.ts:442-444`](app/api/extract-document/route.ts#L442-L444)); the
 asset-id form was added later and does not inherit its information leakage.
 
 ## Partial failure inside ingestion
 
 | Failure | Behaviour |
 | --- | --- |
-| One page's image extraction throws (`unpdf`) | logged, remaining pages continue (`pdf-providers.ts:312`) |
-| One image's `sharp` conversion throws | logged, remaining images continue (`pdf-providers.ts:308`) |
-| Media artifact with no synopsis, transcript or keyframes | 422, deliberately not an empty 200 (`route.ts:292`) |
+| One page's image extraction throws (`unpdf`) | logged, remaining pages continue ([`pdf-providers.ts:312`](lib/pdf/pdf-providers.ts#L312)) |
+| One image's `sharp` conversion throws | logged, remaining images continue ([`pdf-providers.ts:308`](lib/pdf/pdf-providers.ts#L308)) |
+| Media artifact with no synopsis, transcript or keyframes | 422, deliberately not an empty 200 ([`route.ts:292`](app/api/extract-document/route.ts#L292)) |
 | Unknown extractor id | 400; the asset-id form pre-blocks it with a static message |
 | No extractor for the MIME | 400, interpolated on multipart, generic on asset-id |
-| No available media extractor | throws a message naming both setup paths (`media-registry.ts:70`) |
-| One document of up to five fails | **the whole preparation step fails** — `Promise.all` at `app/generation-preview/page.tsx:340` |
+| No available media extractor | throws a message naming both setup paths ([`media-registry.ts:70`](lib/document/extractors/media-registry.ts#L70)) |
+| One document of up to five fails | **the whole preparation step fails** — `Promise.all` at [`app/generation-preview/page.tsx:340`](app/generation-preview/page.tsx#L340) |
 
 That last row is the one inconsistency with the pipeline's own degrade-don't-fail
 convention. `Promise.allSettled` plus a per-file warning would match it.
@@ -190,7 +190,7 @@ stateDiagram-v2
 
 - **What `DocumentExtractorProvider.version` is for.** Its doc comment calls it the
   version half of a derivation cache key and says "Nothing consumes it yet"
-  (`lib/document/types.ts:40-46`), while `extractors/manifest.ts:5-8` says the client
+  ([`lib/document/types.ts:40-46`](lib/document/types.ts#L40-L46)), while [`extractors/manifest.ts:5-8`](lib/document/extractors/manifest.ts#L5-L8) says the client
   pages need it for `resolveExpectedExtractor` / `extractorVersionFor` in
   `lib/document/extraction-cache.ts` — a file that does not exist in this checkout. All
   five manifest versions are `'1'`, so nothing observable depends on the answer today.
@@ -203,8 +203,8 @@ stateDiagram-v2
   started from `instrumentation.ts` when the agent runtime is configured. Nothing in the
   generation UI reaches it, and it duplicates provider selection, media flattening and
   error classification. Whether the two converge is undecided — see
-  [`../05-agent-runtime/index.md`](../05-agent-runtime/index.md).
+  [`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md).
 - **Whether `lib/document/transforms/` was meant to run between extraction and bundling.**
   Its `DocumentTransformPurpose` union names `'course-generation'` first
-  (`lib/document/transforms/types.ts:3`) but its only caller is
-  `lib/rag/ingest/document.ts:138`, so generation bundles raw provider text.
+  ([`lib/document/transforms/types.ts:3`](lib/document/transforms/types.ts#L3)) but its only caller is
+  [`lib/rag/ingest/document.ts:138`](lib/rag/ingest/document.ts#L138), so generation bundles raw provider text.

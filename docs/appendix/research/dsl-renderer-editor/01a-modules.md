@@ -4,8 +4,8 @@ Companion: `01b-modules.md` (editor, importer, export, vendored forks, app glue)
 
 ## 1. `@openmaic/dsl` — the contract keystone
 
-Barrel: `packages/@openmaic/dsl/src/index.ts:25`. Eleven modules re-exported flat; `schema-roots.ts`
-is deliberately **not** re-exported (`packages/@openmaic/dsl/src/schema-roots.ts:8`) because it exists
+Barrel: [`packages/@openmaic/dsl/src/index.ts:25`](packages/@openmaic/dsl/src/index.ts#L25). Eleven modules re-exported flat; `schema-roots.ts`
+is deliberately **not** re-exported ([`packages/@openmaic/dsl/src/schema-roots.ts:8`](packages/@openmaic/dsl/src/schema-roots.ts#L8)) because it exists
 only to give the JSON-Schema generator a concrete non-generic root.
 
 ```mermaid
@@ -51,7 +51,7 @@ so a *regular* enum is used to get both a value and a type.
 `lock / groupId / link / name`. Ten variants extend it; **`PPTLineElement` is the exception**
 (`:480`): `extends Omit<PPTBaseElement, 'height' | 'rotate'>`. A line's geometry is
 `left/top/width` + local `start`/`end`, and `width` doubles as the SVG **stroke width** — see
-`packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx:119` (`strokeWidth={elementInfo.width}`)
+[`packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx:119`](packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx#L119) (`strokeWidth={elementInfo.width}`)
 and `:33` (dash array derived from `elementInfo.width`). That double duty is a real, undocumented
 invariant of the contract.
 
@@ -79,8 +79,8 @@ speaker note (`:968`). `SlideData` (`:982`) is marked `@deprecated` and kept onl
 `SceneType = 'slide' | 'quiz' | 'interactive' | 'pbl'` (`:22`) plus a frozen `SCENE_TYPES` tuple with
 a **compile-time exhaustiveness pair**: `satisfies` proves every entry is valid, and the
 `_SceneTypesExhaustive` conditional type at `:35` proves the converse. The same two-sided pattern is
-repeated for `ACTION_TYPES` (`action.ts:318`), `WIDGET_TYPES` (`interactive.ts:24`) and
-`RUNTIME_SESSION_STATUSES` (`runtime.ts:70`). This is the single most load-bearing safety device in
+repeated for `ACTION_TYPES` ([`action.ts:318`](packages/@openmaic/dsl/src/action.ts#L318)), `WIDGET_TYPES` ([`interactive.ts:24`](packages/@openmaic/dsl/src/interactive.ts#L24)) and
+`RUNTIME_SESSION_STATUSES` ([`runtime.ts:70`](packages/@openmaic/dsl/src/runtime.ts#L70)). This is the single most load-bearing safety device in
 the package: it makes "validator silently rejects a newly added variant" a build failure.
 
 `Scene` (`:278`) is a **distributive conditional type** that binds the scene-level `type` to its
@@ -96,7 +96,7 @@ export type Scene<
 ```
 
 so `Scene` defaults to `({type:'slide';content:SlideContent} | {type:'quiz';content:QuizContent}) & SceneCore`.
-`validateScene` re-checks the same binding at runtime (`validate.ts:266`).
+`validateScene` re-checks the same binding at runtime ([`validate.ts:266`](packages/@openmaic/dsl/src/validate.ts#L266)).
 
 `Whiteboard = Omit<Slide, 'theme'|'turningMode'|'sectionTag'|'type'>` (`:51`) — whiteboards are
 slides minus the primary-canvas-only fields.
@@ -196,25 +196,25 @@ Key mechanics:
 - Loop-safety: `runLadder` iterates `ladder.length + 1` times and then throws "did not reach"
   (`:632`), so a cyclic registry cannot spin.
 - The 0.2.0→0.3.0 step is the ladder's only real payload transform. It strips stray `rotate`/`height`
-  off `line` elements (`legacy-line-geometry.ts:64`) because the app's closed canvas schema
+  off `line` elements ([`legacy-line-geometry.ts:64`](packages/@openmaic/dsl/src/legacy-line-geometry.ts#L64)) because the app's closed canvas schema
   (`additionalProperties: false`) rejects them, which made every agent edit to an old classroom fail
-  (`version.ts:196`).
+  ([`version.ts:196`](packages/@openmaic/dsl/src/version.ts#L196)).
 
 `stripLegacyLineGeometry` returns the input **by identity** when nothing needed stripping
-(`legacy-line-geometry.ts:19`) and shares every untouched subtree by reference — a cheap no-op detector.
+([`legacy-line-geometry.ts:19`](packages/@openmaic/dsl/src/legacy-line-geometry.ts#L19)) and shares every untouched subtree by reference — a cheap no-op detector.
 
 ### 1.7 Asset seam: `storage.ts`, `slide-media-slots.ts`, `asset-manifest.ts`
 
-`AssetRef = string` (`storage.ts:41`), **allocated** not derived: the docstring at `:77` states that
+`AssetRef = string` ([`storage.ts:41`](packages/@openmaic/dsl/src/storage.ts#L41)), **allocated** not derived: the docstring at `:77` states that
 `put` must return a *new* ref every call, because returning an existing ref for repeated bytes would
 be an existence oracle over data the caller never stored. `StorageProvider` is `put`/`resolve`/`remove`
 only (`:86`).
 
-`slideMediaSlotDescriptors` (`slide-media-slots.ts:29`) is a generator over the six media slot kinds
+`slideMediaSlotDescriptors` ([`slide-media-slots.ts:29`](packages/@openmaic/dsl/src/slide-media-slots.ts#L29)) is a generator over the six media slot kinds
 (`background-image`, `image-src`, `audio-src`, `video-src`, `video-media-ref`, `video-poster`). It
 yields optional slots **even when empty** (`:17`) so writers and enumerators share one role definition.
 
-`enumerateAssetManifest` (`asset-manifest.ts:119`) walks stage whiteboards → each scene (canvas,
+`enumerateAssetManifest` ([`asset-manifest.ts:119`](packages/@openmaic/dsl/src/asset-manifest.ts#L119)) walks stage whiteboards → each scene (canvas,
 whiteboards, speech actions) → stage `videoManifest` keys, emitting one entry per distinct
 `(ref, kind)` pair in document order. Owners are keyed by **structural position**
 (`scene:3:element:7`) not by user-controlled ids (`:150`), so documents with duplicate ids still
@@ -230,15 +230,15 @@ now depends on `@default` tags reaching the schema. Four PBL definitions are re-
 `additionalProperties: true` after generation (`:24`) because historical stored PBL documents carry
 app-owned runtime fields.
 
-Consequence spelled out in `stage.ts:104`: because every other definition is
+Consequence spelled out in [`stage.ts:104`](packages/@openmaic/dsl/src/stage.ts#L104): because every other definition is
 `additionalProperties: false`, **additive fields ARE a breaking change for schema-validating
 consumers** even though they do not bump `DSL_VERSION`.
 
 ## 2. `@openmaic/renderer` — read-only paint
 
 Public surface: `packages/@openmaic/renderer/src/index.ts`. Four export paths in
-`package.json:9`: `.`, `./elements`, `./types`, `./snapshot`, plus a static `./fonts.css`.
-`./types` re-exports the whole DSL (`src/types/index.ts:4`) so the historical
+[`package.json:9`](packages/@openmaic/renderer/package.json#L9): `.`, `./elements`, `./types`, `./snapshot`, plus a static `./fonts.css`.
+`./types` re-exports the whole DSL ([`src/types/index.ts:4`](packages/@openmaic/renderer/src/types/index.ts#L4)) so the historical
 `@openmaic/renderer/types` surface still resolves.
 
 ```mermaid
@@ -266,7 +266,7 @@ flowchart TD
 
 ### 2.1 The canvas contract
 
-`SlideCanvasProps` (`SlideCanvas.tsx:27`) — `slide` may come from the prop *or* from
+`SlideCanvasProps` ([`SlideCanvas.tsx:27`](packages/@openmaic/renderer/src/SlideCanvas.tsx#L27)) — `slide` may come from the prop *or* from
 `SlideRendererProvider`; if neither, the component **throws** (`:92`). Every optional prop falls back
 to the context value (`:98`–`:107`), so a host can drive one canvas from either direction.
 
@@ -278,13 +278,13 @@ Determinism levers:
 | `scale` given | fit math is bypassed; the canvas renders at `viewportSize × scale` |
 | `chrome` (default `true`) | drop shadow + 0.5rem radius; snapshot pipelines pass `false` so html2canvas does not bake a 1px border into the PNG (`:78`) |
 | `hiddenElementIds` | filtered out of both rendering and effect targeting (`:114`) |
-| `dragOffsets` | compositor-only `translate3d` per element (`SlideElement.tsx:181`), never written to the document |
+| `dragOffsets` | compositor-only `translate3d` per element ([`SlideElement.tsx:181`](packages/@openmaic/renderer/src/SlideElement.tsx#L181)), never written to the document |
 
 Stacking order is positional: `elementIndexById` maps element id → `index + 1` over the **unfiltered**
-list (`:119`) and that becomes `zIndex` (`SlideElement.tsx:170`). So array order *is* z-order, and
+list (`:119`) and that becomes `zIndex` ([`SlideElement.tsx:170`](packages/@openmaic/renderer/src/SlideElement.tsx#L170)). So array order *is* z-order, and
 hiding an element does not renumber its siblings.
 
-### 2.2 Fit math (`hooks/useViewportSize.ts:68`)
+### 2.2 Fit math ([`hooks/useViewportSize.ts:68`](packages/@openmaic/renderer/src/hooks/useViewportSize.ts#L68))
 
 ```
 if (containerH / containerW > viewportRatio)   # container is taller than the slide
@@ -303,14 +303,14 @@ Re-runs on container resize via a `ResizeObserver` (`:95`). `updateFitScale` de-
 
 Two coordinate helpers coexist and they do **not** agree:
 
-- `utils/geometry.ts:16` `getElementPercentageGeometry` — pure, reads the *authored*
+- [`utils/geometry.ts:16`](packages/@openmaic/renderer/src/utils/geometry.ts#L16) `getElementPercentageGeometry` — pure, reads the *authored*
   `left/top/width/height` against `viewportSize × viewportSize*viewportRatio`, returns 0–100 space.
-- `snapshot/measure.ts:73` `measureSlideElementGeometry` — mounts the slide off-screen, waits for
+- [`snapshot/measure.ts:73`](packages/@openmaic/renderer/src/snapshot/measure.ts#L73) `measureSlideElementGeometry` — mounts the slide off-screen, waits for
   fonts, then reads `.element-content`'s `getBoundingClientRect()` normalized against the canvas
   container.
 
-The divergence is real and documented at `snapshot/measure.ts:11`: auto-sized text has
-`height: auto` plus 10px content padding (`elements/text/BaseTextElement.tsx:63`), so a spotlight
+The divergence is real and documented at [`snapshot/measure.ts:11`](packages/@openmaic/renderer/src/snapshot/measure.ts#L11): auto-sized text has
+`height: auto` plus 10px content padding ([`elements/text/BaseTextElement.tsx:63`](packages/@openmaic/renderer/src/elements/text/BaseTextElement.tsx#L63)), so a spotlight
 placed on the authored box sits offset from the rendered text. The video-export compiler consumes the
 measured geometry as a `GeometryProbe` and falls back to the authored box for anything unmeasured.
 
@@ -322,19 +322,19 @@ boxes, `getElementRange` (`:43`) which special-cases lines as
 ### 2.4 Layout/measurement determinism, honestly
 
 What is deterministic: element boxes, z-order, fit scale, path geometry, the CSS reset in
-`styles.ts:18` (`createTextProseStyles`, shared verbatim by the static renderer and the ProseMirror
+[`styles.ts:18`](packages/@openmaic/renderer/src/styles.ts#L18) (`createTextProseStyles`, shared verbatim by the static renderer and the ProseMirror
 editor so both obey one layout contract).
 
 What is **not**: anything whose height is `auto`. `BaseTextElement` renders
 `height: elementInfo.vertical ? '100%' : 'auto'` on `.element-content` (`:66`), so text extent depends
-on the loaded font faces. `snapshot/measure.ts:117` force-loads every `(style, weight, family)` triple
+on the loaded font faces. [`snapshot/measure.ts:117`](packages/@openmaic/renderer/src/snapshot/measure.ts#L117) force-loads every `(style, weight, family)` triple
 actually used before awaiting `document.fonts.ready`, with a comment (`:110`) that `fonts.ready` alone
 is racy — it can resolve before the off-screen render triggers a self-hosted woff2 fetch, leaving a
 fallback face whose advances differ. Two `requestAnimationFrame` waits bracket the read on each side
 (`:115`, `:138`) to let KaTeX's re-fit commit.
 
 `BaseShapeElement` grows the SVG viewport to the path's coordinate bbox and offsets it back
-(`elements/shape/BaseShapeElement.tsx:173`), capped at 4000px (`:185`), because html2canvas-pro clips
+([`elements/shape/BaseShapeElement.tsx:173`](packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx#L173)), capped at 4000px ([`:185`](packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx#L185)), because html2canvas-pro clips
 SVG overflow and turned connector arcs into stubs in exported PNGs.
 
 ### 2.5 Snapshot path (`snapshot/index.ts`)

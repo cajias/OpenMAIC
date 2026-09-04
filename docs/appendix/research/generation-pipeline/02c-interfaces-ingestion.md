@@ -62,7 +62,7 @@ erDiagram
 
 ## Provider contracts
 
-`lib/document/types.ts:35`:
+[`lib/document/types.ts:35`](lib/document/types.ts#L35):
 
 ```ts
 export interface DocumentExtractorProvider {
@@ -81,7 +81,7 @@ export interface DocumentExtractorProvider {
 }
 ```
 
-`lib/document/types.ts:3`, `:13`, `:27`:
+[`lib/document/types.ts:3`](lib/document/types.ts#L3), [`:13`](lib/document/types.ts#L13), [`:27`](lib/document/types.ts#L27):
 
 ```ts
 export interface DocumentExtractorCapabilities {
@@ -112,7 +112,7 @@ export interface DocumentExtractorInput {
 }
 ```
 
-`lib/document/types.ts:72` — the media provider adds the optional availability
+[`lib/document/types.ts:72`](lib/document/types.ts#L72) — the media provider adds the optional availability
 probe that makes registry selection credential-aware:
 
 ```ts
@@ -128,7 +128,7 @@ export interface MediaExtractorProvider {
 }
 ```
 
-`lib/document/types.ts:56`:
+[`lib/document/types.ts:56`](lib/document/types.ts#L56):
 
 ```ts
 export interface MediaExtractorCapabilities {
@@ -136,9 +136,9 @@ export interface MediaExtractorCapabilities {
 }
 ```
 
-The two selection functions (`extractors/registry.ts:23`,
-`extractors/media-registry.ts:24`) plus their browser-safe manifest twins
-(`extractors/manifest.ts:195`, `:235`):
+The two selection functions ([`extractors/registry.ts:23`](lib/document/extractors/registry.ts#L23),
+[`extractors/media-registry.ts:24`](lib/document/extractors/media-registry.ts#L24)) plus their browser-safe manifest twins
+([`extractors/manifest.ts:195`](lib/document/extractors/manifest.ts#L195), [`:235`](lib/document/extractors/manifest.ts#L235)):
 
 ```ts
 export function selectDocumentExtractorProvider(options: {
@@ -162,7 +162,7 @@ synchronous with no availability concept.
 
 ## Artifacts
 
-`lib/document/types.ts:151` and `:187`:
+[`lib/document/types.ts:151`](lib/document/types.ts#L151) and [`:187`](lib/document/types.ts#L187):
 
 ```ts
 export interface DocumentArtifact {
@@ -199,7 +199,7 @@ export interface MediaArtifact {
 }
 ```
 
-`lib/document/types.ts:205`, `:213`, `:225` — declared, type-re-exported by the
+[`lib/document/types.ts:205`](lib/document/types.ts#L205), [`:213`](lib/document/types.ts#L213), [`:225`](lib/document/types.ts#L225) — declared, type-re-exported by the
 barrel, and **never constructed** by the extraction routes, which call
 `extract()` directly and let exceptions reach the route's try/catch:
 
@@ -223,7 +223,7 @@ and is likewise unconstructed.
 
 ## Transform contracts (framework present, generation does not use it)
 
-`lib/document/transforms/types.ts:3`, `:5`, `:33`, `:58`:
+[`lib/document/transforms/types.ts:3`](lib/document/transforms/types.ts#L3), [`:5`](lib/document/transforms/types.ts#L5), [`:33`](lib/document/transforms/types.ts#L33), [`:58`](lib/document/transforms/types.ts#L58):
 
 ```ts
 export type DocumentTransformPurpose = 'course-generation' | 'question-bank' | 'reference' | 'rag';
@@ -252,11 +252,11 @@ export interface DocumentTransform {
 `DocumentTransformPipelineOptions` (`:58`) carries a single
 `failurePolicy?: 'fail-fast' | 'best-effort'`. `'course-generation'` is the first
 member of the purpose union, but the only caller of `transformDocument`
-(`transforms/pipeline.ts:14`) is `lib/rag/ingest/document.ts:138`.
+([`transforms/pipeline.ts:14`](lib/document/transforms/pipeline.ts#L14)) is [`lib/rag/ingest/document.ts:138`](lib/rag/ingest/document.ts#L138).
 
 ## Bundling contract
 
-`lib/document/bundle.ts:11`, `:15`, `:23`:
+[`lib/document/bundle.ts:11`](lib/document/bundle.ts#L11), [`:15`](lib/document/bundle.ts#L15), [`:23`](lib/document/bundle.ts#L23):
 
 ```ts
 export interface ParsedDocumentImage extends Omit<PdfImage, 'storageId' | 'visionPriority'> {
@@ -281,7 +281,7 @@ export interface DocumentBundleResult {
 }
 ```
 
-`lib/document/bundle.ts:72`, `:165`, `:181`:
+[`lib/document/bundle.ts:72`](lib/document/bundle.ts#L72), [`:165`](lib/document/bundle.ts#L165), [`:181`](lib/document/bundle.ts#L181):
 
 ```ts
 export function allocateDocumentTextBudgets(lengths: number[], maxChars: number): number[]
@@ -298,7 +298,7 @@ export function buildDocumentBundle(
 
 ## Vision partition — the shared route/generator contract
 
-`packages/@openmaic/generation/src/outline-formatters.ts:50`, `:63`:
+[`packages/@openmaic/generation/src/outline-formatters.ts:50`](packages/@openmaic/generation/src/outline-formatters.ts#L50), [`:63`](packages/@openmaic/generation/src/outline-formatters.ts#L63):
 
 ```ts
 export interface VisionImagePartition<T> {
@@ -323,8 +323,8 @@ export function partitionImagesForVision<
 ): VisionImagePartition<T>
 ```
 
-This is the one contract that both `app/api/generate/scene-content/route.ts:217`
-and `scene-generator.ts:631` call, precisely so the route's pre-resolution and the
+This is the one contract that both [`app/api/generate/scene-content/route.ts:217`](app/api/generate/scene-content/route.ts#L217)
+and [`scene-generator.ts:631`](packages/@openmaic/generation/src/scene-generator.ts#L631) call, precisely so the route's pre-resolution and the
 generator's re-slice cannot disagree about which images are attached.
 
 ```mermaid

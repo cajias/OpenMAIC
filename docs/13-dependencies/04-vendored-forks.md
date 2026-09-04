@@ -11,7 +11,7 @@ the repository that are not npm forks.
 `lib/agent/VENDOR.md`, `lib/edit/html-edit.ts`,
 `scripts/sync-maic-importer.mjs`, `scripts/assert-vendor-maic-importer.mjs`,
 `next.config.ts`, `.github/workflows/publish-packages.yml`, `git log`. Evidence:
-[dsl-renderer-editor/04](../appendix/research/dsl-renderer-editor/04-dependencies-and-config.md).
+[dsl-renderer-editor/04](docs/appendix/research/dsl-renderer-editor/04-dependencies-and-config.md).
 
 ## Vendor lifecycle
 
@@ -36,7 +36,7 @@ nothing). Nothing tells you upstream has moved.
 
 ## `packages/pptxgenjs` — fork of 4.0.1
 
-Upstream: `gitbrent/PptxGenJS`, MIT, `package.json:10`, repository field at
+Upstream: `gitbrent/PptxGenJS`, MIT, [`package.json:10`](packages/pptxgenjs/package.json#L10), repository field at
 `:68`-`:71`. Version `4.0.1` (`:3`) — the fork does not renumber, so the workspace
 version reads exactly like the upstream release it descends from.
 
@@ -73,12 +73,12 @@ diffing. Nothing in the repo automates or records that.
 **No `LICENSE` file.** `packages/pptxgenjs/` contains only `src/`, `types/`,
 `.gitignore`, `package.json`, `rollup.config.mjs`, `tsconfig.json`. The MIT
 declaration lives in `package.json` and nowhere else — see
-[07-licences.md](./07-licences.md).
+[07-licences.md](docs/13-dependencies/07-licences.md).
 
 ## `packages/mathml2omml` — fork of 0.5.0
 
 Upstream: `fiduswriter/mathml2omml`, author Johannes Wilm,
-**`LGPL-3.0-or-later`** (`package.json:26`), with the full LGPL text present as
+**`LGPL-3.0-or-later`** ([`package.json:26`](packages/mathml2omml/package.json#L26)), with the full LGPL text present as
 `LICENSE` (7.5 KB).
 
 **Why forked:** one upstream bug, fixed in commit `a3f88d53`, one character wide:
@@ -88,7 +88,7 @@ Upstream: `fiduswriter/mathml2omml`, author Johannes Wilm,
 + textContainerNames.includes(arr[level].name) &&
 ```
 
-`src/parse-stringify/parse.js:82`. The commit message states the consequence
+[`src/parse-stringify/parse.js:82`](packages/mathml2omml/src/parse-stringify/parse.js#L82). The commit message states the consequence
 precisely: indexing the `includes` function always yields `undefined`, so the
 "trailing text node" branch never ran and trailing text inside a MathML text
 container (`mtext`/`mi`/`mn`/`mo`/`ms`) was silently dropped from the OMML. Line 48
@@ -98,7 +98,7 @@ fix up on install.
 
 One further local commit, `a58618a7`, replaced a Unix `cp` in the build script
 with a `node -e` `copyFileSync` for cross-platform builds — visible in
-`package.json:14`.
+[`package.json:14`](packages/mathml2omml/package.json#L14).
 
 Total local divergence from upstream 0.5.0: **one character in one source file,
 plus one build-script line.** This is the cheapest possible fork, and it is the
@@ -128,7 +128,7 @@ sequenceDiagram
 ```
 
 `latexToOmml` returns `null` on any failure and logs a warning
-(`lib/export/latex-to-omml.ts:77`-`:80`) — a formula that will not convert
+([`lib/export/latex-to-omml.ts:77`](lib/export/latex-to-omml.ts#L77)-[`:80`](lib/export/latex-to-omml.ts#L80)) — a formula that will not convert
 degrades rather than failing the export. The Cambria Math `<a:rPr>` injection at
 `:25`-`:33` is a PowerPoint requirement, not a MathML one; `xmlns:w` is stripped
 because it is DOCX-only and invalid in PPTX (`:37`).
@@ -141,8 +141,8 @@ because it is DOCX-only and invalid in PPTX (`:37`).
 | `scripts/check-package-version-bumps.mjs` | version increases on changed publishable inputs; the DSL format-version caret-escape rule | **No.** Iterates `OPENMAIC_PACKAGES`. |
 | `scripts/check-internal-dependency-ranges.mjs` | `workspace:^` shape for owned packages | **No.** Same list. |
 | `scripts/smoke-test-package-tarballs.mjs` | six `@openmaic` tarballs install and import in a clean consumer | **No.** |
-| `publish-packages.yml` | publishes six packages by name | **Protects by exclusion:** the workflow pins its publish scope by name precisely because these two names are not ours (`publish-packages.yml:5`-`:7`). |
-| `ci.yml:107`-`:121` "Verify the install did not rewrite tracked package files" | tracked files under `packages/@openmaic` changed by install/build — the diff is pathspec-limited (`git --no-replace-objects diff --quiet "$GITHUB_SHA" -- packages/@openmaic`, `:115`) | **No.** The forks live one level up, in `packages/`, so a `postinstall` that rewrote `packages/pptxgenjs/src/**` or `packages/mathml2omml/src/**` passes this step. Only the release job's equivalent is tree-wide (`publish-packages.yml:151`, no pathspec) — and that runs after merge. |
+| `publish-packages.yml` | publishes six packages by name | **Protects by exclusion:** the workflow pins its publish scope by name precisely because these two names are not ours ([`publish-packages.yml:5`](.github/workflows/publish-packages.yml#L5)-[`:7`](.github/workflows/publish-packages.yml#L7)). |
+| [`ci.yml:107`](.github/workflows/ci.yml#L107)-[`:121`](.github/workflows/ci.yml#L121) "Verify the install did not rewrite tracked package files" | tracked files under `packages/@openmaic` changed by install/build — the diff is pathspec-limited (`git --no-replace-objects diff --quiet "$GITHUB_SHA" -- packages/@openmaic`, [`:115`](.github/workflows/ci.yml#L115)) | **No.** The forks live one level up, in `packages/`, so a `postinstall` that rewrote `packages/pptxgenjs/src/**` or `packages/mathml2omml/src/**` passes this step. Only the release job's equivalent is tree-wide ([`publish-packages.yml:151`](.github/workflows/publish-packages.yml#L151), no pathspec) — and that runs after merge. |
 | `next.config.ts` `transpilePackages` | both forks are transpiled by Next rather than consumed as prebuilt ESM | — |
 
 So: **no gate versions, validates or diff-checks either fork.** They are checked
@@ -158,18 +158,18 @@ round-trip tests (`tests/edit/round-trip/geometry.test.ts` reads an exported
 fork of `pptxtojson` carrying the entire PPTX → DSL transform. It still declares
 `pptxtojson ^1.11.0` as a dependency, imported purely for the parsed-JSON
 **types** — `ParsedPptxJson` at
-`src/import-pipeline/transformParsedToSlides.ts:34` is
+[`src/import-pipeline/transformParsedToSlides.ts:34`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L34) is
 `Awaited<ReturnType<typeof parsePptxDefault>>`.
 
 Unlike the two `packages/` forks, this one is renumbered (`0.1.3`), published to
-npm, and covered by every gate in [05-published-packages.md](./05-published-packages.md).
+npm, and covered by every gate in [05-published-packages.md](docs/13-dependencies/05-published-packages.md).
 
 Its transitive `pdfjs-dist` pin (`4.8.69`, exact) is the reason for the whole
 static-asset dance: `pdfjs-dist`'s dynamic `require()` patterns are rejected
 outright by Turbopack as *"Module not found: Can't resolve <dynamic>"*, so
-`scripts/sync-maic-importer.mjs:1`-`:10` copies `dist/` into
+[`scripts/sync-maic-importer.mjs:1`](scripts/sync-maic-importer.mjs#L1)-[`:10`](scripts/sync-maic-importer.mjs#L10) copies `dist/` into
 `public/vendor/maic-importer/` and the app URL-imports it at runtime
-(`lib/import/use-import-pptx.ts:62`), bypassing the bundler entirely while
+([`lib/import/use-import-pptx.ts:62`](lib/import/use-import-pptx.ts#L62)), bypassing the bundler entirely while
 keeping types from the workspace package. `scripts/assert-vendor-maic-importer.mjs`
 fails `pnpm build` if the bundle is missing or empty — the comment at `:6`-`:11`
 explains the failure mode it prevents: a 404 HTML page parsed as JavaScript,
@@ -179,7 +179,7 @@ surfacing as an opaque `SyntaxError`.
 
 Exact-text (`str_replace`) edit application, copied from
 `@earendil-works/pi-coding-agent`'s `dist/core/tools/edit-diff.ts`. The header at
-`lib/edit/html-edit.ts:1`-`:19` states why it is a copy rather than an import:
+[`lib/edit/html-edit.ts:1`](lib/edit/html-edit.ts#L1)-[`:19`](lib/edit/html-edit.ts#L19) states why it is a copy rather than an import:
 that package only exports its root index (the apply core is internal), and pulling
 the `edit` tool drags in `@earendil-works/pi-tui` — a terminal UI — plus a CLI/bash
 dependency tree unsuitable for a Next.js bundle. The `diff`-backed
@@ -204,7 +204,7 @@ safe.
 
 `public/vendor/gsap.min.js`, 72 927 bytes (measured with `ls -la`), drives the
 single paused GSAP timeline in every exported video composition. It is shipped
-*inside* the export ZIP (`lib/video-export-app/package-zip.ts:19`, `:34`) so the
+*inside* the export ZIP ([`lib/video-export-app/package-zip.ts:19`](lib/video-export-app/package-zip.ts#L19), [`:34`](lib/video-export-app/package-zip.ts#L34)) so the
 render container — which has an iptables egress lockdown and therefore no
 outbound network at all — needs no CDN. GSAP is not a runtime npm dependency;
 the root `gsap` devDependency has no first-party consumer.

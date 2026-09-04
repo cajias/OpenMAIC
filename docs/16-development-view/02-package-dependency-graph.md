@@ -5,12 +5,12 @@ declared `workspace:^` and never `workspace:*`, and the topological order that
 `postinstall` therefore has to walk. `@openmaic/dsl` is the root of the graph and
 the only package with zero runtime dependencies.
 
-**Sources:** every `packages/*/package.json`, `scripts/openmaic-packages.mjs:34-43`,
-`scripts/check-internal-dependency-ranges.mjs:8-48`, `package.json:10`,
-`.github/workflows/publish-packages.yml:119-130`, `next.config.ts:15,23-34`.
+**Sources:** every `packages/*/package.json`, [`scripts/openmaic-packages.mjs:34-43`](scripts/openmaic-packages.mjs#L34-L43),
+[`scripts/check-internal-dependency-ranges.mjs:8-48`](scripts/check-internal-dependency-ranges.mjs#L8-L48), [`package.json:10`](package.json#L10),
+[`.github/workflows/publish-packages.yml:119-130`](.github/workflows/publish-packages.yml#L119-L130), `next.config.ts:15,23-34`.
 Evidence:
-[`quality-testing-ci-deps/01b`](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[`dsl-renderer-editor`](../appendix/research/dsl-renderer-editor/00-overview.md).
+[`quality-testing-ci-deps/01b`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[`dsl-renderer-editor`](docs/appendix/research/dsl-renderer-editor/00-overview.md).
 
 ## The graph
 
@@ -62,8 +62,8 @@ imports only `temml` and `mathml2omml`) and feeds the OMML into
 
 ## Internal edge table
 
-`INTERNAL_DEPENDENTS` in `scripts/openmaic-packages.mjs:37-43` is the single
-declaration of this table, and `scripts/check-internal-dependency-ranges.mjs:103-134`
+`INTERNAL_DEPENDENTS` in [`scripts/openmaic-packages.mjs:37-43`](scripts/openmaic-packages.mjs#L37-L43) is the single
+declaration of this table, and [`scripts/check-internal-dependency-ranges.mjs:103-134`](scripts/check-internal-dependency-ranges.mjs#L103-L134)
 cross-checks it against the manifests **in both directions** so deleting an entry
 is a failure, not an exemption.
 
@@ -87,7 +87,7 @@ pnpm publishes `workspace:*` as an **exact** pin. A consumer that installs two
 `@openmaic` dependents released at different times would then get two copies of
 `@openmaic/dsl` — and the dsl carries the schema, the validators and both version
 constants, so a document produced against one instance can be validated by the
-other's schema revision (`scripts/check-internal-dependency-ranges.mjs:12-17`).
+other's schema revision ([`scripts/check-internal-dependency-ranges.mjs:12-17`](scripts/check-internal-dependency-ranges.mjs#L12-L17)).
 
 ```mermaid
 flowchart LR
@@ -110,12 +110,12 @@ The rule is enforced three times, at three different strengths:
 
 | Enforcement | Where | What it inspects | When |
 | --- | --- | --- | --- |
-| Source-level range check | `scripts/check-internal-dependency-ranges.mjs` | the manifests in the working tree | `ci.yml:88-89`, before `pnpm install` |
-| Packed-manifest check | `scripts/smoke-test-package-tarballs.mjs` (`assertDeduplicableDslRange`) | `package/package.json` read back out of the packed `.tgz` | `publish-packages.yml:234-237`, release path only |
+| Source-level range check | `scripts/check-internal-dependency-ranges.mjs` | the manifests in the working tree | [`ci.yml:88-89`](.github/workflows/ci.yml#L88-L89), before `pnpm install` |
+| Packed-manifest check | `scripts/smoke-test-package-tarballs.mjs` (`assertDeduplicableDslRange`) | `package/package.json` read back out of the packed `.tgz` | [`publish-packages.yml:234-237`](.github/workflows/publish-packages.yml#L234-L237), release path only |
 | Format-version escape rule | `scripts/check-package-version-bumps.mjs` (`checkDslFormatVersionRule`) | `DSL_VERSION` / `RUNTIME_DSL_VERSION` in `packages/@openmaic/dsl/src/version.ts` at both revisions | every PR and every push |
 
 `peerDependencies` and `optionalDependencies` are rejected outright for owned
-packages (`FORBIDDEN_FIELDS`, `check-internal-dependency-ranges.mjs:48`), and so
+packages (`FORBIDDEN_FIELDS`, [`check-internal-dependency-ranges.mjs:48`](scripts/check-internal-dependency-ranges.mjs#L48)), and so
 is `devDependencies` (lines 140-150): a devDependency satisfies the workspace
 link while the published tarball declares no dependency at all.
 
@@ -157,7 +157,7 @@ recorded.
 Step 9 is not a build: `scripts/sync-maic-importer.mjs` copies
 `packages/@openmaic/importer/dist` into `public/vendor/maic-importer`, so it must
 follow step 6 and cannot precede it. See
-[`03-build-pipeline.md`](./03-build-pipeline.md).
+[`03-build-pipeline.md`](docs/16-development-view/03-build-pipeline.md).
 
 ## Build tool per package
 
@@ -176,11 +176,11 @@ Not uniform, and the differences matter when a build breaks.
 
 Two of the nine `postinstall` steps invoke `npm run build` rather than
 `pnpm run build` — the two vendored forks, which keep their upstream npm-style
-scripts (`package.json:10`).
+scripts ([`package.json:10`](package.json#L10)).
 
 `renderer` is the only package whose build writes files that are both **tracked
-and publishable**. That is the reason both `ci.yml:107-121` and
-`publish-packages.yml:143-157` diff the tree against `$GITHUB_SHA` after the
+and publishable**. That is the reason both [`ci.yml:107-121`](.github/workflows/ci.yml#L107-L121) and
+[`publish-packages.yml:143-157`](.github/workflows/publish-packages.yml#L143-L157) diff the tree against `$GITHUB_SHA` after the
 build: a stale committed `fonts.css` becomes a PR failure rather than a release
 that ships bytes absent from the commit.
 
@@ -205,11 +205,11 @@ flowchart TD
 path deliberately does **not** go through the bundler: `lib/import/use-import-pptx.ts`
 does a bundler-ignored URL import of `/vendor/maic-importer/index.js`, because
 the bundle contains dynamic `require()` from `pdfjs-dist` that Turbopack rejects
-as a hard "Module not found" error (`scripts/sync-maic-importer.mjs:5-9`). The
-server path imports the workspace package normally, and `next.config.ts:15`
+as a hard "Module not found" error ([`scripts/sync-maic-importer.mjs:5-9`](scripts/sync-maic-importer.mjs#L5-L9)). The
+server path imports the workspace package normally, and [`next.config.ts:15`](next.config.ts#L15)
 lists `@openmaic/importer` in `transpilePackages` alongside both forks.
 
-`@openmaic/generation` is additionally listed in `next.config.ts:23-34`
+`@openmaic/generation` is additionally listed in [`next.config.ts:23-34`](next.config.ts#L23-L34)
 `serverExternalPackages`, together with the two `@earendil-works` agent packages
 and both optional `@aws-sdk` peers of `@openmaic/storage`, because those do a
 runtime `import(specifier)` with a computed specifier that webpack cannot

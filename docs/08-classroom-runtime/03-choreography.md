@@ -9,8 +9,8 @@ enforcement stories, and that difference is the most important thing on this pag
 **Sources:** `lib/choreography/timing.ts`, `cursor.ts`, `timeline.ts`,
 `descriptors/{index,types,spotlight,laser}.ts`, `lib/action/engine.ts`,
 `lib/video-export/passes/timeline.ts`, `eslint.config.mjs`,
-[`../appendix/research/classroom-runtime/02c-interfaces-choreography-and-buffer.md`](../appendix/research/classroom-runtime/02c-interfaces-choreography-and-buffer.md),
-[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md).
+[`../appendix/research/classroom-runtime/02c-interfaces-choreography-and-buffer.md`](docs/appendix/research/classroom-runtime/02c-interfaces-choreography-and-buffer.md),
+[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](docs/appendix/research/media-audio-video/02d-interfaces-choreography-ir.md).
 
 ## What is in the module
 
@@ -56,16 +56,16 @@ flowchart LR
 **Timing constants are extracted.** `ActionEngine` imports `WB_OPEN_MS`,
 `WB_DRAW_MS`, `WB_EDIT_MS`, `WB_DELETE_MS`, `WB_CLOSE_MS`, `WIDGET_MS`,
 `wbDrawCodeMs`, `wbClearMs`, `EFFECT_AUTO_CLEAR_MS` and `MAX_VIDEO_WAIT_MS`
-from `@/lib/choreography` (`lib/action/engine.ts:44-55`) and passes them straight
+from `@/lib/choreography` ([`lib/action/engine.ts:44-55`](lib/action/engine.ts#L44-L55)) and passes them straight
 into `delay()`. `PlaybackEngine` imports `estimateSpeechDurationMs` and
-`DISCUSSION_TRIGGER_DELAY_MS` (`lib/playback/engine.ts:39-43`). There is exactly
+`DISCUSSION_TRIGGER_DELAY_MS` ([`lib/playback/engine.ts:39-43`](lib/playback/engine.ts#L39-L43)). There is exactly
 one declaration of each number, so app and exporter cannot drift.
 
 **Animation descriptors are a mirror.** `spotlightV1` says so in its own header:
 "Values captured verbatim from the `SpotlightOverlay` effect component
-(`motion/react`)" (`descriptors/spotlight.ts:7-8`). The app's overlays still hold
+(`motion/react`)" ([`descriptors/spotlight.ts:7-8`](lib/choreography/descriptors/spotlight.ts#L7-L8)). The app's overlays still hold
 their real animation values as `motion/react` props. `DESCRIPTORS` is consumed
-**only** by `lib/video-export/passes/timeline.ts:67` and by a schema-conformance
+**only** by [`lib/video-export/passes/timeline.ts:67`](lib/video-export/passes/timeline.ts#L67) and by a schema-conformance
 test. Editing `SpotlightOverlay.tsx` and not editing `spotlight.ts` silently
 diverges the exported video from the live classroom, and nothing fails.
 
@@ -93,7 +93,7 @@ estimate: CJK when more than 30 % of characters match
 divided by `speed`.
 
 A trap: `PlaybackEngine` declares its **own** `CJK_LANG_THRESHOLD = 0.3`
-(`lib/playback/engine.ts:60`) with the same value but a different purpose — it
+([`lib/playback/engine.ts:60`](lib/playback/engine.ts#L60)) with the same value but a different purpose — it
 picks `zh-CN` versus `en-US` for a browser voice, and its regex covers only CJK
 Unified Ideographs plus Ext-A (`:824`). Same number, two declarations, two
 meanings.
@@ -101,7 +101,7 @@ meanings.
 ## `resolveActionTimeline` — index domain to wall clock
 
 Playback drives actions by cursor; a faithful exporter needs them on a clock.
-`resolveActionTimeline(scenes, opts)` (`timeline.ts:282`) is the pure expansion.
+`resolveActionTimeline(scenes, opts)` ([`timeline.ts:282`](lib/choreography/timeline.ts#L282)) is the pure expansion.
 Its output is `TimelineSegment[]` in play order, each carrying `startMs`,
 `durationMs` (how long it is *visually present*) and `advancesCursorMs` (how long
 the cursor waits) — the two differ only for fire-and-forget effects.
@@ -146,7 +146,7 @@ sequenceDiagram
 
 ### The eight options: five injected callbacks and three plain values
 
-`ResolveTimelineOptions` (`timeline.ts:71-126`) has eight optional fields, all
+`ResolveTimelineOptions` ([`timeline.ts:71-126`](lib/choreography/timeline.ts#L71-L126)) has eight optional fields, all
 supplying something the pure function cannot observe. Exactly **five** are
 injected callbacks — one per fact that depends on runtime or stored state:
 
@@ -174,16 +174,16 @@ The error message names the fix (`:172-176`).
 
 - **Implicit whiteboard open.** `ActionEngine.execute` awaits
   `ensureWhiteboardOpen()` before any `wb_*` verb other than `wb_open`/`wb_close`
-  (`lib/action/engine.ts:228-230`). The timeline emits a synthetic
+  ([`lib/action/engine.ts:228-230`](lib/action/engine.ts#L228-L230)). The timeline emits a synthetic
   `IMPLICIT_WB_OPEN` segment with a distinct id so consumers can tell it apart
-  from an authored `wb_open` (`timeline.ts:61-64`, `:319-322`).
+  from an authored `wb_open` ([`timeline.ts:61-64`](lib/choreography/timeline.ts#L61-L64), `:319-322`).
 - **Zero-dwell no-ops.** `actionDurationMs` mirrors every early return in
   `ActionEngine`: empty `wb_draw_text` content → 0 (`:216-221`), a table with no
   rows or columns → 0 (`:222-229`), an empty `wb_clear` → 0 (`:243-249`).
 
 ### `clampFireAndForgetLifetimes`
 
-The subtle pass (`timeline.ts:368`). An effect's *nominal* lifetime is
+The subtle pass ([`timeline.ts:368`](lib/choreography/timeline.ts#L368)). An effect's *nominal* lifetime is
 `EFFECT_AUTO_CLEAR_MS`, but the engine both shortens and lengthens it:
 
 - **Shortened at a scene boundary or at completion.** The app plays one
@@ -191,7 +191,7 @@ The subtle pass (`timeline.ts:368`). An effect's *nominal* lifetime is
   completion also clears effects. So a spotlight late in a scene dies at the next
   scene's start, not a flat 5 s later.
 - **Lengthened by a later effect.** `ActionEngine.scheduleEffectClear` uses **one
-  shared timer** that each new effect *resets* (`lib/action/engine.ts:308-316`),
+  shared timer** that each new effect *resets* ([`lib/action/engine.ts:308-316`](lib/action/engine.ts#L308-L316)),
   and `clearAllEffects` drops every active effect together. So back-to-back
   effects all live until the last one's fire plus 5 s.
 
@@ -202,7 +202,7 @@ The subtle pass (`timeline.ts:368`). An effect's *nominal* lifetime is
 The descriptor model is a declarative, render-backend-agnostic animation: *what
 property, from what value to what value, over how long, with what easing*. The
 schema is authored in zod and the TS types are **inferred from it**, so the schema
-is the single source (`descriptors/types.ts:176`).
+is the single source ([`descriptors/types.ts:176`](lib/choreography/descriptors/types.ts#L176)).
 
 ```ts
 export const AnimationDescriptorSchema = z.object({   // types.ts:163
@@ -221,7 +221,7 @@ Four modelling devices carry information a flat track list could not:
 | --- | --- | --- |
 | `role: 'mask'` + `maskedBy: {layerId, mode}` | `:99`, `:111` | The spotlight's "dim everywhere except the cutout" compositing. The cutout layer is geometry only, never painted; the dim layer subtracts it. Without this a non-React consumer would draw a black rectangle. |
 | `inheritsFrom: {parentId, props?}` | `:130` | Layers that are *nested inside* an animated wrapper in the React source (the laser ring and core ride the animated dot). A flat list cannot express that; the child names the parent and the props it rides. |
-| `GeometryValue {ref, scale?, offset?}` | `:25` | A value derived linearly from the target element's percentage geometry: `value = geometry[ref] * scale + offset`. The spotlight cutout insets from `{ref:'x', offset:-8}` to `{ref:'x', offset:-0.4}` (`spotlight.ts:41-42`). |
+| `GeometryValue {ref, scale?, offset?}` | `:25` | A value derived linearly from the target element's percentage geometry: `value = geometry[ref] * scale + offset`. The spotlight cutout insets from `{ref:'x', offset:-8}` to `{ref:'x', offset:-0.4}` ([`spotlight.ts:41-42`](lib/choreography/descriptors/spotlight.ts#L41-L42)). |
 | `CornerValue {axis, threshold, whenAbove, whenBelow}` | `:38` | The laser's off-screen fly-in start: pick one of two positions based on which half of the viewport the element centre sits in — the `center > 50 ? 105 : -5` rule. |
 
 `Easing` is a three-member discriminated union: `cubicBezier` with a 4-tuple,
@@ -232,11 +232,11 @@ use the consumer's engine default" (`:84`, `:87`).
 ### How a descriptor is authored
 
 By hand, from the React component, with the reasoning written into the module
-docstring. `spotlight.ts:3-25` records: cutout 600 ms expo-out with easing
+docstring. [`spotlight.ts:3-25`](lib/choreography/descriptors/spotlight.ts#L3-L25) records: cutout 600 ms expo-out with easing
 `[0.16, 1, 0.3, 1]`; border 500 ms expo-out delayed 50 ms; dim a static
 `rgba(0,0,0,{dimness})` with default `dimness: 0.5`. It also records *why* 0.5
 rather than the component's own `?? 0.7` fallback: `ActionEngine.executeSpotlight`
-stores `action.dimOpacity ?? 0.5` (`lib/action/engine.ts:322`), so the component's
+stores `action.dimOpacity ?? 0.5` ([`lib/action/engine.ts:322`](lib/action/engine.ts#L322)), so the component's
 fallback is unreachable at playback and the exporter must use 0.5 to match.
 
 ### How a descriptor is executed
@@ -296,17 +296,17 @@ sequenceDiagram
 ```
 
 Read step 12 carefully: the emitter does **not** interpret the descriptor's
-`layers`/`tracks` generically. `effects.ts:5-11` says so outright — the two
+`layers`/`tracks` generically. [`effects.ts:5-11`](lib/video-export/emit-hyperframes/effects.ts#L5-L11) says so outright — the two
 descriptors "were transcribed from the live React overlays, whose *rendering* is
 effect-specific (spotlight is an SVG mask; laser is nested CSS divs) — a fact the
 descriptor data model does not encode", so each effect gets a targeted emitter
 whose constants "match the descriptor tracks 1:1". The `spotlight.v1` cutout's
 `{ref:'x', offset:-8}` → `{ref:'x', offset:-0.4}` reappears as literal `g.x - 8`
-and `g.x - 0.4` arithmetic (`effects.ts:102`, `:110`), and the laser's
+and `g.x - 0.4` arithmetic ([`effects.ts:102`](lib/video-export/emit-hyperframes/effects.ts#L102), `:110`), and the laser's
 `CornerValue` rule as a literal `g.centerX > 50 ? 105 : -5` (`:151-152`). Nothing
 checks that the two stay in step — the same unenforced-mirror problem the renderer
 has with `lib/choreography`. See
-[`../09-media-and-export/index.md`](../09-media-and-export/index.md).
+[`../09-media-and-export/index.md`](docs/09-media-and-export/index.md).
 
 ## The purity boundary is machine-enforced
 
@@ -348,7 +348,7 @@ flowchart LR
   RND -.->|"transcribed by hand — unenforced"| CH
 ```
 
-A separate comment at `eslint.config.mjs:585-586` explains a flat-config gotcha
+A separate comment at [`eslint.config.mjs:585-586`](eslint.config.mjs#L585-L586) explains a flat-config gotcha
 that keeps the whole scheme honest: flat config **replaces** a rule's options per
 key rather than merging them, so `no-restricted-syntax` had to be re-spread into
 every block that sets it. `:648-658` records that `lib/choreography/**` and
@@ -368,7 +368,7 @@ because their own blocks ban it outright.
 
 ## Next
 
-- [`./02-playback-state-machine.md`](./02-playback-state-machine.md) — the
+- [`./02-playback-state-machine.md`](docs/08-classroom-runtime/02-playback-state-machine.md) — the
   consumer of the timing spec inside the app.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — the other
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — the other
   consumer, and the IR the descriptors compile into.

@@ -5,14 +5,14 @@ the evidence, what it couples, and the concrete failure mode — not a general "
 big" observation. Ranked by blast radius × absence of a safety net.
 
 **Sources:** direct reads of every file cited;
-[`../appendix/research/agent-runtime/`](../appendix/research/agent-runtime/00-overview.md),
-[`../appendix/research/classroom-runtime/`](../appendix/research/classroom-runtime/00-overview.md),
-[`../appendix/research/dsl-renderer-editor/`](../appendix/research/dsl-renderer-editor/00-overview.md),
-[`../appendix/research/persistence-storage-state/`](../appendix/research/persistence-storage-state/00-overview.md).
+[`../appendix/research/agent-runtime/`](docs/appendix/research/agent-runtime/00-overview.md),
+[`../appendix/research/classroom-runtime/`](docs/appendix/research/classroom-runtime/00-overview.md),
+[`../appendix/research/dsl-renderer-editor/`](docs/appendix/research/dsl-renderer-editor/00-overview.md),
+[`../appendix/research/persistence-storage-state/`](docs/appendix/research/persistence-storage-state/00-overview.md).
 
 The 941-line `components/agent/agent-bar.tsx` is an honourable mention rather than a
 numbered hotspot; see §Two honourable mentions and
-[`../05-agent-runtime/02-client-server-split.md`](../05-agent-runtime/02-client-server-split.md)
+[`../05-agent-runtime/02-client-server-split.md`](docs/05-agent-runtime/02-client-server-split.md)
 for the client-side inventory it belongs to.
 
 ## The map
@@ -53,11 +53,11 @@ allowlist. It has zero tests. Its matcher regex
 (`'/((?!_next/static|_next/image|favicon.ico|logos/).*)'`, `:89`) is untested. And the HMAC
 protocol has **two independent implementations**: the Edge verifier at `:18-44` (hand-rolled
 Web Crypto, with a non-constant-time comparison the comment at `:37` admits) and the Node
-signer/verifier in `lib/server/access-token.ts:4-25` (`createHmac` + `timingSafeEqual`).
+signer/verifier in [`lib/server/access-token.ts:4-25`](lib/server/access-token.ts#L4-L25) (`createHmac` + `timingSafeEqual`).
 
 Neither compares the signed timestamp to now. A leaked `openmaic_access` cookie is valid
 until `ACCESS_CODE` is rotated; the 7-day `maxAge` at
-`app/api/access-code/verify/route.ts:36` is browser-enforced only.
+[`app/api/access-code/verify/route.ts:36`](app/api/access-code/verify/route.ts#L36) is browser-enforced only.
 
 **Failure mode:** a change to the token format that updates one verifier and not the other
 locks out every existing session or, worse, accepts tokens the other rejects — and no test
@@ -91,14 +91,14 @@ sed -n '181,184p' lib/edit/slide-ops.ts                          # silently retu
 
 `packages/@openmaic/editor/src/core/index.ts`'s `requireElement` (`:651-659`) resolves an
 element and calls `missingElement()` at `:657`, which throws at `:662`:
-`throw new Error('<op>: element "<id>" does not exist')`. `lib/edit/slide-ops.ts:183` does
+`throw new Error('<op>: element "<id>" does not exist')`. [`lib/edit/slide-ops.ts:183`](lib/edit/slide-ops.ts#L183) does
 `if (!element) return;` — a silent no-op. Both are browser op kernels; which one runs is
 decided by a feature flag, and
-`components/edit/surfaces/slide/slide-edit-session.ts:164-166` casts between their two
+[`components/edit/surfaces/slide/slide-edit-session.ts:164-166`](components/edit/surfaces/slide/slide-edit-session.ts#L164-L166) casts between their two
 history types through what its own comment (`:160-162`) calls a "compatibility bridge".
 
 There is a documented split between the server and browser surfaces
-(`lib/server/agent-runtime/course-edit/apply.ts:122-126`), but it is about *op
+([`lib/server/agent-runtime/course-edit/apply.ts:122-126`](lib/server/agent-runtime/course-edit/apply.ts#L122-L126)), but it is about *op
 vocabulary*, not strictness: "the classroom/browser editor uses the lower-level
 `SlideEditOperation` union in `lib/edit/slide-ops.ts` directly; keep that UI contract
 independent from which sugar ops the agent exposes." Nothing anywhere argues for two
@@ -122,7 +122,7 @@ Every one of the DSL's 21 `Action` verbs executes here. The nine casts at `:498`
 `:559`, `:594`, `:657`, `:692`, `:732`, `:754`, `:804` all follow the same shape: a
 whiteboard element built as a positional object literal, then cast past the DSL's
 `PPTElement` union. `:308` also holds the shared effect-clear timer whose behaviour
-`lib/choreography/timeline.ts:345-403` had to reproduce for the video exporter.
+[`lib/choreography/timeline.ts:345-403`](lib/choreography/timeline.ts#L345-L403) had to reproduce for the video exporter.
 
 **Failure mode:** a field renamed in the DSL element union does not fail to compile here —
 the cast absorbs it — and appears as a missing whiteboard property at playback, in the
@@ -143,7 +143,7 @@ at exactly its own scope's exit. Seventeen helpers *were* extracted (`:129`, `:2
 `:728`, `:772`, `:829`, `:834`), so this is not neglect.
 
 It remains the module a newcomer must read in full before touching anything, and it is
-where crash recovery makes tool execution **at-least-once**, which `resume.ts:32-36`
+where crash recovery makes tool execution **at-least-once**, which [`resume.ts:32-36`](lib/server/agent-runtime/resume.ts#L32-L36)
 states outright: *"The interrupted-result repair is what makes tool execution
 AT-LEAST-ONCE: a tool that ran but whose result never got persisted will be re-issued by
 the model. Every tool in this system must therefore be idempotent."*
@@ -154,7 +154,7 @@ ids; `repairOrphanedToolCalls:176` synthesizes an `interruptedToolResult` for ea
 **error** receipt (`{ok:false, error:'interrupted'}`, `isError:true`, `:20-24`) that is
 deliberately *not* persisted (`:190`). The model reads "interrupted" and re-issues the
 call. So the re-execution is the model's, not the runtime's, and the tool may already have
-had its side effect — hence the idempotency requirement. `resume.ts:34-36` names how two
+had its side effect — hence the idempotency requirement. [`resume.ts:34-36`](lib/server/agent-runtime/resume.ts#L34-L36) names how two
 tools satisfy it: `putScene` keys on `(stageId, sceneId)`, and `generate_scene` derives its
 scene id from the outline entry rather than minting one.
 
@@ -240,7 +240,7 @@ sed -n '3,12p' components/classroom/ClassroomSurface.tsx
 "for exactly one reason — the Pro workspace's third pane hosts the REAL classroom … so both
 surfaces must run the same code rather than two copies that drift." The route file does not
 import it, and the copies have already drifted: the route lacks the terminal `notFound`
-state (`ClassroomSurface.tsx:90`), `resetCanvasState()` (`:184`), the
+state ([`ClassroomSurface.tsx:90`](components/classroom/ClassroomSurface.tsx#L90)), `resetCanvasState()` ([`:184`](components/classroom/ClassroomSurface.tsx#L184)), the
 `shouldResumeClassroomGeneration` gate (`:225`) and the
 `outlineProducer === 'server-job'` guard (`:239`).
 
@@ -333,7 +333,7 @@ independent consumers, of which three (`element-schema.ts`, `lib/action/engine.t
 `SlideElement.tsx`) have no mechanism that would detect a change to it. That is the
 highest-value structural fix available, and it is cheap — `gen-schema.mjs` already produces
 the artifacts a drift test would compare against. See
-[12-remediation-backlog.md](./12-remediation-backlog.md).
+[12-remediation-backlog.md](docs/14-code-quality/12-remediation-backlog.md).
 
 ## Three honourable mentions
 
@@ -344,29 +344,29 @@ the artifacts a drift test would compare against. See
   `useSettingsStore`, 5 `useState`, 4 `useEffect`, 4 `useCallback`, plus
   `useAllVoiceProfiles` and `useAgentRegistry`). Every one of those 16 is an independent
   subscription to the 91-field settings store (§7), which makes the file the widest single
-  consumer of that store's shape. It has one mount site (imported at `app/page.tsx:40`,
+  consumer of that store's shape. It has one mount site (imported at [`app/page.tsx:40`](app/page.tsx#L40),
   rendered at `:883`) and no component test; three suites exercise the *state* it writes
   (`tests/classroom/agent-selection-restore.test.ts`,
   `tests/config/settings-agent-voice-overrides.test.ts`, `tests/store/stage-agents.test.ts`)
   but nothing renders it. It is an honourable mention rather than a numbered hotspot
   because the blast radius is one page, not a distant subsystem — split it by component
   before adding a fourth. Inventory in
-  [`../05-agent-runtime/02-client-server-split.md`](../05-agent-runtime/02-client-server-split.md).
+  [`../05-agent-runtime/02-client-server-split.md`](docs/05-agent-runtime/02-client-server-split.md).
 - **`lib/utils/chat-storage.ts` (1 455 lines)** coordinates through five interacting
   mechanisms: a global shared/exclusive Web Lock, two *nested* per-partition locks
   (`:214-228`), a per-store promise queue, four `WeakMap`s of observation state
   (`:111-118`), plus restore markers and deletion tombstones stored as runtime sessions. Its
   own comments cite that state space as the reason automatic legacy adoption was removed
-  elsewhere (`lib/store/kv-persist.ts:501-511`).
+  elsewhere ([`lib/store/kv-persist.ts:501-511`](lib/store/kv-persist.ts#L501-L511)).
 - **`packages/@openmaic/importer` as a whole** — 22 133 source lines against 932 test lines
   (ratio 0.04), the largest module with the thinnest cover. Its own suite *does* run in CI
-  (`ci.yml:140`); what does not run is the `renderer` and `editor` pair
-  ([05-test-strategy.md](./05-test-strategy.md)).
+  ([`ci.yml:140`](.github/workflows/ci.yml#L140)); what does not run is the `renderer` and `editor` pair
+  ([05-test-strategy.md](docs/14-code-quality/05-test-strategy.md)).
 
 ## Open questions
 
 - Whether the two browser op kernels are a planned migration with a cutover date or an
-  indefinite parallel state. `slide-edit-session.ts:160-162` names a *condition* for
+  indefinite parallel state. [`slide-edit-session.ts:160-162`](components/edit/surfaces/slide/slide-edit-session.ts#L160-L162) names a *condition* for
   removing its bridge — "until its React surface moves into `@openmaic/editor`" — but no
   date, owner or tracking issue, and nothing in the tree records how far that move has got.
 - Whether `runSession`'s 970 lines could be split by lease scope rather than by concern.

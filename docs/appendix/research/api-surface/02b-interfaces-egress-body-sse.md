@@ -5,7 +5,7 @@ from the source at the cited line.
 
 ## Egress guards
 
-`lib/server/ssrf-guard.ts:14-19`, `:33`, `:55`, `:178`, `:253`
+[`lib/server/ssrf-guard.ts:14-19`](lib/server/ssrf-guard.ts#L14-L19), [`:33`](lib/server/ssrf-guard.ts#L33), [`:55`](lib/server/ssrf-guard.ts#L55), [`:178`](lib/server/ssrf-guard.ts#L178), [`:253`](lib/server/ssrf-guard.ts#L253)
 
 ```ts
 export class UnsafeNetworkTargetError extends Error {
@@ -18,14 +18,14 @@ export function isPrivateIP(ip: string): boolean;
 export async function validateUrlForSSRF(url: string): Promise<string | null>;
 ```
 
-`lib/server/proxy-fetch.ts:81-114`
+[`lib/server/proxy-fetch.ts:81-114`](lib/server/proxy-fetch.ts#L81-L114)
 
 ```ts
 export function shouldBypassProxy(url: URL): boolean;
 export async function proxyFetch(input: string | URL, init?: RequestInit): Promise<Response>;
 ```
 
-`lib/server/render-service.ts:15-47`
+[`lib/server/render-service.ts:15-47`](lib/server/render-service.ts#L15-L47)
 
 ```ts
 export function getRenderServiceUrl(): string | null;
@@ -34,7 +34,7 @@ export function resolveRenderServiceUrl(): { url: string } | { error: 'not_confi
 export async function checkRenderServiceHealth(): Promise<boolean>;
 ```
 
-`lib/server/web-search-config.ts:56-87`
+[`lib/server/web-search-config.ts:56-87`](lib/server/web-search-config.ts#L56-L87)
 
 ```ts
 export function resolveSafeClientWebSearchBaseUrl(
@@ -53,11 +53,11 @@ Note the two different failure conventions in one subsystem:
 `normalizeUrlForStrictFetch` and `resolveSafeClientWebSearchBaseUrl` **throw**.
 Route code therefore reads `if (ssrfError) return apiError(...)` in one place and
 `try { ... } catch { return apiError(...) }` in another
-(`app/api/proxy-media/route.ts:33-36` vs `app/api/web-search/route.ts:107-113`).
+([`app/api/proxy-media/route.ts:33-36`](app/api/proxy-media/route.ts#L33-L36) vs [`app/api/web-search/route.ts:107-113`](app/api/web-search/route.ts#L107-L113)).
 
 ## Body and range helpers
 
-`lib/server/capped-stream.ts:14-19`
+[`lib/server/capped-stream.ts:14-19`](lib/server/capped-stream.ts#L14-L19)
 
 ```ts
 export interface CappedBody {
@@ -68,7 +68,7 @@ export interface CappedBody {
 export function capBodyStream(body: ReadableStream<Uint8Array>, capBytes: number): CappedBody;
 ```
 
-`lib/server/http-range.ts:10-18`
+[`lib/server/http-range.ts:10-18`](lib/server/http-range.ts#L10-L18)
 
 ```ts
 export type RangeParseResult =
@@ -79,7 +79,7 @@ export type RangeParseResult =
 export function parseRangeHeader(header: string | null, size: number): RangeParseResult;
 ```
 
-`lib/server/llm-error-response.ts:63`
+[`lib/server/llm-error-response.ts:63`](lib/server/llm-error-response.ts#L63)
 
 ```ts
 export function llmApiError(error: unknown);
@@ -91,7 +91,7 @@ return type.
 
 ## Tenancy resolution
 
-`lib/server/stage-access.ts:15-31`, `:96-101`, `:127-131`
+[`lib/server/stage-access.ts:15-31`](lib/server/stage-access.ts#L15-L31), [`:96-101`](lib/server/stage-access.ts#L96-L101), [`:127-131`](lib/server/stage-access.ts#L127-L131)
 
 ```ts
 export interface StageAccessQueryable {
@@ -142,7 +142,7 @@ erDiagram
 
 The join is a `LEFT JOIN` off a synthetic single-row key so a missing stage and a
 missing meta row are both representable
-(`lib/server/stage-access.ts:42-52`); the resolver returns `null` unless **both**
+([`lib/server/stage-access.ts:42-52`](lib/server/stage-access.ts#L42-L52)); the resolver returns `null` unless **both**
 `meta_owner_id` and `document_name` are present (`:104`), and
 `resolveStageAccess` additionally returns `null` when `deletedAt !== null`
 (`:132`). Four routes read it: `stage-meta/[stageId]`, `stages/[id]/status`,
@@ -151,7 +151,7 @@ missing meta row are both representable
 
 ## SSE event unions
 
-`lib/pbl/v2/api/sse.ts:168-178` and `:211-214` — the only formally typed
+[`lib/pbl/v2/api/sse.ts:168-178`](lib/pbl/v2/api/sse.ts#L168-L178) and [`:211-214`](lib/pbl/v2/api/sse.ts#L211-L214) — the only formally typed
 streaming contract in the surface.
 
 ```ts
@@ -208,9 +208,9 @@ no shared type. Frame format per route, read off the code:
 
 | Route | Frame format | Named events | Heartbeat |
 | --- | --- | --- | --- |
-| `pbl/v2/*` (4 routes) | `event: <type>` + `data: <json>` (`sse.ts:187`) | 7 typed kinds | `: keepalive` / 15 s (`sse.ts:192`) |
-| `chat` | `data: <json>` only (`chat/route.ts:148`) | none — the type is inside the JSON | `:heartbeat` / 15 s (`:109`) |
-| `chat/pi` | `data: <json>` only (`chat/pi/route.ts:139`) | none | `:heartbeat` / 15 s (`:213`) |
+| `pbl/v2/*` (4 routes) | `event: <type>` + `data: <json>` ([`sse.ts:187`](lib/pbl/v2/api/sse.ts#L187)) | 7 typed kinds | `: keepalive` / 15 s ([`sse.ts:192`](lib/pbl/v2/api/sse.ts#L192)) |
+| `chat` | `data: <json>` only ([`chat/route.ts:148`](app/api/chat/route.ts#L148)) | none — the type is inside the JSON | `:heartbeat` / 15 s ([`:109`](app/api/chat/route.ts#L109)) |
+| `chat/pi` | `data: <json>` only ([`chat/pi/route.ts:139`](app/api/chat/pi/route.ts#L139)) | none | `:heartbeat` / 15 s ([`:213`](app/api/chat/pi/route.ts#L213)) |
 | `generate/scene-outlines-stream` | `data: <json>` only (`:558`, `:598`, `:672`) | none | `:heartbeat` / 15 s (`:469`) |
 | `agent/sessions/[id]/events` | `id:` + `event:` + `data:` (`:161`) | `caught_up` + every store event type | `: ping` / 25 s (`:277`) |
 | `agent/owner-events` | `id:` + `event:` + `data:` (`:168`) | `caught_up`, `resync_required`, `owner_moved` | `: ping` / 25 s (`:273`) |
@@ -238,5 +238,5 @@ The three envelopes plus the plain-text 404 plus the bare-JSON cases mean a
 generic client cannot rely on a single error shape. The plain-text 404 is
 intentional (no existence oracle); the `{error:{code,message}}` and
 `{error:'snake_case'}` shapes exist to match a reference implementation the
-routes were ported from (`app/api/folders/route.ts:46`,
-`app/api/stages/[id]/status/route.ts:9`).
+routes were ported from ([`app/api/folders/route.ts:46`](app/api/folders/route.ts#L46),
+[`app/api/stages/[id]/status/route.ts:9`](app/api/stages/[id]/status/route.ts#L9)).

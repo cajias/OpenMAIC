@@ -14,21 +14,21 @@ sibling routes.
 `app/api/proxy-media/route.ts`, `app/api/azure-voices/route.ts`,
 `lib/media/proxy-media-cache.ts`, `lib/audio/qwen-voice-clone.ts`,
 `lib/server/render-service.ts`;
-[`../appendix/research/media-audio-video/02b-interfaces-media.md`](../appendix/research/media-audio-video/02b-interfaces-media.md),
-[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md).
+[`../appendix/research/media-audio-video/02b-interfaces-media.md`](docs/appendix/research/media-audio-video/02b-interfaces-media.md),
+[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md).
 
 ## 1. ASR
 
-`transcribeAudio(config, audioBuffer)` (`lib/audio/asr-providers.ts:164`) mirrors
+`transcribeAudio(config, audioBuffer)` ([`lib/audio/asr-providers.ts:164`](lib/audio/asr-providers.ts#L164)) mirrors
 `generateTTS` exactly: registry lookup, key validation, exhaustive switch, custom
-fallthrough. `ASRModelConfig` (`lib/audio/types.ts:207`) is
+fallthrough. `ASRModelConfig` ([`lib/audio/types.ts:207`](lib/audio/types.ts#L207)) is
 `{ providerId, modelId?, apiKey?, baseUrl?, language? }` and the result is just
-`{ text: string }` (`asr-providers.ts:157`) — no timestamps, no confidence, no
+`{ text: string }` ([`asr-providers.ts:157`](lib/audio/asr-providers.ts#L157)) — no timestamps, no confidence, no
 segments.
 
 | Provider | Handler | Default model | `supportedFormats` |
 | --- | --- | --- | --- |
-| `openai-whisper` | `transcribeOpenAIWhisper` (`:177`) | `gpt-4o-mini-transcribe` (`constants.ts:1090`) | mp3, mp4, mpeg, mpga, m4a, wav, webm (`:1155`) |
+| `openai-whisper` | `transcribeOpenAIWhisper` (`:177`) | `gpt-4o-mini-transcribe` ([`constants.ts:1090`](lib/audio/constants.ts#L1090)) | mp3, mp4, mpeg, mpga, m4a, wav, webm (`:1155`) |
 | `qwen-asr` | `transcribeQwenASR` (`:183`) | `qwen3-asr-flash` (`:1165`) | mp3, wav, webm, m4a, flac (`:1200`) |
 | `azure-asr` | `transcribeAzureASR` (`:186`) | `''` — Fast Transcription has no model id (`:1210`) | wav, ogg, webm, mp3, flac, m4a (`:1226`) |
 | `funasr-asr` | `transcribeWavOpenAICompatibleASR(…, 'FunASR')` (`:189`) | `sensevoice` (`:1307`) | wav only (`:1309`) |
@@ -48,17 +48,17 @@ guessing a vendor.
 
 ## 2. Web search
 
-`searchWeb(params)` (`lib/web-search/index.ts:15`) switches over nine
-`WebSearchProviderId` values (`lib/web-search/types.ts:8`): `tavily`, `exa`,
+`searchWeb(params)` ([`lib/web-search/index.ts:15`](lib/web-search/index.ts#L15)) switches over nine
+`WebSearchProviderId` values ([`lib/web-search/types.ts:8`](lib/web-search/types.ts#L8)): `tavily`, `exa`,
 `bocha`, `brave`, `baidu`, `claude`, `minimax`, `doubao`, `searxng`. The `default`
 branch performs an `exhaustive: never` assignment (`:78`), so adding an id without
 a case is a compile error. `AbortSignal` is threaded through as a conditional
 spread (`abortOptions`, `:36`).
 
-`WebSearchProviderConfig` (`types.ts:31`) carries `requiresApiKey`,
+`WebSearchProviderConfig` ([`types.ts:31`](lib/web-search/types.ts#L31)) carries `requiresApiKey`,
 `requiresBaseUrl` ("self-hosted instances need an explicit base URL"),
 `defaultBaseUrl` and `endpointPath`; the registry is
-`WEB_SEARCH_PROVIDERS` (`lib/web-search/constants.ts:10`).
+`WEB_SEARCH_PROVIDERS` ([`lib/web-search/constants.ts:10`](lib/web-search/constants.ts#L10)).
 
 `POST /api/web-search` (218 lines) is the most policy-dense route in the
 subsystem. The ordering of its four decisions is the whole design:
@@ -170,8 +170,8 @@ several are deliberate.
 | `POST /api/azure-voices` | always (`:29`) | `redirect: 'manual'`; any 3xx → 403 `REDIRECT_NOT_ALLOWED` (`:43`) | n/a |
 | `POST /api/proxy-media` | initial URL (`:33`) **and every hop** (`:55`) | manual, `MAX_REDIRECTS = 5` (`:38`) | 25 MiB on both `content-length` and the realised `blob.size` (`:67-74`) |
 | `POST /api/web-search` | none directly — `searxng` refuses client base URLs, other providers are allowlisted by registry | n/a | n/a |
-| Qwen VC audio download | a strict host regex, **not** the shared guard (`lib/audio/qwen-voice-clone.ts:348`) | `redirect: 'error'`; http upgraded to https | `MAX_AUDIO_RESPONSE_BYTES` |
-| `RENDER_SERVICE_URL` | deliberately **unguarded** (`lib/server/render-service.ts:25-35`) — operator config that is *meant* to point at an internal host | n/a | n/a |
+| Qwen VC audio download | a strict host regex, **not** the shared guard ([`lib/audio/qwen-voice-clone.ts:348`](lib/audio/qwen-voice-clone.ts#L348)) | `redirect: 'error'`; http upgraded to https | `MAX_AUDIO_RESPONSE_BYTES` |
+| `RENDER_SERVICE_URL` | deliberately **unguarded** ([`lib/server/render-service.ts:25-35`](lib/server/render-service.ts#L25-L35)) — operator config that is *meant* to point at an internal host | n/a | n/a |
 
 The `NODE_ENV`-gated transcription check is the one asymmetry with no stated
 rationale; the TTS route it otherwise mirrors always checks.
@@ -191,7 +191,7 @@ policy, not accident:
 
 Forwarding 4xx verbatim is what lets the client-side negative cache
 (`lib/media/proxy-media-cache.ts`, see
-[`./04-image-generation.md`](./04-image-generation.md) §7) record a *permanent*
+[`./04-image-generation.md`](docs/09-media-and-export/04-image-generation.md) §7) record a *permanent*
 verdict and stop retrying — the two halves are designed together.
 
 ```mermaid
@@ -249,7 +249,7 @@ flowchart TD
 ```
 
 Env prefixes for the families this topic owns
-(`lib/server/provider-config.ts:97-154`):
+([`lib/server/provider-config.ts:97-154`](lib/server/provider-config.ts#L97-L154)):
 
 | Section | Prefixes |
 | --- | --- |
@@ -260,7 +260,7 @@ Env prefixes for the families this topic owns
 | Web search | `TAVILY`, `EXA`, `BOCHA`, `BRAVE`, `BAIDU`, `WEB_SEARCH_CLAUDE`, `WEB_SEARCH_MINIMAX`, `WEB_SEARCH_DOUBAO`, `SEARXNG` |
 
 `_ENABLED` variables can only *disable*; they never force-enable a provider
-without credentials (`provider-config.ts:167-174`). What `_MODELS` *means* then
+without credentials ([`provider-config.ts:167-174`](lib/server/provider-config.ts#L167-L174)). What `_MODELS` *means* then
 splits by family — it is a hard pin for two of the five and an allowlist for the
 other three:
 
@@ -274,9 +274,9 @@ other three:
 
 - `ALLOW_LOCAL_NETWORKS` is a single global switch that disables the entire check
   for all 20 `validateUrlForSSRF` call sites at once — the 13 API routes above
-  plus `lib/server/agent-runtime/generate-image.ts:111`,
-  `lib/server/agent-runtime/generate-video.ts:155` and
-  `lib/server/resolve-model.ts:106`. There is no per-route or per-provider
+  plus [`lib/server/agent-runtime/generate-image.ts:111`](lib/server/agent-runtime/generate-image.ts#L111),
+  [`lib/server/agent-runtime/generate-video.ts:155`](lib/server/agent-runtime/generate-video.ts#L155) and
+  [`lib/server/resolve-model.ts:106`](lib/server/resolve-model.ts#L106). There is no per-route or per-provider
   scoping.
 - `100.100.100.200` (Alibaba Cloud metadata) is reachable through any
   `validateUrlForSSRF`-guarded route; only the strict path blocks it. Whether that

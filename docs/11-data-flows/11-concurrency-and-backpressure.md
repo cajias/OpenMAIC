@@ -3,12 +3,12 @@
 Where parallelism exists, where it is deliberately forbidden, which queues and
 buffers absorb bursts, and which four places actually bottleneck a real run.
 
-**Sources:** `lib/utils/concurrency.ts`, `lib/hooks/use-scene-generator.ts:686-760`,
-`lib/server/provider-config.ts:1112`, `lib/server/agent-runtime/config.ts`,
-`lib/server/agent-runtime/runner.ts:1861`,
+**Sources:** `lib/utils/concurrency.ts`, [`lib/hooks/use-scene-generator.ts:686-760`](lib/hooks/use-scene-generator.ts#L686-L760),
+[`lib/server/provider-config.ts:1112`](lib/server/provider-config.ts#L1112), `lib/server/agent-runtime/config.ts`,
+[`lib/server/agent-runtime/runner.ts:1861`](lib/server/agent-runtime/runner.ts#L1861),
 `lib/agent-runtime/stage-writer-tools.ts`,
-`app/api/agent/sessions/[id]/events/route.ts:52-60`,
-`lib/buffer/stream-buffer.ts:206-212`, `lib/video-export-app/timeline-deps.ts:112-114`,
+[`app/api/agent/sessions/[id]/events/route.ts:52-60`](app/api/agent/sessions/[id]/events/route.ts#L52-L60),
+[`lib/buffer/stream-buffer.ts:206-212`](lib/buffer/stream-buffer.ts#L206-L212), [`lib/video-export-app/timeline-deps.ts:112-114`](lib/video-export-app/timeline-deps.ts#L112-L114),
 `render-service/src/{render-coordinator,resource-profile,config}.ts`,
 `lib/chat/pi/config.ts`, `app/api/generate/scene-outlines-stream/route.ts`.
 
@@ -65,7 +65,7 @@ flowchart TD
 
 ## The parallelism primitive
 
-`lazyBoundedMap` (`lib/utils/concurrency.ts:47`) is the no-barrier primitive that
+`lazyBoundedMap` ([`lib/utils/concurrency.ts:47`](lib/utils/concurrency.ts#L47)) is the no-barrier primitive that
 makes the generation pipeline's pipelining possible:
 
 - returns one promise per item **immediately, in input order**, without awaiting;
@@ -104,27 +104,27 @@ latency as the fully serial loop — while `content(2..3)` run hidden behind sce
 
 | Serialised thing | Where | Reason, from the source |
 | --- | --- | --- |
-| Scene **actions** and **TTS** | `use-scene-generator.ts:698-706` | preserve the `previousSpeeches` chain and the pause-on-failure UX |
-| Media generation | `lib/media/media-orchestrator.ts:41` | serial loop over tasks; runs beside the scene loop, never blocking it |
-| Agent stage writers | `lib/agent-runtime/stage-writer-tools.ts:20` → `executionMode: 'sequential'` | "so parallel writers cannot clobber each other (a consistency test pins the relation)" |
-| SSE event polling on the agent tail | `events/route.ts:260-272` | `tick()` reschedules only after the previous poll **settles**, so a NOTIFY storm cannot stack reads |
-| The 30 ms reveal loop | `stream-buffer.ts:206-212` | "ONE source of pacing (this tick loop) — no double typewriter" |
-| `render-service` execution | `resource-profile.ts:26-30` | `maxConcurrency: 1` and `maxConcurrentExtractions: 1` in **both** profiles |
-| Asset collector passes | `asset-collector-schedule.ts:149-153` | "a pass slower than the interval must not stack on itself; the next tick finds this one still running and skips" |
-| Agent runner claim scan | `runner.ts:1866-1868` | `if (scanning \|\| ctx.shuttingDown) return` |
-| Whiteboard runtime append | `lib/whiteboard/runtime/store.ts:174` | the whole append runs under `withRuntimeStorageSharedLock` |
+| Scene **actions** and **TTS** | [`use-scene-generator.ts:698-706`](lib/hooks/use-scene-generator.ts#L698-L706) | preserve the `previousSpeeches` chain and the pause-on-failure UX |
+| Media generation | [`lib/media/media-orchestrator.ts:41`](lib/media/media-orchestrator.ts#L41) | serial loop over tasks; runs beside the scene loop, never blocking it |
+| Agent stage writers | [`lib/agent-runtime/stage-writer-tools.ts:20`](lib/agent-runtime/stage-writer-tools.ts#L20) → `executionMode: 'sequential'` | "so parallel writers cannot clobber each other (a consistency test pins the relation)" |
+| SSE event polling on the agent tail | [`events/route.ts:260-272`](app/api/agent/sessions/[id]/events/route.ts#L260-L272) | `tick()` reschedules only after the previous poll **settles**, so a NOTIFY storm cannot stack reads |
+| The 30 ms reveal loop | [`stream-buffer.ts:206-212`](lib/buffer/stream-buffer.ts#L206-L212) | "ONE source of pacing (this tick loop) — no double typewriter" |
+| `render-service` execution | [`resource-profile.ts:26-30`](render-service/src/resource-profile.ts#L26-L30) | `maxConcurrency: 1` and `maxConcurrentExtractions: 1` in **both** profiles |
+| Asset collector passes | [`asset-collector-schedule.ts:149-153`](lib/persistence/asset-collector-schedule.ts#L149-L153) | "a pass slower than the interval must not stack on itself; the next tick finds this one still running and skips" |
+| Agent runner claim scan | [`runner.ts:1866-1868`](lib/server/agent-runtime/runner.ts#L1866-L1868) | `if (scanning \|\| ctx.shuttingDown) return` |
+| Whiteboard runtime append | [`lib/whiteboard/runtime/store.ts:174`](lib/whiteboard/runtime/store.ts#L174) | the whole append runs under `withRuntimeStorageSharedLock` |
 
 ## What runs in parallel
 
 | Parallel thing | Bound | Where |
 | --- | --- | --- |
-| Document extraction | **unbounded** — `Promise.all` over every attached source | `app/generation-preview/page.tsx:340` |
-| Scene content fetches | `PARALLEL_SCENE_CONCURRENCY`, clamped `[0, 10]` server-side, re-clamped twice more client-side | `lib/server/provider-config.ts:1112`, `use-scene-generator.ts:689-695` |
-| Short-answer quiz grading | **unbounded** — `Promise.all` over every short-answer question | `components/scene-renderers/quiz-view.tsx:807-811` |
-| Audio + video duration probes | `PROBE_CONCURRENCY = 6`, each with a `PROBE_TIMEOUT_MS = 10_000` watchdog | `lib/video-export-app/timeline-deps.ts:112-114` |
+| Document extraction | **unbounded** — `Promise.all` over every attached source | [`app/generation-preview/page.tsx:340`](app/generation-preview/page.tsx#L340) |
+| Scene content fetches | `PARALLEL_SCENE_CONCURRENCY`, clamped `[0, 10]` server-side, re-clamped twice more client-side | [`lib/server/provider-config.ts:1112`](lib/server/provider-config.ts#L1112), [`use-scene-generator.ts:689-695`](lib/hooks/use-scene-generator.ts#L689-L695) |
+| Short-answer quiz grading | **unbounded** — `Promise.all` over every short-answer question | [`components/scene-renderers/quiz-view.tsx:807-811`](components/scene-renderers/quiz-view.tsx#L807-L811) |
+| Audio + video duration probes | `PROBE_CONCURRENCY = 6`, each with a `PROBE_TIMEOUT_MS = 10_000` watchdog | [`lib/video-export-app/timeline-deps.ts:112-114`](lib/video-export-app/timeline-deps.ts#L112-L114) |
 | Importer media uploads | `createConcurrencyLimiter(6)` | `packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts` |
-| DI deps + quiz layout probe | 2-way `Promise.all` | `build-export-zip.ts:95` |
-| Durable agent sessions | `maxConcurrent = 2` per application instance | `lib/server/agent-runtime/config.ts:17` |
+| DI deps + quiz layout probe | 2-way `Promise.all` | [`build-export-zip.ts:95`](lib/video-export-app/build-export-zip.ts#L95) |
+| Durable agent sessions | `maxConcurrent = 2` per application instance | [`lib/server/agent-runtime/config.ts:17`](lib/server/agent-runtime/config.ts#L17) |
 | Render jobs per identity | `maxJobsPerUser = 1` (`RENDER_MAX_JOBS_PER_USER`) | `render-service/src/config.ts` |
 
 The two **unbounded** rows are the ones to watch. Five attached documents means
@@ -193,7 +193,7 @@ Ranked by what a staff engineer would actually measure:
    of visible text, independent of the model.
 4. **`render-service` is single-slot by construction.** Both resource profiles
    pin `maxConcurrency: 1`, `maxConcurrentExtractions: 1`, `producerWorkers: 1`
-   (`resource-profile.ts:26-30`). Concurrency there is a deployment-count
+   ([`resource-profile.ts:26-30`](render-service/src/resource-profile.ts#L26-L30)). Concurrency there is a deployment-count
    decision, not a config one.
 
 ## Backpressure, per boundary
@@ -212,7 +212,7 @@ Ranked by what a staff engineer would actually measure:
 The render-service ordering is the only place in the system that gets admission
 control right: reserve → gate → buffer → extract → submit, with every failure
 path releasing the reservation and cleaning the project directory
-(`main.ts:322-330`).
+([`main.ts:322-330`](render-service/src/main.ts#L322-L330)).
 
 ## Timeline of a generation run
 
@@ -275,17 +275,17 @@ plumb through a callback.
   `OPENMAIC_AGENT_RUNTIME_MAX_CONCURRENT`, or `RENDER_MAX_JOBS_PER_USER` above
   their defaults, so the tuned values for a real deployment are unknown.
 - `StreamBuffer`'s `tickMs` and `charsPerTick` are constructor options
-  (`stream-buffer.ts:208-209`) but no caller found in this trace overrides them,
+  ([`stream-buffer.ts:208-209`](lib/buffer/stream-buffer.ts#L208-L209)) but no caller found in this trace overrides them,
   and no env var reaches them.
 - The two unbounded `Promise.all` fan-outs (document extraction, quiz grading)
   have no recorded rationale — unlike the scene loop, whose comment explains
   exactly why the knob is server-side ("many deployments use API keys with low
   per-key concurrency quotas, where a bursty default would surface as 429s",
-  `provider-config.ts:1108-1110`).
+  [`provider-config.ts:1108-1110`](lib/server/provider-config.ts#L1108-L1110)).
 
 ## Related
 
-- [`02-topic-to-classroom.md`](./02-topic-to-classroom.md) — the loop these bounds govern.
-- [`06-edit-with-ai.md`](./06-edit-with-ai.md) — leases and sequential writers in context.
-- [`08-export-video.md`](./08-export-video.md) — the render-service gates in their flow.
-- `../15-cross-cutting/index.md` — rate limiting, retries and timeouts as cross-cutting concerns.
+- [`02-topic-to-classroom.md`](docs/11-data-flows/02-topic-to-classroom.md) — the loop these bounds govern.
+- [`06-edit-with-ai.md`](docs/11-data-flows/06-edit-with-ai.md) — leases and sequential writers in context.
+- [`08-export-video.md`](docs/11-data-flows/08-export-video.md) — the render-service gates in their flow.
+- [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md) — rate limiting, retries and timeouts as cross-cutting concerns.

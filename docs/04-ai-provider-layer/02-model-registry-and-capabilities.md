@@ -4,12 +4,12 @@ Five independent paths put a model into the registry, and only two of them are s
 file names all five and traces the YAML operator-declaration path in depth. The capability types
 those entries carry — the verbatim `ThinkingCapability` shape, the per-provider tables, and which
 of the four declared flags actually gate runtime behaviour — are in
-[./02b-capability-shapes-and-gating.md](./02b-capability-shapes-and-gating.md).
+[./02b-capability-shapes-and-gating.md](docs/04-ai-provider-layer/02b-capability-shapes-and-gating.md).
 
 **Sources:** `lib/types/provider.ts`, `lib/ai/providers.ts`, `lib/ai/model-metadata.ts`,
 `lib/server/provider-capability-schema.ts`, `lib/server/provider-config.ts`,
 `lib/config/apply-token-plan.ts`, `lib/store/settings.ts`, `components/settings/*`;
-[../appendix/research/ai-provider-layer/01a-modules-catalog.md](../appendix/research/ai-provider-layer/01a-modules-catalog.md).
+[../appendix/research/ai-provider-layer/01a-modules-catalog.md](docs/appendix/research/ai-provider-layer/01a-modules-catalog.md).
 
 ## Where a model entry comes from
 
@@ -43,14 +43,14 @@ flowchart TD
 
 Only paths 1 and 2 exist server-side. Paths 3–5 write into the browser settings store; the server
 never receives a `ModelInfo` from the client, only a model *string* in `x-model`. That asymmetry
-is what makes [./04-credential-flow.md](./04-credential-flow.md) tractable. The `'manual'` arm of
-`source` is declared in the type (`lib/types/provider.ts:158`) but never assigned anywhere in the
+is what makes [./04-credential-flow.md](docs/04-ai-provider-layer/04-credential-flow.md) tractable. The `'manual'` arm of
+`source` is declared in the type ([`lib/types/provider.ts:158`](lib/types/provider.ts#L158)) but never assigned anywhere in the
 repo: `'probed'` is the only value ever written, and hand-added models leave the field unset by
 design — exactly what the docstring reproduced in
-[./02b-capability-shapes-and-gating.md](./02b-capability-shapes-and-gating.md) says.
+[./02b-capability-shapes-and-gating.md](docs/04-ai-provider-layer/02b-capability-shapes-and-gating.md) says.
 
-`applyModelMetadata` is the only mutation of the registry (`lib/ai/model-metadata.ts:471`, called
-once at module load from `lib/ai/providers.ts:1553`). It walks every provider's `models[]` and, if
+`applyModelMetadata` is the only mutation of the registry ([`lib/ai/model-metadata.ts:471`](lib/ai/model-metadata.ts#L471), called
+once at module load from [`lib/ai/providers.ts:1553`](lib/ai/providers.ts#L1553)). It walks every provider's `models[]` and, if
 `getCatalogThinkingCapability(provider.id, model.id)` returns something, replaces
 `model.capabilities` with a spread that adds `thinking`. Everything downstream reads the merged
 shape.
@@ -59,7 +59,7 @@ shape.
 
 An operator can declare per-model capabilities inside `server-providers.yml` under
 `providers.<id>.models[]`. The schema is a zod object at
-`lib/server/provider-capability-schema.ts:90`:
+[`lib/server/provider-capability-schema.ts:90`](lib/server/provider-capability-schema.ts#L90):
 
 ```yaml
 providers:
@@ -91,16 +91,16 @@ Validation is genuinely strict:
 Two silent-drop paths to know about:
 
 1. An invalid declaration is warned and dropped individually — the rest of the model list survives
-   (`lib/server/provider-config.ts:269`).
+   ([`lib/server/provider-config.ts:269`](lib/server/provider-config.ts#L269)).
 2. A declaration for a model that is not in the `<PREFIX>_MODELS` env allowlist is discarded with
-   a warning (`retainModelCapabilities`, `lib/server/provider-config.ts:277`–`:292`). Env wins over
+   a warning (`retainModelCapabilities`, [`lib/server/provider-config.ts:277`](lib/server/provider-config.ts#L277)–[`:292`](lib/server/provider-config.ts#L292)). Env wins over
    YAML for the model list, so pinning models via env silently invalidates YAML capability
    declarations for anything not in the env list.
 
-`getServerModelInfo` (`lib/server/provider-config.ts:709`) turns a surviving declaration into a
+`getServerModelInfo` ([`lib/server/provider-config.ts:709`](lib/server/provider-config.ts#L709)) turns a surviving declaration into a
 `ModelInfo` carrying only `vision` and `thinking`. `getModel()` then merges it over the catalog
-entry, with `thinking` preferring the operator value (`lib/ai/providers.ts:2323`–`:2335`). When
+entry, with `thinking` preferring the operator value ([`lib/ai/providers.ts:2323`](lib/ai/providers.ts#L2323)–[`:2335`](lib/ai/providers.ts#L2335)). When
 there is no catalog entry, the operator's `ModelInfo` *is* the result — which is how a
 gateway-only model id gets a capability at all. What `vision` and `thinking` actually do once
 merged is traced in
-[./02b-capability-shapes-and-gating.md](./02b-capability-shapes-and-gating.md).
+[./02b-capability-shapes-and-gating.md](docs/04-ai-provider-layer/02b-capability-shapes-and-gating.md).

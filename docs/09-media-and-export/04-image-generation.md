@@ -12,21 +12,21 @@ asset-storage path from a provider response to bytes an export can read.
 `lib/media/polled-task.ts`, `lib/media/proxy-media-cache.ts`,
 `lib/media/asset-pool.ts`, `lib/media/resolve-stored-bytes.ts`,
 `app/api/generate/image/route.ts`, `app/api/comfyui-workflows/route.ts`;
-[`../appendix/research/media-audio-video/02b-interfaces-media.md`](../appendix/research/media-audio-video/02b-interfaces-media.md),
-[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md).
+[`../appendix/research/media-audio-video/02b-interfaces-media.md`](docs/appendix/research/media-audio-video/02b-interfaces-media.md),
+[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md).
 
 ## 1. Registries and dispatch
 
 | Kind | Ids | Registry | Dispatch |
 | --- | --- | --- | --- |
-| Image | `seedream`, `openai-image`, `qwen-image`, `nano-banana`, `minimax-image`, `grok-image`, `comfyui-image`, `lemonade` (`lib/media/types.ts:73`) | `IMAGE_PROVIDERS` (`image-providers.ts:33`) | `generateImage` (`:191`) |
-| Video | `seedance`, `kling`, `veo`, `minimax-video`, `grok-video`, `happyhorse` (`types.ts:194`) | `VIDEO_PROVIDERS` (`video-providers.ts:22`) | `generateVideo` (same file) |
+| Image | `seedream`, `openai-image`, `qwen-image`, `nano-banana`, `minimax-image`, `grok-image`, `comfyui-image`, `lemonade` ([`lib/media/types.ts:73`](lib/media/types.ts#L73)) | `IMAGE_PROVIDERS` ([`image-providers.ts:33`](lib/media/image-providers.ts#L33)) | `generateImage` ([`:191`](lib/media/image-providers.ts#L191)) |
+| Video | `seedance`, `kling`, `veo`, `minimax-video`, `grok-video`, `happyhorse` ([`types.ts:194`](lib/media/types.ts#L194)) | `VIDEO_PROVIDERS` ([`video-providers.ts:22`](lib/media/video-providers.ts#L22)) | `generateVideo` (same file) |
 
 There are 14 adapter files under `lib/media/adapters/`. `testImageConnectivity`
-(`image-providers.ts:163`) mirrors the same switch so the settings UI's probe and
+([`image-providers.ts:163`](lib/media/image-providers.ts#L163)) mirrors the same switch so the settings UI's probe and
 the real call cannot diverge on which providers exist.
 
-`comfyui-image` deliberately declares `models: []` (`image-providers.ts:144`):
+`comfyui-image` deliberately declares `models: []` ([`image-providers.ts:144`](lib/media/image-providers.ts#L144)):
 its selectable "models" are workflow **files** discovered at runtime, so a
 hardcoded placeholder model id would resolve to a dead path.
 
@@ -41,11 +41,11 @@ Two dimension helpers live beside the registry rather than in each adapter:
 
 Async video providers share one submit-then-poll harness rather than
 hand-rolling loops: `runPolledTask({ submit, poll, intervalMs, maxAttempts,
-label, formatTimeout })` (`lib/media/polled-task.ts:31`), whose `SubmitResult`
+label, formatTimeout })` ([`lib/media/polled-task.ts:31`](lib/media/polled-task.ts#L31)), whose `SubmitResult`
 union lets a provider answer terminally on submit
 (`{ status: 'done' | 'failed' }`) instead of forcing a fake task id (`:9`, `:18`).
 The same harness drives the client-side MP4 render poller
-(see [`./07-render-service.md`](./07-render-service.md)).
+(see [`./07-render-service.md`](docs/09-media-and-export/07-render-service.md)).
 
 ## 2. The route
 
@@ -98,7 +98,7 @@ misconfigured `public/` yields an empty picker, not a 500.
 
 ## 4. ComfyUI: three-layer path defence
 
-`loadWorkflow(config)` (`lib/media/adapters/comfyui-image-adapter.ts:105`) takes
+`loadWorkflow(config)` ([`lib/media/adapters/comfyui-image-adapter.ts:105`](lib/media/adapters/comfyui-image-adapter.ts#L105)) takes
 the client-controlled `config.model` — which flows straight from the
 `x-image-model` request header — and applies three independent checks before
 reading a byte:
@@ -111,7 +111,7 @@ reading a byte:
 
 When no model id is supplied the adapter uses the **first discovered** file
 (`:155`), not a hardcoded name; an empty directory throws with a pointer to
-`comfyui-setup-instructions.md`. `config.workflowJson`, when present, short
+[`comfyui-setup-instructions.md`](comfyui-setup-instructions.md). `config.workflowJson`, when present, short
 circuits the disk read with a deep clone.
 
 The browser branch (`:197-208`) keeps layer 1 but explicitly **not** layer 2, and
@@ -183,7 +183,7 @@ flowchart TD
 ## 6. The asset-storage path
 
 `generateMediaForOutlines(outlines, stageId, abortSignal)`
-(`lib/media/media-orchestrator.ts:41`) collects every `mediaGenerations` entry
+([`lib/media/media-orchestrator.ts:41`](lib/media/media-orchestrator.ts#L41)) collects every `mediaGenerations` entry
 across outlines, filters by the `imageGenerationEnabled` /
 `videoGenerationEnabled` flags, skips tasks already `done`/`failed`, enqueues
 them, then processes them **serially** — "image/video APIs have limited
@@ -208,7 +208,7 @@ running to a billable terminal state server-side (`:230-240`).
 
 Above Dexie sits the content-addressed **asset pool** — a `BrowserAssetStore` over
 IndexedDB `maic-asset-pool`, or a configured server-backed store
-(`lib/media/asset-pool.ts:73-83`). `lib/media/resolve-stored-bytes.ts` documents
+([`lib/media/asset-pool.ts:73-83`](lib/media/asset-pool.ts#L73-L83)). `lib/media/resolve-stored-bytes.ts` documents
 the read chain and, unusually, documents *why* the three historical callers
 (classroom ZIP, PPTX, video export) run different levels of it (`:32-36`):
 
@@ -229,7 +229,7 @@ rejects an error body being shipped as image bytes, `requireNonEmpty` rejects a
 throws (`:36`).
 
 Audio has its own narrower twin: `resolveAudioBlob(audioId)`
-(`lib/media/resolve-audio-bytes.ts:15`) — pool first, Dexie second, with a
+([`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15)) — pool first, Dexie second, with a
 zero-byte row treated as "no bytes".
 
 ```mermaid
@@ -264,7 +264,7 @@ flowchart TD
 
 ## 7. The outbound-fetch memory
 
-`fetchProxiedMediaUrl(url, init?)` (`lib/media/proxy-media-cache.ts:234`) is the
+`fetchProxiedMediaUrl(url, init?)` ([`lib/media/proxy-media-cache.ts:234`](lib/media/proxy-media-cache.ts#L234)) is the
 only sanctioned way to POST `/api/proxy-media`, and it is three mechanisms in
 one, all session-scoped and in-memory by design:
 
@@ -284,19 +284,19 @@ one, all session-scoped and in-memory by design:
   wraps that same `Blob` (`:356-379`) — and the entry is dropped when `consumers`
   reaches 0, so this is **not** a response cache.
 
-See [`./05-transcription-and-search.md`](./05-transcription-and-search.md) for the
+See [`./05-transcription-and-search.md`](docs/09-media-and-export/05-transcription-and-search.md) for the
 server side of `/api/proxy-media` and the SSRF guard it applies.
 
 ## Open questions
 
 - `AssetKind` in the video-export IR includes `'poster'` and `'image'`, and
-  `lib/video-export-app/collect.ts:367-380` has handlers for both, but
+  [`lib/video-export-app/collect.ts:367-380`](lib/video-export-app/collect.ts#L367-L380) has handlers for both, but
   `lib/video-export/passes/assets.ts` only plans `frame`, `html`, `audio` and
   `video` entries. Either another path plans them or those branches are currently
   unreachable.
 - Whether any adapter other than ComfyUI is ever invoked client-side (e.g. from a
   settings connectivity test) was not traced.
-- `comfyui-setup-instructions.md` is referenced by two adapter error messages
+- [`comfyui-setup-instructions.md`](comfyui-setup-instructions.md) is referenced by two adapter error messages
   (`:160`, `:327`) but was not read; the adapter's own requirements are the three
   node titles in §5 plus API-format export (each node carrying an `inputs`
   object).

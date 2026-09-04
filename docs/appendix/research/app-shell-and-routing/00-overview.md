@@ -28,14 +28,14 @@ crosses into them.
 ## Charter, as the code actually enforces it
 
 1. **Every gate is server-authoritative where it can be.** The Pro workbench is
-   gated three times over — in middleware (`middleware.ts:56`), in the route
-   itself (`app/workspace/page.tsx:35`, `app/workbench/new/page.tsx:14`), and in
-   the client badge via a runtime probe (`app/page.tsx:145`).
+   gated three times over — in middleware ([`middleware.ts:56`](middleware.ts#L56)), in the route
+   itself ([`app/workspace/page.tsx:35`](app/workspace/page.tsx#L35), [`app/workbench/new/page.tsx:14`](app/workbench/new/page.tsx#L14)), and in
+   the client badge via a runtime probe ([`app/page.tsx:145`](app/page.tsx#L145)).
 2. **The root layout mounts side effects, not chrome.** Four of the seven
    children of `<body>` render `null` and exist purely for their effects
    (`ServerProvidersInit`, `ProSwapWatcher`, `StorageHealthNotice`, and
    `AccessCodeGuard`'s modal branch).
-3. **Nothing periodic starts from a route module.** `instrumentation.ts:1-12`
+3. **Nothing periodic starts from a route module.** [`instrumentation.ts:1-12`](instrumentation.ts#L1-L12)
    states the rule explicitly: a route module can be instantiated more than once
    and gets no shutdown hook, so timers live in `register()`.
 4. **The Edge bundle must stay small and Node-free.** Every Node-touching import
@@ -104,12 +104,12 @@ flowchart TD
 
 | Route | Segment file | Component kind | Rendering | Renders |
 | --- | --- | --- | --- | --- |
-| `/` | `app/page.tsx:1894` | client (`'use client'` at line 1) | default (static shell, all data client-fetched) | `HomePage` — composer, recent-course discovery, folders, settings, Pro badge |
-| `/generation-preview` | `app/generation-preview/page.tsx:1539` | client | `force-dynamic` via `app/generation-preview/layout.tsx:2` | `GenerationPreviewContent` inside `Suspense` — step visualiser, outline editor, agent reveal |
-| `/classroom/[id]` | `app/classroom/[id]/page.tsx:28` | client | default | `ClassroomDetailPage` → `components/stage` `Stage`, wrapped in a second `ThemeProvider` + `MediaStageProvider` |
-| `/workspace` | `app/workspace/page.tsx:34` | **server** | `force-dynamic` (line 32) | gate → `Suspense` → `WorkspaceEntry` → `WorkspaceShell` |
-| `/workbench/new` | `app/workbench/new/page.tsx:13` | **server** | `force-dynamic` (line 11) | gate → `Suspense` → `WorkbenchLaunchBridge` (`app/workbench/new/client.tsx:45`) |
-| `/eval/whiteboard` | `app/eval/whiteboard/page.tsx:105` | client | default | bare `ScreenElement` canvas driven by `window.__setElements`, used by `eval/whiteboard-layout/capture.ts:19` |
+| `/` | [`app/page.tsx:1894`](app/page.tsx#L1894) | client (`'use client'` at line 1) | default (static shell, all data client-fetched) | `HomePage` — composer, recent-course discovery, folders, settings, Pro badge |
+| `/generation-preview` | [`app/generation-preview/page.tsx:1539`](app/generation-preview/page.tsx#L1539) | client | `force-dynamic` via [`app/generation-preview/layout.tsx:2`](app/generation-preview/layout.tsx#L2) | `GenerationPreviewContent` inside `Suspense` — step visualiser, outline editor, agent reveal |
+| `/classroom/[id]` | [`app/classroom/[id]/page.tsx:28`](app/classroom/[id]/page.tsx#L28) | client | default | `ClassroomDetailPage` → `components/stage` `Stage`, wrapped in a second `ThemeProvider` + `MediaStageProvider` |
+| `/workspace` | [`app/workspace/page.tsx:34`](app/workspace/page.tsx#L34) | **server** | `force-dynamic` (line 32) | gate → `Suspense` → `WorkspaceEntry` → `WorkspaceShell` |
+| `/workbench/new` | [`app/workbench/new/page.tsx:13`](app/workbench/new/page.tsx#L13) | **server** | `force-dynamic` (line 11) | gate → `Suspense` → `WorkbenchLaunchBridge` ([`app/workbench/new/client.tsx:45`](app/workbench/new/client.tsx#L45)) |
+| `/eval/whiteboard` | [`app/eval/whiteboard/page.tsx:105`](app/eval/whiteboard/page.tsx#L105) | client | default | bare `ScreenElement` canvas driven by `window.__setElements`, used by [`eval/whiteboard-layout/capture.ts:19`](eval/whiteboard-layout/capture.ts#L19) |
 
 There is **no** `error.tsx`, `not-found.tsx`, `global-error.tsx`, `loading.tsx`,
 `template.tsx`, `robots.ts`, `sitemap.ts`, or `opengraph-image` anywhere under
@@ -199,15 +199,15 @@ Ten files. Every row links, so this table is the pack's navigation as well as it
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file |
-| [`01-modules.md`](./01-modules.md) | per-module responsibilities with `path:line` anchors |
-| [`02a-interfaces-lifecycle-and-routing.md`](./02a-interfaces-lifecycle-and-routing.md) | verbatim signatures: `register()`, shutdown handles, middleware, route components, gates |
-| [`02b-interfaces-client-contracts.md`](./02b-interfaces-client-contracts.md) | verbatim signatures: providers/context, pro-swap route handoff, deep-link serialisation |
-| [`02c-interfaces-session-handoff.md`](./02c-interfaces-session-handoff.md) | verbatim signatures: the three `sessionStorage` handoff contracts and the `previewPhase` state machine |
-| [`03-flows.md`](./03-flows.md) | four traced end-to-end flows: hop tables + sequence diagrams |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | deps, env vars, config resolution, `components/ui` characterisation |
-| [`05-failure-modes.md`](./05-failure-modes.md) | error handling and failure behaviour |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | quality observations and every measured metric with its command |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined, and why |
+| [`01-modules.md`](docs/appendix/research/app-shell-and-routing/01-modules.md) | per-module responsibilities with `path:line` anchors |
+| [`02a-interfaces-lifecycle-and-routing.md`](docs/appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md) | verbatim signatures: `register()`, shutdown handles, middleware, route components, gates |
+| [`02b-interfaces-client-contracts.md`](docs/appendix/research/app-shell-and-routing/02b-interfaces-client-contracts.md) | verbatim signatures: providers/context, pro-swap route handoff, deep-link serialisation |
+| [`02c-interfaces-session-handoff.md`](docs/appendix/research/app-shell-and-routing/02c-interfaces-session-handoff.md) | verbatim signatures: the three `sessionStorage` handoff contracts and the `previewPhase` state machine |
+| [`03-flows.md`](docs/appendix/research/app-shell-and-routing/03-flows.md) | four traced end-to-end flows: hop tables + sequence diagrams |
+| [`04-dependencies-and-config.md`](docs/appendix/research/app-shell-and-routing/04-dependencies-and-config.md) | deps, env vars, config resolution, `components/ui` characterisation |
+| [`05-failure-modes.md`](docs/appendix/research/app-shell-and-routing/05-failure-modes.md) | error handling and failure behaviour |
+| [`06-quality-and-metrics.md`](docs/appendix/research/app-shell-and-routing/06-quality-and-metrics.md) | quality observations and every measured metric with its command |
+| [`07-open-questions.md`](docs/appendix/research/app-shell-and-routing/07-open-questions.md) | what could not be determined, and why |
 
 The interfaces section is split three ways because a single file exceeded the
 350-line ceiling; `02a` / `02b` / `02c` cross-reference each other in their

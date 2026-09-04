@@ -9,8 +9,8 @@ plus the two gates that protect it — the version-bump check and the tarball sm
 `packages/@openmaic/importer/src/index.ts`, `scripts/openmaic-packages.mjs`,
 `scripts/check-package-version-bumps.mjs`, `scripts/smoke-test-package-tarballs.mjs`,
 root `package.json`;
-evidence [../appendix/research/dsl-renderer-editor/04-dependencies-and-config.md](../appendix/research/dsl-renderer-editor/04-dependencies-and-config.md) §4,
-[../appendix/research/quality-testing-ci-deps/00-overview.md](../appendix/research/quality-testing-ci-deps/00-overview.md).
+evidence [../appendix/research/dsl-renderer-editor/04-dependencies-and-config.md](docs/appendix/research/dsl-renderer-editor/04-dependencies-and-config.md) §4,
+[../appendix/research/quality-testing-ci-deps/00-overview.md](docs/appendix/research/quality-testing-ci-deps/00-overview.md).
 
 ## 1. Consumers and entry points
 
@@ -69,12 +69,12 @@ consumer reaching for an undeclared subpath gets a resolution error rather than 
 
 ### 2.1 `@openmaic/dsl`
 
-The barrel re-exports thirteen modules flat (`src/index.ts:25-37`) and deliberately excludes
+The barrel re-exports thirteen modules flat ([`src/index.ts:25-37`](packages/@openmaic/dsl/src/index.ts#L25-L37)) and deliberately excludes
 `schema-roots.ts`. The surface is: the type universe, the guards, `validate*`, `normalize*`, the version
-constants and ladder runners, the asset seam. See [./01-dsl-schema.md](./01-dsl-schema.md) and
-[./02-dsl-invariants.md](./02-dsl-invariants.md).
+constants and ladder runners, the asset seam. See [./01-dsl-schema.md](docs/07-dsl-renderer-editor/01-dsl-schema.md) and
+[./02-dsl-invariants.md](docs/07-dsl-renderer-editor/02-dsl-invariants.md).
 
-`./schema/*` maps straight onto `dist/schema/` (`package.json:14`), so a cross-language consumer
+`./schema/*` maps straight onto `dist/schema/` ([`package.json:14`](packages/@openmaic/dsl/package.json#L14)), so a cross-language consumer
 imports `@openmaic/dsl/schema/scene.schema.json`.
 
 ### 2.2 `@openmaic/renderer`
@@ -93,7 +93,7 @@ imports `@openmaic/dsl/schema/scene.schema.json`.
 | styling | `cn`, `createTextProseStyles` |
 
 `createTextProseStyles` being public is what lets a host share the renderer's exact rich-text layout
-contract in its own editor DOM ([./03-renderer.md](./03-renderer.md) §4).
+contract in its own editor DOM ([./03-renderer.md](docs/07-dsl-renderer-editor/03-renderer.md) §4).
 
 `./snapshot` adds `slideToPng`, `measureSlideElementGeometry`, `MeasuredGeometry`, `MeasureOptions`,
 `SlideToPngOptions`. `./elements` exposes the ten `Base*Element` components for a host that wants to
@@ -105,14 +105,14 @@ Three tiers with genuinely different stability characteristics:
 
 | Subpath | Contents | Character |
 | --- | --- | --- |
-| `./core` | `EditIntent`, `EditorOperation`, `EditorTransaction`, `EditorHistory`, `compileEditorEditIntents`, `createEditorTransaction(FromIntents)`, `applyEditorTransaction`, `undo`/`redoEditorTransaction`, `createEditorHistory`, `isValidEditorElement`, `MAX_EDITOR_HISTORY` | pure, no React; the layer the RFC says "belongs in `@openmaic/dsl`" (`src/react/types.ts:22`) |
+| `./core` | `EditIntent`, `EditorOperation`, `EditorTransaction`, `EditorHistory`, `compileEditorEditIntents`, `createEditorTransaction(FromIntents)`, `applyEditorTransaction`, `undo`/`redoEditorTransaction`, `createEditorHistory`, `isValidEditorElement`, `MAX_EDITOR_HISTORY` | pure, no React; the layer the RFC says "belongs in `@openmaic/dsl`" ([`src/react/types.ts:22`](packages/@openmaic/editor/src/react/types.ts#L22)) |
 | `./react` | `EditableSlideCanvas`, `EMPTY_SELECTION`, `RendererTextEditor`, `createCanvasCommands`, `handleCanvasShortcut`, `useCanvasShortcuts`, plus ~16 type exports | the controlled gesture surface |
 | `./ui` | `EditableSlideCanvasWithUI`, `resolveEditorHost`, `DEFAULT_EDITOR_INSERT_ITEMS`, `EDITING_UI_STYLES`, and ~14 toolbar/picker/overlay components (`TextFormatToolbar`, `LineFormatToolbar`, `InsertToolbar`, `TableInsertPicker`, `ChartInsertPicker`, `LineInsertPicker`, `BackgroundInsertPicker`, `LatexEditorDialog`, `LatexToolbarOverlay`, `VideoToolbarOverlay`, `EditorVideoContent`, `VideoInsertPicker`, `TextToolbarOverlay`, `DefaultColorPicker`, …) | opinionated chrome; the largest and least stable surface |
 
 At `0.0.5` with a `./ui` barrel exporting dozens of identifiers, this is the package most likely to
 break a consumer. `EditableSlideCanvasProps` also still carries props documented as no-ops
-(`src/react/types.ts:150`), so a consumer cannot tell from the types which props do anything — see
-[./04-editor-prosemirror.md](./04-editor-prosemirror.md).
+([`src/react/types.ts:150`](packages/@openmaic/editor/src/react/types.ts#L150)), so a consumer cannot tell from the types which props do anything — see
+[./04-editor-prosemirror.md](docs/07-dsl-renderer-editor/04-editor-prosemirror.md).
 
 ### 2.4 `@openmaic/importer`
 
@@ -124,11 +124,11 @@ One subpath, and two distinct halves behind it (`src/index.ts`):
 | transform | `importPptx`, `parsedToSlides`, `normalizeImportedSlides`, `transformParsedToSlides`, `createMockImportContext`, `ImportContext`, `TransformResult`, `OssUpload`, `ImportPptxOptions`, `Slide as CanvasSlide` | **yes** — `parsedToSlides` never touches the parser tree |
 
 A Turbopack consumer must URL-load the parse half and call `parsedToSlides` with the JSON. See
-[./09-vendored-forks.md](./09-vendored-forks.md).
+[./09-vendored-forks.md](docs/07-dsl-renderer-editor/09-vendored-forks.md).
 
 ## 3. The one list behind every gate
 
-`scripts/openmaic-packages.mjs:34` is the single source of truth:
+[`scripts/openmaic-packages.mjs:34`](scripts/openmaic-packages.mjs#L34) is the single source of truth:
 
 ```js
 export const OPENMAIC_PACKAGES = ['dsl', 'generation', 'storage', 'renderer', 'editor', 'importer'];
@@ -163,7 +163,7 @@ check while quietly disabling a release.
 
 ### 3.1 The threat model, written down
 
-`openmaic-packages.mjs:17-32` states it plainly and it is worth quoting because it governs how to read
+[`openmaic-packages.mjs:17-32`](scripts/openmaic-packages.mjs#L17-L32) states it plainly and it is worth quoting because it governs how to read
 every gate in this section: these are configuration in the same repository as the code they check, so
 anyone who can merge can shorten the list or relax a rule. "That is fine, because it is not the threat
 these gates are for. They exist to catch **MISTAKES** … Deliberate subversion is not in scope and cannot
@@ -222,7 +222,7 @@ of one published storage version, silently data-incompatible.
 
 ### 4.1 The limitation the script documents on itself
 
-`check-package-version-bumps.mjs:16-30` states it: "publishable input" means "file under the package
+[`check-package-version-bumps.mjs:16-30`](scripts/check-package-version-bumps.mjs#L16-L30) states it: "publishable input" means "file under the package
 directory", which under-approximates for **all** the packages. Renderer and importer inline their
 dependency graph through Rollup, so a lockfile-only resolution change rewrites their published bundles;
 dsl and storage are not exempt either, because their `dist` is whatever the lockfile's TypeScript emits
@@ -296,16 +296,16 @@ that a single import path would not.
 | `check:package-versions <base-ref>` | `.github/workflows/ci.yml` (diff mode) |
 | `check:package-versions --release` | `.github/workflows/publish-packages.yml` (release mode) |
 | `test:package-tarballs` | the release workflow, against packed artifacts |
-| `assert-vendor-maic-importer.mjs` | `pnpm build`, before `next build` (root `package.json:16`) |
+| `assert-vendor-maic-importer.mjs` | `pnpm build`, before `next build` (root [`package.json:16`](package.json#L16)) |
 
 The release workflow makes its security boundary a **job** boundary: install/build/pack run with
 `contents:read` and no token; the token-bearing job downloads an immutable artefact, re-verifies its
 SHA-256, requires the commit on main's first-parent history, and polls for a green `ci.yml` on the same
-SHA. Details in [../16-development-view/index.md](../16-development-view/index.md).
+SHA. Details in [../16-development-view/index.md](docs/16-development-view/index.md).
 
 ## Open questions
 
-- `CONTRIBUTING.md:132` names **four** published packages where `OPENMAIC_PACKAGES` has six, omitting
+- [`CONTRIBUTING.md:132`](CONTRIBUTING.md#changing-a-published-package) names **four** published packages where `OPENMAIC_PACKAGES` has six, omitting
   `generation` and `editor`. The doc is stale relative to the code.
 - Nothing gates the two **vendored** forks (`packages/pptxgenjs`, `packages/mathml2omml`): they are
   outside `OPENMAIC_PACKAGES`, so no version, format or tarball check applies to them.
@@ -313,7 +313,7 @@ SHA. Details in [../16-development-view/index.md](../16-development-view/index.m
   editor is deleted. The `./ui` surface is large and pre-0.1, and no deprecation or stability note
   exists on it.
 - Whether `@openmaic/renderer`'s `tailwindcss >= 4` peer is still required (see
-  [./03-renderer.md](./03-renderer.md)); the smoke test installs declared non-optional peers, so it
+  [./03-renderer.md](docs/07-dsl-renderer-editor/03-renderer.md)); the smoke test installs declared non-optional peers, so it
   would surface a *missing* peer but not a *needless* one.
 - Published tarball sizes and whether the "publishable inputs" under-approximation has ever bitten in
   practice. That needs `npm pack` and release history, neither available in this checkout.

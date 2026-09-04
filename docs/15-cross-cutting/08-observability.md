@@ -5,12 +5,12 @@ logs, two health endpoints, a JSONL usage ledger, and a durable per-session even
 log the browser can replay. No metrics, no traces, no error aggregation.
 
 **Sources:** `lib/logger.ts` (52 lines, the whole logging layer),
-`instrumentation.ts`, `app/api/health/route.ts`, `render-service/src/main.ts:241-250`,
-`lib/server/usage-storage.ts`, `app/api/usage/route.ts`, `lib/ai/llm.ts:295-310`,
+`instrumentation.ts`, `app/api/health/route.ts`, [`render-service/src/main.ts:241-250`](render-service/src/main.ts#L241-L250),
+`lib/server/usage-storage.ts`, `app/api/usage/route.ts`, [`lib/ai/llm.ts:295-310`](lib/ai/llm.ts#L295-L310),
 `lib/agent-runtime/lifecycle.ts`, `app/api/agent/sessions/[id]/events/route.ts`,
-`lib/store/persist-health.ts`, `app/api/materials/route.ts:150-169`,
-[`../appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md`](../appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md),
-[`../appendix/research/quality-testing-ci-deps/06b-quality-observations.md`](../appendix/research/quality-testing-ci-deps/06b-quality-observations.md).
+`lib/store/persist-health.ts`, [`app/api/materials/route.ts:150-169`](app/api/materials/route.ts#L150-L169),
+[`../appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md`](docs/appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md),
+[`../appendix/research/quality-testing-ci-deps/06b-quality-observations.md`](docs/appendix/research/quality-testing-ci-deps/06b-quality-observations.md).
 
 ## `instrumentation.ts` is not OpenTelemetry
 
@@ -43,11 +43,11 @@ flowchart TD
 ```
 
 Every stage of the drain is individually `try`/`catch`ed and logs its own failure
-prefix (`instrumentation.ts:63-92`), so one stuck subsystem cannot block the
+prefix ([`instrumentation.ts:63-92`](instrumentation.ts#L63-L92)), so one stuck subsystem cannot block the
 others. The `process.once` calls live in a separate 15-line module
 (`lib/server/register-shutdown-signals.ts`) purely so Turbopack's static Edge scan
 never sees a Node API it cannot prove unreachable
-(`instrumentation.ts:97-100`).
+([`instrumentation.ts:97-100`](instrumentation.ts#L97-L100)).
 
 ## Logging
 
@@ -100,8 +100,8 @@ Two, both unauthenticated by design.
 
 | Endpoint | Middleware-allowlisted | Body |
 | --- | --- | --- |
-| `GET /api/health` | yes, by exact path (`middleware.ts:66`) | `{ status:'ok', version, capabilities:{ webSearch, imageGeneration, videoGeneration, tts } }` — each capability true only when at least one non-force-disabled provider exists (`app/api/health/route.ts:12-23`) |
-| `GET /health` on the render service | n/a (internal network) | `{ ok:true, accepting, resourceProfile, versions }` — **aggregate only**, deliberately never queue depths or per-identity data (`render-service/src/main.ts:241-250`) |
+| `GET /api/health` | yes, by exact path ([`middleware.ts:66`](middleware.ts#L66)) | `{ status:'ok', version, capabilities:{ webSearch, imageGeneration, videoGeneration, tts } }` — each capability true only when at least one non-force-disabled provider exists ([`app/api/health/route.ts:12-23`](app/api/health/route.ts#L12-L23)) |
+| `GET /health` on the render service | n/a (internal network) | `{ ok:true, accepting, resourceProfile, versions }` — **aggregate only**, deliberately never queue depths or per-identity data ([`render-service/src/main.ts:241-250`](render-service/src/main.ts#L241-L250)) |
 
 `version` comes from `npm_package_version` with a `'0.1.0'` fallback, read once at
 module load. Neither endpoint reports database reachability, so
@@ -148,7 +148,7 @@ file returns nothing).
 
 The richest observability surface in the system, and it was built for the product
 rather than for operators. `HOST_AGENT_LIFECYCLE` is a 13-name vocabulary
-(`lib/agent-runtime/lifecycle.ts:37`) written to PostgreSQL as durable events; the
+([`lib/agent-runtime/lifecycle.ts:37`](lib/agent-runtime/lifecycle.ts#L37)) written to PostgreSQL as durable events; the
 browser tails them over SSE with `Last-Event-ID` replay, a named `caught_up`
 frame, a `degraded` signal when NOTIFY wakeup is unavailable, and a 25 s heartbeat
 — and the stream deliberately does not close at `session_end`
@@ -162,9 +162,9 @@ dashboard and no retention policy over them.
 | Signal | Mechanism |
 | --- | --- |
 | Persistence unavailable / changes lost | `lib/store/persist-health.ts` — a framework-free one-way channel with two independent status lines per key (`unavailable` is current-state, `changes-lost` is historical and survives recovery), surfaced by `components/storage-health-notice.tsx`, mounted after `Toaster` so a mount-time toast has a host |
-| Interactive-scene runtime errors | the iframe error shim buffers and replays errors on request; the host stores them per scene so the editor agent can diagnose a blank page (`InteractiveIframeHost.tsx:197-231`) |
+| Interactive-scene runtime errors | the iframe error shim buffers and replays errors on request; the host stores them per scene so the editor agent can diagnose a blank page ([`InteractiveIframeHost.tsx:197-231`](components/scene-renderers/InteractiveIframeHost.tsx#L197-L231)) |
 | Access-code state | `GET /api/access-code/status`, fail-closed in the guard |
-| Render progress / ETA | `lib/store/video-render.ts:121` polls the job and models an ETA |
+| Render progress / ETA | [`lib/store/video-render.ts:121`](lib/store/video-render.ts#L121) polls the job and models an ETA |
 
 None of these leaves the browser.
 
@@ -199,7 +199,7 @@ None of these leaves the browser.
    `ownerId` or `provider`.
 7. **No coverage instrumentation.** Nine Vitest configs, zero coverage providers
    installed — so "is this control tested?" is unanswerable
-   ([`../14-code-quality/index.md`](../14-code-quality/index.md)).
+   ([`../14-code-quality/index.md`](docs/14-code-quality/index.md)).
 8. **`data/usage` grows forever.** The asset collector is the only reclamation
    job in the system; usage logs, documents, sessions, skills and materials only
    soft-delete or grow.
@@ -207,7 +207,7 @@ None of these leaves the browser.
 ## Open questions
 
 - Whether `LOG_FORMAT=json` is used anywhere in practice. It is documented at
-  `.env.example:452` and read at `lib/logger.ts:10`, but nothing in Compose or the
+  [`.env.example:452`](.env.example#L452) and read at [`lib/logger.ts:10`](lib/logger.ts#L10), but nothing in Compose or the
   Dockerfile sets it.
 - Whether the 70 remaining direct `console.*` calls are deliberate (they bypass
   `LOG_LEVEL` entirely, so a `LOG_LEVEL=error` deployment still gets them) or

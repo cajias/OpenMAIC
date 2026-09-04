@@ -27,12 +27,12 @@ neighbours this subsystem calls into or is called by.
 | Term | What it actually is in code | Anchor |
 | --- | --- | --- |
 | **stage** | The course document: id, name, style, `generatedAgentConfigs`, stage-level `whiteboard`. Also — confusingly — the name of the top-level React container `components/stage.tsx`. | `packages/@openmaic/dsl/src/stage.ts` |
-| **scene** | One page. `SceneCore` carries `id`, `stageId`, `title`, `order`, optional `actions?: Action[]` and `whiteboards?: Slide[]`; `Scene` binds a `type` discriminant (`slide` / `quiz` / `interactive` / `pbl`) to its matching `content`. | `packages/@openmaic/dsl/src/stage.ts:228`, `:278` |
-| **action** | One playback verb. A 21-member discriminated union: `speech`, `spotlight`, `laser`, `play_video`, twelve `wb_*`, `discussion`, four `widget_*`. | `packages/@openmaic/dsl/src/action.ts:235` |
-| **utterance** | **Not a domain type.** The only `utterance` identifier in the subsystem is `SpeechSynthesisUtterance` in the browser-TTS path (`lib/playback/engine.ts:798`). The two things a doc means by "utterance" are distinct types: a *lecture* line is a `SpeechAction` (authored, has `audioId` pointing at pre-generated audio); a *live* line is a `StreamBuffer` `TextItem` segment that is sealed and then queued for TTS. | `lib/playback/engine.ts:798`, `lib/buffer/stream-buffer.ts:35` |
-| **fire-and-forget vs blocking** | `FIRE_AND_FORGET_ACTIONS = ['spotlight', 'laser']`; everything else holds the cursor. The timeline reads this list rather than hardcoding it. | `packages/@openmaic/dsl/src/action.ts:261`, `lib/choreography/timeline.ts:51` |
-| **cursor** | `(sceneIndex, actionIndex)`. The engine is constructed with a **one-scene** array, so `sceneIndex` is effectively always 0 in the app; the multi-scene walk exists for the exporter. | `components/edit/PlaybackChromeRoot.tsx:759`, `lib/choreography/cursor.ts:44` |
-| **generation** (playback) | A monotonic counter on `PlaybackEngine`. Every state transition bumps it; every async continuation checks it. This is the subsystem's cancellation primitive. | `lib/playback/engine.ts:493` |
+| **scene** | One page. `SceneCore` carries `id`, `stageId`, `title`, `order`, optional `actions?: Action[]` and `whiteboards?: Slide[]`; `Scene` binds a `type` discriminant (`slide` / `quiz` / `interactive` / `pbl`) to its matching `content`. | [`packages/@openmaic/dsl/src/stage.ts:228`](packages/@openmaic/dsl/src/stage.ts#L228), [`:278`](packages/@openmaic/dsl/src/stage.ts#L278) |
+| **action** | One playback verb. A 21-member discriminated union: `speech`, `spotlight`, `laser`, `play_video`, twelve `wb_*`, `discussion`, four `widget_*`. | [`packages/@openmaic/dsl/src/action.ts:235`](packages/@openmaic/dsl/src/action.ts#L235) |
+| **utterance** | **Not a domain type.** The only `utterance` identifier in the subsystem is `SpeechSynthesisUtterance` in the browser-TTS path ([`lib/playback/engine.ts:798`](lib/playback/engine.ts#L798)). The two things a doc means by "utterance" are distinct types: a *lecture* line is a `SpeechAction` (authored, has `audioId` pointing at pre-generated audio); a *live* line is a `StreamBuffer` `TextItem` segment that is sealed and then queued for TTS. | [`lib/playback/engine.ts:798`](lib/playback/engine.ts#L798), [`lib/buffer/stream-buffer.ts:35`](lib/buffer/stream-buffer.ts#L35) |
+| **fire-and-forget vs blocking** | `FIRE_AND_FORGET_ACTIONS = ['spotlight', 'laser']`; everything else holds the cursor. The timeline reads this list rather than hardcoding it. | [`packages/@openmaic/dsl/src/action.ts:261`](packages/@openmaic/dsl/src/action.ts#L261), [`lib/choreography/timeline.ts:51`](lib/choreography/timeline.ts#L51) |
+| **cursor** | `(sceneIndex, actionIndex)`. The engine is constructed with a **one-scene** array, so `sceneIndex` is effectively always 0 in the app; the multi-scene walk exists for the exporter. | [`components/edit/PlaybackChromeRoot.tsx:759`](components/edit/PlaybackChromeRoot.tsx#L759), [`lib/choreography/cursor.ts:44`](lib/choreography/cursor.ts#L44) |
+| **generation** (playback) | A monotonic counter on `PlaybackEngine`. Every state transition bumps it; every async continuation checks it. This is the subsystem's cancellation primitive. | [`lib/playback/engine.ts:493`](lib/playback/engine.ts#L493) |
 
 ## Internal parts
 
@@ -149,9 +149,9 @@ stateDiagram-v2
 
 `Stage` renders exactly one of `EditChromeRoot`, `PlaybackChromeRoot`, or a
 neutral `aria-busy` shell, chosen by `resolveStageChromeMode`
-(`components/stage.tsx:193`). Playback → edit awaits
-`PlaybackChromeRootHandle.teardown()` first (`components/stage.tsx:221`,
-`components/edit/PlaybackChromeRoot.tsx:544`); edit → playback is a bare flip
+([`components/stage.tsx:193`](components/stage.tsx#L193)). Playback → edit awaits
+`PlaybackChromeRootHandle.teardown()` first ([`components/stage.tsx:221`](components/stage.tsx#L221),
+[`components/edit/PlaybackChromeRoot.tsx:544`](components/edit/PlaybackChromeRoot.tsx#L544)); edit → playback is a bare flip
 because `PlaybackChromeRoot` re-initialises from scratch on mount.
 
 ## File inventory (in-scope paths)
@@ -193,7 +193,7 @@ Thirteen files, each 130–348 lines, 30 Mermaid diagrams in total (15 flowchart
 > **Resolved.** This note previously read "`/docs` is gitignored, so this pack is
 > untracked". The `/docs` entry has since been removed from `.gitignore`, so the whole set
 > including this pack is tracked normally and `scripts/check-docs-links.mjs` can gate it —
-> see [`../../../16-development-view/07-quality-gates.md`](../../../16-development-view/07-quality-gates.md)
+> see [`../../../16-development-view/07-quality-gates.md`](docs/16-development-view/07-quality-gates.md)
 > §Gate 6.
 
 Every row links, so this table is the pack's navigation as well as its manifest.
@@ -201,17 +201,17 @@ Every row links, so this table is the pack's navigation as well as its manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file: charter, vocabulary, inventory, internal-parts map |
-| [`01a-modules-playback.md`](./01a-modules-playback.md) | classroom load, `PlaybackEngine`, choreography spec, `StreamBuffer`, roundtable |
-| [`01b-modules-pbl-interactive.md`](./01b-modules-pbl-interactive.md) | scene dispatch, PBL v2 runtime, legacy PBL reachability |
-| [`01c-modules-interactive-sandbox.md`](./01c-modules-interactive-sandbox.md) | interactive HTML scenes: keep-alive host, sandbox, CSP, shims |
-| [`02-interfaces.md`](./02-interfaces.md) | playback engine / derived view / navigation signatures + classDiagram |
-| [`02b-interfaces-pbl-and-scenes.md`](./02b-interfaces-pbl-and-scenes.md) | PBL v2 wire types, interactive host types + erDiagram |
-| [`02c-interfaces-choreography-and-buffer.md`](./02c-interfaces-choreography-and-buffer.md) | choreography spec, descriptors, `StreamBuffer` contract |
-| [`03a-flows-playback.md`](./03a-flows-playback.md) | flows A–C: cold open, learner interrupt, authored discussion |
-| [`03b-flows-scenes-and-pbl.md`](./03b-flows-scenes-and-pbl.md) | flows D–E: seek + gated scene switch, PBL task completion |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | npm deps, browser APIs, HTTP surfaces, env vars, config resolution, the purity boundary |
-| [`05-failure-modes.md`](./05-failure-modes.md) | failure inventory and what each one degrades to |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | every measured metric with its command; strengths and fragilities |
-| [`07-open-questions.md`](./07-open-questions.md) | what could not be determined, and why |
+| [`01a-modules-playback.md`](docs/appendix/research/classroom-runtime/01a-modules-playback.md) | classroom load, `PlaybackEngine`, choreography spec, `StreamBuffer`, roundtable |
+| [`01b-modules-pbl-interactive.md`](docs/appendix/research/classroom-runtime/01b-modules-pbl-interactive.md) | scene dispatch, PBL v2 runtime, legacy PBL reachability |
+| [`01c-modules-interactive-sandbox.md`](docs/appendix/research/classroom-runtime/01c-modules-interactive-sandbox.md) | interactive HTML scenes: keep-alive host, sandbox, CSP, shims |
+| [`02-interfaces.md`](docs/appendix/research/classroom-runtime/02-interfaces.md) | playback engine / derived view / navigation signatures + classDiagram |
+| [`02b-interfaces-pbl-and-scenes.md`](docs/appendix/research/classroom-runtime/02b-interfaces-pbl-and-scenes.md) | PBL v2 wire types, interactive host types + erDiagram |
+| [`02c-interfaces-choreography-and-buffer.md`](docs/appendix/research/classroom-runtime/02c-interfaces-choreography-and-buffer.md) | choreography spec, descriptors, `StreamBuffer` contract |
+| [`03a-flows-playback.md`](docs/appendix/research/classroom-runtime/03a-flows-playback.md) | flows A–C: cold open, learner interrupt, authored discussion |
+| [`03b-flows-scenes-and-pbl.md`](docs/appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md) | flows D–E: seek + gated scene switch, PBL task completion |
+| [`04-dependencies-and-config.md`](docs/appendix/research/classroom-runtime/04-dependencies-and-config.md) | npm deps, browser APIs, HTTP surfaces, env vars, config resolution, the purity boundary |
+| [`05-failure-modes.md`](docs/appendix/research/classroom-runtime/05-failure-modes.md) | failure inventory and what each one degrades to |
+| [`06-quality-and-metrics.md`](docs/appendix/research/classroom-runtime/06-quality-and-metrics.md) | every measured metric with its command; strengths and fragilities |
+| [`07-open-questions.md`](docs/appendix/research/classroom-runtime/07-open-questions.md) | what could not be determined, and why |
 
-Pack→topic mapping and the shared chapter convention: [`../index.md`](../index.md).
+Pack→topic mapping and the shared chapter convention: [`../index.md`](docs/appendix/research/index.md).

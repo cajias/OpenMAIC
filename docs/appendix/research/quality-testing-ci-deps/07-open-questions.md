@@ -24,9 +24,9 @@ flowchart TD
 | Question | Why not answered |
 | --- | --- |
 | Actual executed test-case count | `it.each`/`test.each` appears 272 times (`grep -rhoE '\b(it\|test)\.each\b' tests packages/@openmaic/*/test \| wc -l`); each expands to N runtime cases determined by its table. The static 7 837 is a lower bound. |
-| Wall-clock duration of each CI job | `ci.yml` declares `timeout-minutes` 15/10/15 but no run history is reachable from this environment. The only recorded figure is a comment: the four linters were "~2 minutes" sequential (`ci.yml:123-124`). |
+| Wall-clock duration of each CI job | `ci.yml` declares `timeout-minutes` 15/10/15 but no run history is reachable from this environment. The only recorded figure is a comment: the four linters were "~2 minutes" sequential ([`ci.yml:123-124`](.github/workflows/ci.yml#L123-L124)). |
 | Whether the suite currently passes | Not run. `node_modules` absent, and installing would execute the 9-step `postinstall` chain against the network. |
-| Current ESLint warning count | `@typescript-eslint/no-unused-vars` is configured as `'warn'` (`eslint.config.mjs:65`), so the repository may carry warnings that no gate counts. Unmeasurable without running ESLint. |
+| Current ESLint warning count | `@typescript-eslint/no-unused-vars` is configured as `'warn'` ([`eslint.config.mjs:65`](eslint.config.mjs#L65)), so the repository may carry warnings that no gate counts. Unmeasurable without running ESLint. |
 | Real flake rate of the e2e specs | `retries: 2` in CI implies flakes are expected, but the rate is only visible in run history. |
 
 ## Branch protection and required checks
@@ -35,12 +35,12 @@ flowchart TD
 names are *required* to merge. Three pieces of evidence show the design intends
 specific answers, but none of them is the setting itself:
 
-- `publish-openmaic-skill.yml:8-9` says "Do not configure it as a required check
+- [`publish-openmaic-skill.yml:8-9`](.github/workflows/publish-openmaic-skill.yml#L8-L9) says "Do not configure it as a required check
   for every PR; require it only through rules that apply to the paths below."
-- `publish-packages.yml:29-36` documents required repository setup: an npm org, a
+- [`publish-packages.yml:29-36`](.github/workflows/publish-packages.yml#L29-L36) documents required repository setup: an npm org, a
   `release` GitHub Environment restricted to `main`, and `NPM_TOKEN` present as
   an *environment* secret and absent as a *repository* secret.
-- `publish-packages.yml:298-300` states that `ci.yml` "runs concurrently with this
+- [`publish-packages.yml:298-300`](.github/workflows/publish-packages.yml#L298-L300) states that `ci.yml` "runs concurrently with this
   workflow on a push to main and blocks nothing", which is why the publish job
   polls the API instead of relying on a gate.
 
@@ -55,7 +55,7 @@ absent as a repository secret? Every one of those is a GitHub settings question.
 (`grep -rn 'coverage' package.json packages/@openmaic/*/package.json render-service/package.json vitest*.config.ts …`
 returns nothing), so line/branch coverage cannot be produced even after an
 install without first adding a dependency. The reference heuristic in
-`06-quality-and-metrics.md` is a proxy for *mention*, not execution, and I could
+[`06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md) is a proxy for *mention*, not execution, and I could
 not close the gap between them.
 
 Specifically unresolved:
@@ -66,7 +66,7 @@ Specifically unresolved:
   It contains `web-preview.tsx`, which is imported nowhere
   (`grep -rln 'web-preview' app components lib` → no hits) and carries a
   `sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"`
-  attribute (`components/ai-elements/web-preview.tsx:159`) that
+  attribute ([`components/ai-elements/web-preview.tsx:159`](components/ai-elements/web-preview.tsx#L159)) that
   `tests/security/iframe-sandbox.test.ts` does not check. It renders `src=` rather
   than `srcDoc`, so the test's stated threat model may not apply — but whether the
   file is dead code slated for deletion or a component awaiting wiring is not
@@ -82,17 +82,17 @@ records a decision either way.
    that is planned? No CHANGELOG entry, no comment.
 2. **Four app-level `*.pg.test.ts` never running in CI.** The PG job explicitly
    invokes `tests/lib/whiteboard/runtime-store.pg.test.ts` and only that one
-   (`storage-pg-contract.yml:66-67`). Are the other four expected to be added, or
+   ([`storage-pg-contract.yml:66-67`](.github/workflows/storage-pg-contract.yml#L66-L67)). Are the other four expected to be added, or
    considered redundant with the storage-package suites?
 3. **Three storage PG suites outside `REQUIRED_SUITES`.** The list comment
-   (`scripts/assert-pg-contract-suites.mjs:66-72`) explains why
+   ([`scripts/assert-pg-contract-suites.mjs:67-72`](scripts/assert-pg-contract-suites.mjs#L67-L72)) explains why
    `REQUIRED_TABLES` is stated independently, but says nothing about why the
    agent-session and asset suites are excluded from `REQUIRED_SUITES`.
 4. **The `.s3.test.ts` suite with no CI service.** Was a MinIO service planned?
    `docker-compose.yml` has no S3-compatible service either.
 5. **`NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` absent from the Docker build args.** Is
    the Pro workbench deliberately not shipped in the container image, or is this
-   an omission? `.env.example:310-313` documents the variable for operators
+   an omission? [`.env.example:310-313`](.env.example#L310-L313) documents the variable for operators
    without saying which deployment paths support it.
 6. **Seven unused manifest entries** (three `copilotkit` packages,
    `@modelcontextprotocol/sdk`, `@ai-sdk/react`, `@alicloud/credentials`,
@@ -120,7 +120,7 @@ records a decision either way.
 
 ## Security questions I could not resolve
 
-- **`middleware.ts` token expiry.** `verifyToken` (`middleware.ts:18-44`) signs
+- **`middleware.ts` token expiry.** `verifyToken` ([`middleware.ts:18-44`](middleware.ts#L18-L44)) signs
   and verifies a `<timestamp>.<hmac>` pair but never compares the timestamp to
   now. Is a non-expiring access cookie the intended behaviour for an access-code
   gate (i.e. the code itself is the rotation mechanism), or an oversight? No test
@@ -129,15 +129,15 @@ records a decision either way.
   practice.** 15 of its 20 call sites pass an operator-configured
   `clientBaseUrl`, where DNS rebinding is not a meaningful threat. Two —
   `app/api/proxy-media/route.ts:33,55` and
-  `app/api/provider/probe-models/route.ts:34` — take less-trusted input. Whether
+  [`app/api/provider/probe-models/route.ts:34`](app/api/provider/probe-models/route.ts#L34) — take less-trusted input. Whether
   those two should migrate to the pinned-lookup path used by
-  `lib/server/agent-runtime/fetch-url.ts:165-174` is a design decision I found no
+  [`lib/server/agent-runtime/fetch-url.ts:165-174`](lib/server/agent-runtime/fetch-url.ts#L165-L174) is a design decision I found no
   record of.
 - **Repository-default `GITHUB_TOKEN` permissions.** `ci.yml`,
   `storage-pg-contract.yml` and `docs-build.yml` declare no `permissions:` block,
   so their token scope is whatever the repository default is. That default is a
   settings value, not a file.
-- **`SECURITY.md` process completeness.** It commits to a 48-hour acknowledgement
+- **[`SECURITY.md`](SECURITY.md) process completeness.** It commits to a 48-hour acknowledgement
   and GitHub Private Vulnerability Reporting (`SECURITY.md:20,29`) but names no
   fix-time SLA, no severity taxonomy, and no supported-version window beyond
   "latest major release and the active `main` branch". Whether a longer policy
@@ -146,9 +146,9 @@ records a decision either way.
 ## Eval harness questions
 
 - **Why do the evals gate nothing?** Four of the five have real exit-code
-  contracts (`eval/orchestration/runner.ts:187`,
-  `eval/outline-language/runner.ts:168`,
-  `eval/pbl-v2-planner/runner.ts:919`, plus the two answering runners), yet no
+  contracts ([`eval/orchestration/runner.ts:187`](eval/orchestration/runner.ts#L187),
+  [`eval/outline-language/runner.ts:168`](eval/outline-language/runner.ts#L168),
+  [`eval/pbl-v2-planner/runner.ts:919`](eval/pbl-v2-planner/runner.ts#L919), plus the two answering runners), yet no
   workflow invokes them. Cost is the obvious hypothesis — every run spends real
   provider tokens, `eval/outline-language` has 50 cases and
   `eval/pbl-v2-planner` 23 × up to 2 variants with two judges each — but no
@@ -162,7 +162,7 @@ records a decision either way.
   reason the harnesses cannot gate: a threshold on an absolute score is a much
   weaker signal than a delta against a recorded run.
 
-  A related loose end: `.gitignore:75-80` ignores results for
+  A related loose end: [`.gitignore:75-80`](.gitignore#L75-L80) ignores results for
   `whiteboard-layout`, `outline-language` and the three `orchestration` output
   directories, but **not** `eval/pbl-v2-planner/results/`. A PBL run therefore
   leaves untracked files that appear in `git status` and can be committed by
@@ -196,10 +196,10 @@ records a decision either way.
 
 ## Documentation drift I found but could not date
 
-`CONTRIBUTING.md:132` names four published packages where the code has six, and
-`CONTRIBUTING.md:171` describes `packages/` as containing only the two vendored
-forks. `CHANGELOG.md` shows nine releases with `1.0.0` on 2026-08-27, and the
+[`CONTRIBUTING.md:139`](CONTRIBUTING.md#changing-a-published-package) names four published packages where the code has six, and
+[`CONTRIBUTING.md:178`](CONTRIBUTING.md#project-structure) describes `packages/` as containing only the two vendored
+forks. [`CHANGELOG.md`](CHANGELOG.md) shows nine releases with `1.0.0` on 2026-08-27, and the
 `generation`/`editor` packages are at `0.3.5`/`0.0.5`, so both were likely added
-after `CONTRIBUTING.md` was last revised. I did not run `git log` on
-`CONTRIBUTING.md` to establish when the drift opened, so the exact commit that
+after [`CONTRIBUTING.md`](CONTRIBUTING.md) was last revised. I did not run `git log` on
+[`CONTRIBUTING.md`](CONTRIBUTING.md) to establish when the drift opened, so the exact commit that
 should have updated it is unidentified.

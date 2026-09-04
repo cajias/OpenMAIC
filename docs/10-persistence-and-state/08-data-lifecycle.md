@@ -6,15 +6,15 @@ reclamation job exists, it reclaims **bytes only**, and every row-level delete i
 the server schema is a tombstone that nothing ever collects.
 
 **Sources:** `lib/persistence/asset-collector-schedule.ts`,
-`lib/persistence/asset-collection-grace.ts`, `lib/persistence/stage-meta.ts:104-133`,
-`lib/persistence/owner-bound-document-store.ts:96-139`,
-`lib/persistence/owner-materials.ts:1-30`, `lib/runtime/store.ts:86-135`,
-`lib/utils/database.ts:595-626`, `lib/document-store/storage-generation.ts`,
-`lib/server/usage-storage.ts:90-137`, `instrumentation.ts:13-21`,
-`packages/@openmaic/storage/src/asset/types.ts`, `src/agent-session/types.ts:273-274`,
-`src/skill/pg.ts:61`; evidence
-[../appendix/research/persistence-storage-state/04-dependencies-and-config.md](../appendix/research/persistence-storage-state/04-dependencies-and-config.md),
-[07-open-questions.md](../appendix/research/persistence-storage-state/07-open-questions.md) §3.
+`lib/persistence/asset-collection-grace.ts`, [`lib/persistence/stage-meta.ts:104-133`](lib/persistence/stage-meta.ts#L104-L133),
+[`lib/persistence/owner-bound-document-store.ts:96-139`](lib/persistence/owner-bound-document-store.ts#L96-L139),
+[`lib/persistence/owner-materials.ts:1-30`](lib/persistence/owner-materials.ts#L1-L30), [`lib/runtime/store.ts:86-135`](lib/runtime/store.ts#L86-L135),
+[`lib/utils/database.ts:595-626`](lib/utils/database.ts#L595-L626), `lib/document-store/storage-generation.ts`,
+[`lib/server/usage-storage.ts:90-137`](lib/server/usage-storage.ts#L90-L137), [`instrumentation.ts:13-21`](instrumentation.ts#L13-L21),
+`packages/@openmaic/storage/src/asset/types.ts`, [`src/agent-session/types.ts:273-274`](packages/@openmaic/storage/src/agent-session/types.ts#L273-L274),
+[`src/skill/pg.ts:61`](packages/@openmaic/storage/src/skill/pg.ts#L61); evidence
+[../appendix/research/persistence-storage-state/04-dependencies-and-config.md](docs/appendix/research/persistence-storage-state/04-dependencies-and-config.md),
+[07-open-questions.md](docs/appendix/research/persistence-storage-state/07-open-questions.md) §3.
 
 ## Residency per deployment mode
 
@@ -54,7 +54,7 @@ flowchart TD
 The single most surprising row is `kvstill`: turning on server persistence moves
 documents, runtime and assets to PostgreSQL and leaves the user's provider API
 keys, model selections, profile and locale in `localStorage`, because no HTTP KV
-backend is wired ([01-storage-abstraction.md](./01-storage-abstraction.md)). A
+backend is wired ([01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)). A
 "server-backed" OpenMAIC still loses all settings when you switch browsers.
 
 Two more things that never move regardless of mode:
@@ -72,7 +72,7 @@ disk was not examined in this pass — see Open questions.
 ## The one reclamation job
 
 `AssetCollector` is the only thing in the entire subsystem that deletes bytes.
-`lib/persistence/asset-collector-schedule.ts:1-18` states the design and the
+[`lib/persistence/asset-collector-schedule.ts:1-18`](lib/persistence/asset-collector-schedule.ts#L1-L18) states the design and the
 reason it is not left to the operator: `PgAssetStore.remove`, and a `replace` that
 changes content, "only stamp `asset_blobs.unreferenced_at`;
 `AssetCollector.collect` is the sole deletion path in the design. Leaving it to
@@ -81,9 +81,9 @@ deployment it ships is `docker-compose.yml` — the app and PostgreSQL, and noth
 else that could ever call it. Unrun, ordinary asset churn retains PostgreSQL bytes
 or S3 objects forever."
 
-It is started exactly once, from `instrumentation.ts:19-21`, because "Next calls
+It is started exactly once, from [`instrumentation.ts:19-21`](instrumentation.ts#L19-L21), because "Next calls
 `register` once per server instance, before it serves a request" and a route module
-has no such guarantee (`instrumentation.ts:1-12`).
+has no such guarantee ([`instrumentation.ts:1-12`](instrumentation.ts#L1-L12)).
 
 | Knob | Default | Floor / rule |
 | --- | --- | --- |
@@ -181,7 +181,7 @@ them.
 | `owner_material` (`uploading`) | 24 h | the next upload's reclaim |
 | `runtime_sessions` / `runtime_records` | real deletes exist (`deleteSession`, `deleteLearnerRuntime`, `deleteStageRuntime`, `deleteAllRuntime`), but a timed-out cascade leaves orphans | the browser cascade, best-effort |
 | `data/usage/<YYYY>-<MM>.jsonl` | forever; `readUsageRecords` can filter by month but nothing prunes | nothing |
-| Browser IndexedDB / localStorage | until the user clears data or the browser evicts; `navigator.storage.persist()` is requested at init (`lib/utils/database.ts:583`) to reduce eviction | `clearDatabase()` |
+| Browser IndexedDB / localStorage | until the user clears data or the browser evicts; `navigator.storage.persist()` is requested at init ([`lib/utils/database.ts:583`](lib/utils/database.ts#L583)) to reduce eviction | `clearDatabase()` |
 
 The asymmetry is worth naming: the collector's own header argues that leaving
 reclamation to "the deployment" is not deferrable for *bytes*. No equivalent
@@ -195,17 +195,17 @@ something was removed underneath it. They do not reference each other.
 
 | Mechanism | Where | Guards |
 | --- | --- | --- |
-| `document-storage-generation`, a `device`-scoped monotonic counter (`lib/document-store/storage-generation.ts:3,21-26`) | browser | `clearDatabase()` bumps it first; a write carrying an older generation fails with `DocumentStorageGenerationChangedError` rather than resurrecting wiped data |
+| `document-storage-generation`, a `device`-scoped monotonic counter ([`lib/document-store/storage-generation.ts:3,21-26`](lib/document-store/storage-generation.ts#L3)) | browser | `clearDatabase()` bumps it first; a write carrying an older generation fails with `DocumentStorageGenerationChangedError` rather than resurrecting wiped data |
 | `document_stage_revision` / `document_scene_revision`, trigger-maintained (`document/pg.ts`) | server | staleness detection for the freshness manifest and the agent-event wakeup |
 
 On the client there is a third: `lib/utils/deleted-stages` (`isStageDeleted`,
 `isStageWriteStale`, `stageDeletionEpoch`, `stageDeletionSettled`), consulted by
 `useStageStore` before a debounced flush lands
-([03-client-state-stores.md](./03-client-state-stores.md)).
+([03-client-state-stores.md](docs/10-persistence-and-state/03-client-state-stores.md)).
 
 ## Usage metering, precisely
 
-`recordUsage` (`lib/server/usage-storage.ts:90`) appends one JSON line per billable
+`recordUsage` ([`lib/server/usage-storage.ts:90`](lib/server/usage-storage.ts#L90)) appends one JSON line per billable
 event to `data/usage/<YYYY>-<MM>.jsonl`. Fields: `id`, `createdAt`, `kind`,
 `source`, `providerId`, `modelId`, `modelString`, the five token counters, and
 optional `quantity` / `unit`. It records **no user identity at all** — no owner id,
@@ -229,9 +229,9 @@ that share no value and no lifecycle:
 
 | Identity | Minted by | Scopes | Lifetime |
 | --- | --- | --- | --- |
-| `anon:<uuid>` from cookie `anonymous_id` | `resolveRequestOwnerId` (`lib/server/agent-runtime/owner.ts:52-64`) | documents, folders, agent sessions, `stage_meta` ownership | 30-day cookie |
-| `anon:<uuid>` from KV `device` `runtime.learnerKey` | `getLearnerKey` (`lib/runtime/learner-key.ts:81`) | runtime sessions and records, sent as `x-learner-key` | until `localStorage` is cleared |
-| the constant `'shared'` asset principal | `lib/persistence/server-auth.ts:26,53` | every asset write in server mode | permanent |
+| `anon:<uuid>` from cookie `anonymous_id` | `resolveRequestOwnerId` ([`lib/server/agent-runtime/owner.ts:52-64`](lib/server/agent-runtime/owner.ts#L52-L64)) | documents, folders, agent sessions, `stage_meta` ownership | 30-day cookie |
+| `anon:<uuid>` from KV `device` `runtime.learnerKey` | `getLearnerKey` ([`lib/runtime/learner-key.ts:81`](lib/runtime/learner-key.ts#L81)) | runtime sessions and records, sent as `x-learner-key` | until `localStorage` is cleared |
+| the constant `'shared'` asset principal | [`lib/persistence/server-auth.ts:26,53`](lib/persistence/server-auth.ts#L26) | every asset write in server mode | permanent |
 
 The declared migration paths — `RuntimeStore.mergeLearner` and
 `AgentSessionStore.mergeOwner` — exist on the interfaces and are called from
@@ -242,14 +242,14 @@ atomically on any throw. So the primitive is ready; the caller is not written.
 
 ## Cross-references
 
-- Backend and byte-layer selection: [01-storage-abstraction.md](./01-storage-abstraction.md)
-- Table and column names: [02-data-model.md](./02-data-model.md)
+- Backend and byte-layer selection: [01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)
+- Table and column names: [02-data-model.md](docs/10-persistence-and-state/02-data-model.md)
 - Chat's own deletion tombstones and restore markers:
-  [05-chat-storage-and-cutover.md](./05-chat-storage-and-cutover.md)
-- Which cookie is which: [06-access-codes.md](./06-access-codes.md)
+  [05-chat-storage-and-cutover.md](docs/10-persistence-and-state/05-chat-storage-and-cutover.md)
+- Which cookie is which: [06-access-codes.md](docs/10-persistence-and-state/06-access-codes.md)
 - Deployment topology and the Compose target:
-  [../17-deployment-view/index.md](../17-deployment-view/index.md)
-- Where user bytes originate: [../09-media-and-export/index.md](../09-media-and-export/index.md)
+  [../17-deployment-view/index.md](docs/17-deployment-view/index.md)
+- Where user bytes originate: [../09-media-and-export/index.md](docs/09-media-and-export/index.md)
 
 ## Open questions
 
@@ -260,8 +260,8 @@ atomically on any throw. So the primitive is ready; the caller is not written.
 - **`data/usage/` has no rotation or pruning.** For a long-lived deployment the
   monthly files accumulate forever. No cleanup script exists.
 - **`render-service/` persistence was not examined.** `TRUST_PROXY_HEADERS` and the
-  `RENDER_CHUNK_*` variables (`.env.example:480-491`) suggest per-client handling
+  `RENDER_CHUNK_*` variables ([`.env.example:480-491`](.env.example#L480-L491)) suggest per-client handling
   that may or may not touch disk.
 - **A timed-out runtime deletion cascade leaves orphaned rows** that are
   unreachable through normal navigation. The source says "a future startup sweep
-  can reclaim them" (`lib/runtime/store.ts:86-94`); that sweep does not exist yet.
+  can reclaim them" ([`lib/runtime/store.ts:86-94`](lib/runtime/store.ts#L86-L94)); that sweep does not exist yet.

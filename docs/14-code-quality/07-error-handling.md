@@ -9,8 +9,8 @@ commit HTTP 200 before doing any work.
 `render-service/src`, `packages/@openmaic/*/src`; `lib/server/api-response.ts`,
 `lib/server/agent-runtime/route-response.ts`, `lib/pbl/v2/api/sse.ts`,
 `lib/utils/iframe.ts`;
-[`../appendix/research/quality-testing-ci-deps/05-failure-modes.md`](../appendix/research/quality-testing-ci-deps/05-failure-modes.md),
-[`../appendix/research/api-surface/`](../appendix/research/api-surface/00-overview.md).
+[`../appendix/research/quality-testing-ci-deps/05-failure-modes.md`](docs/appendix/research/quality-testing-ci-deps/05-failure-modes.md),
+[`../appendix/research/api-surface/`](docs/appendix/research/api-surface/00-overview.md).
 
 ## Catch-body census
 
@@ -65,7 +65,7 @@ repository**, and the location is what makes it defensible:
 ```
 
 All 13 sit inside **injected null-origin browser storage shims**, where a `SecurityError`
-is the expected path rather than an exception. `lib/utils/iframe.ts:3-13` writes out why:
+is the expected path rather than an exception. [`lib/utils/iframe.ts:3-13`](lib/utils/iframe.ts#L3-L13) writes out why:
 the shim replaces `localStorage`/`sessionStorage` inside a `sandbox="allow-scripts"` iframe
 that has no `allow-same-origin`, so every access throws by design and there is nothing to
 report. The other three files inject the same shim into exported interactive HTML.
@@ -78,17 +78,17 @@ than a swallow-everything habit.
 
 | Site | Logged as |
 | --- | --- |
-| `components/edit/PlaybackChromeRoot.tsx:596` | `console.warn('[Presentation] Fullscreen request denied — browser policy')` |
-| `components/edit/PlaybackChromeRoot.tsx:700` | `console.warn('Failed to load playback cursor for stage …')` |
-| `components/edit/surfaces/slide/ImagePicker.tsx:31` | `console.error('ImagePicker: failed to read image file', err)` |
-| `lib/pbl/v2/runtime/drain.ts:441` | `console.warn('Failed to drain PBL events for stage …')` |
-| `lib/server/material-extraction/runner.ts:74` | `console.error('[material-extraction] scan failed', error)` |
-| `packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts:749` | `console.warn('[PPTX导入] KaTeX 无法渲染公式，回退为图片:', error)` |
-| `…/transformParsedToSlides.ts:857` | `console.warn('[PPTX导入] 视频编码解析失败:', err)` |
+| [`components/edit/PlaybackChromeRoot.tsx:596`](components/edit/PlaybackChromeRoot.tsx#L596) | `console.warn('[Presentation] Fullscreen request denied — browser policy')` |
+| [`components/edit/PlaybackChromeRoot.tsx:700`](components/edit/PlaybackChromeRoot.tsx#L700) | `console.warn('Failed to load playback cursor for stage …')` |
+| [`components/edit/surfaces/slide/ImagePicker.tsx:31`](components/edit/surfaces/slide/ImagePicker.tsx#L31) | `console.error('ImagePicker: failed to read image file', err)` |
+| [`lib/pbl/v2/runtime/drain.ts:441`](lib/pbl/v2/runtime/drain.ts#L441) | `console.warn('Failed to drain PBL events for stage …')` |
+| [`lib/server/material-extraction/runner.ts:74`](lib/server/material-extraction/runner.ts#L74) | `console.error('[material-extraction] scan failed', error)` |
+| [`packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts:749`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L749) | `console.warn('[PPTX导入] KaTeX 无法渲染公式，回退为图片:', error)` |
+| [`…/transformParsedToSlides.ts:857`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L857) | `console.warn('[PPTX导入] 视频编码解析失败:', err)` |
 
 Three of these are user-visible degradations logged only to the console — the playback
-cursor failing to load (`:700`), a PBL event drain failing (`drain.ts:441`), and an image
-file failing to read (`ImagePicker.tsx:31`). The last is the sharpest: a user picks an
+cursor failing to load (`:700`), a PBL event drain failing ([`drain.ts:441`](lib/pbl/v2/runtime/drain.ts#L441)), and an image
+file failing to read ([`ImagePicker.tsx:31`](components/edit/surfaces/slide/ImagePicker.tsx#L31)). The last is the sharpest: a user picks an
 image, nothing happens, and the only trace is a `console.error`.
 
 ### Logging levels
@@ -144,7 +144,7 @@ grep -rln "error: '[a-z_]*'" app/api                                 # 5 files
 
 Four envelope shapes plus bare JSON. A generic client cannot parse an OpenMAIC error
 uniformly: it must branch on the route family. The plain-text 404 is *deliberate* and
-argued for in the comment at `lib/server/agent-runtime/route-response.ts:36-40` — "an
+argued for in the comment at [`lib/server/agent-runtime/route-response.ts:36-40`](lib/server/agent-runtime/route-response.ts#L36-L40) — "an
 existence probe must not be able to distinguish 'never existed' from 'someone else's'" —
 directly above `ownerNotFound` itself at `:41-43`, so that shape is a feature. The
 `{error:{code,message}}` and `{error:'snake_case'}` families are not argued for anywhere.
@@ -174,11 +174,11 @@ There is no `error.tsx`, `not-found.tsx`, `loading.tsx`, `template.tsx` or
 1. **Any unhandled client throw drops to the framework's unstyled error page**, rendered
    *outside* the provider stack — so no theme, no i18n, no toast.
 2. **The single condition "workbench disabled" presents three different ways**:
-   `middleware.ts:57` returns a plain-text `'Not found'` 404, `app/workbench/new/page.tsx:14` calls
-   `notFound()`, and `app/workspace/page.tsx:35` calls `redirect('/')`. The last two are
-   each *justified in-source* — `app/workspace/page.tsx:10-16` argues that "a workspace
+   [`middleware.ts:57`](middleware.ts#L57) returns a plain-text `'Not found'` 404, [`app/workbench/new/page.tsx:14`](app/workbench/new/page.tsx#L14) calls
+   `notFound()`, and [`app/workspace/page.tsx:35`](app/workspace/page.tsx#L35) calls `redirect('/')`. The last two are
+   each *justified in-source* — [`app/workspace/page.tsx:10-16`](app/workspace/page.tsx#L10-L16) argues that "a workspace
    whose every submit 404s is worse than no workspace", and
-   `app/workbench/new/page.tsx:1-5` notes it is a compat shim with no product UI — so the
+   [`app/workbench/new/page.tsx:1-5`](app/workbench/new/page.tsx#L1-L5) notes it is a compat shim with no product UI — so the
    divergence is deliberate per route. What is missing is the styled 404 page all three
    would render into.
 
@@ -186,11 +186,11 @@ There is no `error.tsx`, `not-found.tsx`, `loading.tsx`, `template.tsx` or
 
 | Pattern | Site | Failure visible to the user? |
 | --- | --- | --- |
-| `if (!res.ok) return;` early-returns out of a `try` whose `catch` is comment-only | `components/scene-renderers/pbl/v2/workspace.tsx:153` (catch at `:160`) and `:239` (catch at `:262`), both bodies just `/* transient; the button stays available for retry */` | **No.** A learner clicks Done and nothing happens |
-| Parse failure awards partial credit silently | `app/api/quiz-grade/route.ts:95-103` — 50 % of the marks when the LLM's JSON cannot be parsed, with no signal to the client | **No**, and the path has no test (`grep -c 'quiz-grade' tests/quiz/grading.test.ts` → 0) |
-| Listing error becomes an empty success | `app/api/comfyui-workflows/route.ts:19-22` returns `200 {workflows: []}` on any error (it does `console.error` first, so the server sees it) | **No.** "ComfyUI misconfigured" is indistinguishable from "no workflows installed" |
-| Unrecognised element paints nothing | `packages/@openmaic/renderer/src/SlideElement.tsx:76-102` — the switch's `default` arm returns `null` (`:98-99`) with no warning, and `:103` turns that into `return null` | **No.** A future DSL element type is silently invisible |
-| Unknown action type is skipped | `lib/playback/engine.ts:743-746` — `default` arm with no log and no counter | **No.** A document from a newer DSL degrades invisibly |
+| `if (!res.ok) return;` early-returns out of a `try` whose `catch` is comment-only | [`components/scene-renderers/pbl/v2/workspace.tsx:153`](components/scene-renderers/pbl/v2/workspace.tsx#L153) (catch at [`:160`](components/scene-renderers/pbl/v2/workspace.tsx#L160)) and [`:239`](components/scene-renderers/pbl/v2/workspace.tsx#L239) (catch at [`:262`](components/scene-renderers/pbl/v2/workspace.tsx#L262)), both bodies just `/* transient; the button stays available for retry */` | **No.** A learner clicks Done and nothing happens |
+| Parse failure awards partial credit silently | [`app/api/quiz-grade/route.ts:95-103`](app/api/quiz-grade/route.ts#L95-L103) — 50 % of the marks when the LLM's JSON cannot be parsed, with no signal to the client | **No**, and the path has no test (`grep -c 'quiz-grade' tests/quiz/grading.test.ts` → 0) |
+| Listing error becomes an empty success | [`app/api/comfyui-workflows/route.ts:19-22`](app/api/comfyui-workflows/route.ts#L19-L22) returns `200 {workflows: []}` on any error (it does `console.error` first, so the server sees it) | **No.** "ComfyUI misconfigured" is indistinguishable from "no workflows installed" |
+| Unrecognised element paints nothing | [`packages/@openmaic/renderer/src/SlideElement.tsx:76-102`](packages/@openmaic/renderer/src/SlideElement.tsx#L76-L102) — the switch's `default` arm returns `null` ([`:98-99`](packages/@openmaic/renderer/src/SlideElement.tsx#L98-L99)) with no warning, and [`:103`](packages/@openmaic/renderer/src/SlideElement.tsx#L103) turns that into `return null` | **No.** A future DSL element type is silently invisible |
+| Unknown action type is skipped | [`lib/playback/engine.ts:743-746`](lib/playback/engine.ts#L743-L746) — `default` arm with no log and no counter | **No.** A document from a newer DSL degrades invisibly |
 
 These five are the counterweight to the 13-bare-catch figure. The catch bodies are
 disciplined; the *degradation branches* — `default:` arms, `if (!ok) return`, empty-list
@@ -220,9 +220,9 @@ empty roster never does; separately, a mirror read that *failed* returns `null`
 `:205` skips both the merge and the memo, so the next load retries — where a read that
 succeeded with nothing to migrate is memoized at `:215` and never probes again. A third
 roster state, present-but-missing-voice-data, also probes (`:599`). The
-stage-meta sidecar's `unavailable` branch (`app/classroom/[id]/page.tsx:94-104`) records the
+stage-meta sidecar's `unavailable` branch ([`app/classroom/[id]/page.tsx:94-104`](app/classroom/[id]/page.tsx#L94-L104)) records the
 outage and leaves the edit gate on upstream defaults rather than concluding "not the
-owner" from a network failure. `lib/video-export/ir.ts:61-94` goes further and makes
+owner" from a network failure. [`lib/video-export/ir.ts:61-94`](lib/video-export/ir.ts#L61-L94) goes further and makes
 thirteen diagnostic codes part of the output contract, so a degradation is a structured
 value rather than a log line.
 
@@ -234,11 +234,11 @@ places where the same three-state discipline is absent.
 - Whether the four error-envelope shapes reflect three generations of code or a deliberate
   per-family choice. Only the plain-text 404 carries a rationale comment.
 - Whether the absence of `app/error.tsx` is deliberate. Given how carefully
-  `app/workspace/page.tsx:10-16` and `app/workbench/new/page.tsx:1-5` each argue their 404
+  [`app/workspace/page.tsx:10-16`](app/workspace/page.tsx#L10-L16) and [`app/workbench/new/page.tsx:1-5`](app/workbench/new/page.tsx#L1-L5) each argue their 404
   strategy, the omission of the page all three land on looks like an oversight rather than
   a decision — but nothing records it.
-- `lib/audio/tts-providers.ts:120` carries the repository's only informative TODO: the
+- [`lib/audio/tts-providers.ts:120`](lib/audio/tts-providers.ts#L120) carries the repository's only informative TODO: the
   route "currently catches all errors uniformly as GENERATION_FAILED". That is now stale for
-  429s (`app/api/generate/tts/route.ts:167-168` maps `TTSRateLimitError` to
+  429s ([`app/api/generate/tts/route.ts:167-168`](app/api/generate/tts/route.ts#L167-L168) maps `TTSRateLimitError` to
   `RATE_LIMITED`), but `TTSRequestTimeoutError` still collapses into `GENERATION_FAILED` at
   `:167-183`, so a client cannot distinguish a slow provider from a broken one.

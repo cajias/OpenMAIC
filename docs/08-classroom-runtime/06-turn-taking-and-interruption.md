@@ -13,7 +13,7 @@ entirely.
 `lib/chat/pi/tools/close-session.ts`, `lib/playback/engine.ts`,
 `lib/playback/auto-resume.ts`, `components/edit/PlaybackChromeRoot.tsx`,
 `components/roundtable/index.tsx`, `lib/config/feature-flags.ts`,
-[`../appendix/research/agent-runtime/00-overview.md`](../appendix/research/agent-runtime/00-overview.md).
+[`../appendix/research/agent-runtime/00-overview.md`](docs/appendix/research/agent-runtime/00-overview.md).
 
 ## Turn ownership
 
@@ -58,7 +58,7 @@ on the pi chat path**. See [§ Two chat paths](#two-chat-paths-and-what-that-cos
 
 ## Server side: one cycle per request
 
-`createOrchestrationGraph()` (`lib/orchestration/director-graph.ts:484`) is a
+`createOrchestrationGraph()` ([`lib/orchestration/director-graph.ts:484`](lib/orchestration/director-graph.ts#L484)) is a
 two-node LangGraph whose topology forbids a second cycle:
 
 ```ts
@@ -89,7 +89,7 @@ agentResponses, turnCount, discussionContext, triggerAgentId, whiteboardLedger,
 userProfile, whiteboardOpen)` (`:164-174`) and the model is asked a single
 question: `'Decide which agent should speak next.'` (`:180`).
 
-`parseDirectorDecision` (`lib/orchestration/director-prompt.ts:216`) is
+`parseDirectorDecision` ([`lib/orchestration/director-prompt.ts:216`](lib/orchestration/director-prompt.ts#L216)) is
 deliberately blunt: extract the first `{...}` containing `"next_agent"`,
 `JSON.parse` it, and
 
@@ -104,7 +104,7 @@ converges on "end the round" — the director never retries.
 
 ## Client side: the re-post loop
 
-`runAgentLoop` (`lib/chat/agent-loop.ts:154`) owns iteration. Its docstring states
+`runAgentLoop` ([`lib/chat/agent-loop.ts:154`](lib/chat/agent-loop.ts#L154)) owns iteration. Its docstring states
 the design plainly (`:150-153`): *"There is no client-side max-turn cap; the LLM
 director controls round length via `cue_user` / `END`."*
 
@@ -171,9 +171,9 @@ sequenceDiagram
 
 ### Loop exit conditions and their UI mapping
 
-`AgentLoopOutcome.reason` (`agent-loop.ts:109`) has five members, and
+`AgentLoopOutcome.reason` ([`agent-loop.ts:109`](lib/chat/agent-loop.ts#L109)) has five members, and
 `runAgentLoopFn` maps each to a *distinct* session state — the comment at
-`use-chat-sessions.ts:1320-1322` insists on not conflating them:
+[`use-chat-sessions.ts:1320-1322`](components/chat/use-chat-sessions.ts#L1320-L1322) insists on not conflating them:
 
 | `reason` | Set when | Session state | `onStopSession` source |
 | --- | --- | --- | --- |
@@ -187,13 +187,13 @@ sequenceDiagram
 `{status:'aborted'}` rather than leaving a dangling promise. `turnCount` is taken
 from `directorState.turnCount` when present, else incremented locally (`:248`).
 
-`DirectorState` (`lib/types/chat.ts:303`) is what makes a stateless server
+`DirectorState` ([`lib/types/chat.ts:303`](lib/types/chat.ts#L303)) is what makes a stateless server
 workable: `{ turnCount, agentResponses, whiteboardLedger }`, maintained by the
 client and re-posted every iteration.
 
 ## Two chat paths, and what that costs
 
-`runAgentLoopFn` branches on one flag (`use-chat-sessions.ts:1245`):
+`runAgentLoopFn` branches on one flag ([`use-chat-sessions.ts:1245`](components/chat/use-chat-sessions.ts#L1245)):
 
 | Path | Endpoint | Loop location | `sessionClosed` / `endReason` |
 | --- | --- | --- | --- |
@@ -201,11 +201,11 @@ client and re-posted every iteration.
 | default | `POST /api/chat` (`:1307`) | **browser**, `runAgentLoop` re-posts | never produced |
 
 `isPiChatEnabled()` reads `NEXT_PUBLIC_PI_CHAT_ENABLED`
-(`lib/config/feature-flags.ts:72-73`) through a strict `readBoolean` that accepts
-only `'true'` or `'1'`. `.env.example:324` has the variable **commented out**, so
+([`lib/config/feature-flags.ts:72-73`](lib/config/feature-flags.ts#L72-L73)) through a strict `readBoolean` that accepts
+only `'true'` or `'1'`. [`.env.example:324`](.env.example#L324) has the variable **commented out**, so
 the LangGraph path is the shipped default.
 
-`close_session` (`lib/chat/pi/tools/close-session.ts:29`) is a pi-only director
+`close_session` ([`lib/chat/pi/tools/close-session.ts:29`](lib/chat/pi/tools/close-session.ts#L29)) is a pi-only director
 tool whose `endReason` is a four-member literal union — `user_goodbye`,
 `user_done`, `back_to_lesson`, `lesson_complete` (`:8-11`) — and it refuses to
 fire twice:
@@ -216,22 +216,22 @@ fire twice:
   classroom agent first (`:48-58`).
 
 Consequence, following the call chain: `enterSoftClosing` has exactly **one**
-caller (`use-chat-sessions.ts:443`, inside `runPiSingleRequest`), reached only via
+caller ([`use-chat-sessions.ts:443`](components/chat/use-chat-sessions.ts#L443), inside `runPiSingleRequest`), reached only via
 `getPiSingleRequestOutcome`'s `doneData.sessionClosed` branch (`:356-362`). It is
 the only producer of the cleanup sources `soft_close_confirmed` and
 `soft_close_timeout`, and `shouldAutoResumeLecture` requires one of those two
-(`lib/playback/auto-resume.ts:38`). Therefore **on the default LangGraph path an
+([`lib/playback/auto-resume.ts:38`](lib/playback/auto-resume.ts#L38)). Therefore **on the default LangGraph path an
 interrupted lecture never auto-resumes** — the learner always presses play again.
 The `shouldAutoResumeLecture` unit test exists
 (`tests/lib/playback/auto-resume.test.ts`) but the integration is flag-gated.
 
 ## The soft-close grace window
 
-`SOFT_CLOSE_TIMEOUT_MS = 15_000` (`use-chat-sessions.ts:47`). `enterSoftClosing`
+`SOFT_CLOSE_TIMEOUT_MS = 15_000` ([`use-chat-sessions.ts:47`](components/chat/use-chat-sessions.ts#L47)). `enterSoftClosing`
 (`:754`) sets `softCloseLifecycle = 'soft-closing'`, publishes a
 `softCloseDeadline = Date.now() + 15_000` so the roundtable can count down, fires
 `onStopSession` with `source: 'soft_close_enter'` (which
-`shouldAutoResumeLecture` explicitly rejects, `auto-resume.ts:38`), and arms a
+`shouldAutoResumeLecture` explicitly rejects, [`auto-resume.ts:38`](lib/playback/auto-resume.ts#L38)), and arms a
 timer that fires with `source: 'soft_close_timeout'` (`:727`, `:732`).
 
 Three exits:
@@ -246,7 +246,7 @@ The lifecycle map is what makes the three mutually exclusive — a confirm that
 races the timer finds the lifecycle already `'completed'` and no-ops.
 
 In the roundtable, `onUserInputActivity` is wired straight to
-`handleContinueDiscussion` (`PlaybackChromeRoot.tsx:1653-1655`), so merely
+`handleContinueDiscussion` ([`PlaybackChromeRoot.tsx:1653-1655`](components/edit/PlaybackChromeRoot.tsx#L1653-L1655)), so merely
 starting to type during the grace window cancels the close.
 
 ## Interruption: four pause semantics
@@ -276,34 +276,34 @@ flowchart TD
 ```
 
 `Space` is arbitrated between two keydown listeners:
-`PlaybackChromeRoot.tsx:1337` breaks out of its own `Space` case while
+[`PlaybackChromeRoot.tsx:1337`](components/edit/PlaybackChromeRoot.tsx#L1337) breaks out of its own `Space` case while
 `chatSessionType === 'qa' | 'discussion'`, so the roundtable owns `Space` during a
 live session and the engine owns it otherwise. The roundtable's own handler is
 additionally guarded on `!thinkingState && currentSpeech`
-(`roundtable/index.tsx:480`) — the same guard as a bubble click, so `Space` cannot
+([`roundtable/index.tsx:480`](components/roundtable/index.tsx#L480)) — the same guard as a bubble click, so `Space` cannot
 pause while the director is still thinking or before the first character arrives.
 
 ### Why `paused` is in the interrupt branch
 
 `onMessageSend` routes to `engine.handleUserInterrupt` when the mode is
-`playing`, `live` **or `paused`** (`PlaybackChromeRoot.tsx:1619-1622`). The comment
+`playing`, `live` **or `paused`** ([`PlaybackChromeRoot.tsx:1619-1622`](components/edit/PlaybackChromeRoot.tsx#L1619-L1622)). The comment
 explains it: `onInputActivate` already paused the engine while the learner was
 typing, so without including `paused` the interrupt position would never be saved
 and resuming after Q&A would skip the interrupted sentence.
 
 `handleUserInterrupt` itself guards against double-saving:
-`if (this.savedSceneIndex === null)` (`lib/playback/engine.ts:447`) — a
+`if (this.savedSceneIndex === null)` ([`lib/playback/engine.ts:447`](lib/playback/engine.ts#L447)) — a
 `live → paused → new message` sequence keeps the first saved position.
 
 ### The sticky live-pause ref
 
 `pauseActiveLiveBuffer()` sets `livePausedRef.current = true`
-(`use-chat-sessions.ts:2245`), and **newly created discussion/QA buffers inherit
+([`use-chat-sessions.ts:2245`](components/chat/use-chat-sessions.ts#L2245)), and **newly created discussion/QA buffers inherit
 it** (`:1112-1114`) so a new agent turn does not start revealing text under a
 learner who paused to read. The inherit is gated on `type !== 'lecture'`, so a
 lecture buffer never inherits the sticky pause. That is why `onMessageSend` calls
 `resumeActiveLiveBuffer()` *before* `sendMessage` creates the next buffer
-(`PlaybackChromeRoot.tsx:1599-1602`), and why the comment at `:1595-1597` notes
+([`PlaybackChromeRoot.tsx:1599-1602`](components/edit/PlaybackChromeRoot.tsx#L1599-L1602)), and why the comment at [`:1595-1597`](components/edit/PlaybackChromeRoot.tsx#L1595-L1597) notes
 the closure may hold a stale `isDiscussionPaused`.
 
 ## Stale-callback discipline
@@ -321,7 +321,7 @@ old scene's cursor over the installed engine's (`:767`).
 ## Open questions
 
 - The soft-close grace window is documented as "client-side, ~15s" on
-  `RoundtableProps.isSoftClosing` (`roundtable/index.tsx:64`) and the constant
+  `RoundtableProps.isSoftClosing` ([`roundtable/index.tsx:64`](components/roundtable/index.tsx#L64)) and the constant
   confirms 15 000 ms — but the whole mechanism is unreachable without
   `NEXT_PUBLIC_PI_CHAT_ENABLED`. Whether the LangGraph path is meant to grow an
   equivalent, or is meant to be retired, is not recorded.
@@ -331,9 +331,9 @@ old scene's cursor over the installed engine's (`:767`).
 
 ## Next
 
-- [`./05-roundtable-agents.md`](./05-roundtable-agents.md) — the cast the director
+- [`./05-roundtable-agents.md`](docs/08-classroom-runtime/05-roundtable-agents.md) — the cast the director
   chooses from.
-- [`../05-agent-runtime/index.md`](../05-agent-runtime/index.md) — the two agent
+- [`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md) — the two agent
   runtimes and the pi director's tool surface.
-- [`./02-playback-state-machine.md`](./02-playback-state-machine.md) — the `live`
+- [`./02-playback-state-machine.md`](docs/08-classroom-runtime/02-playback-state-machine.md) — the `live`
   mode transitions in detail.

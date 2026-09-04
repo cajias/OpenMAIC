@@ -4,11 +4,11 @@ The 132 entries in root `dependencies`, grouped by the role they actually play i
 the code rather than by name. Heavy, duplicated and unreferenced choices are
 flagged. This is a synthesis, not a transcription of `package.json`.
 
-**Sources:** `package.json:35`-`:168` (132 entries), `render-service/package.json`,
+**Sources:** [`package.json:35`](package.json#L35)-[`:168`](package.json#L168) (132 entries), `render-service/package.json`,
 the six `packages/@openmaic/*/package.json` manifests, plus the import sites cited
 per row. Counts measured by script over `app`, `components`, `lib`, `tests`, `e2e`,
 `eval`, `scripts`, `types`, `packages/@openmaic` and `render-service/src`.
-Evidence: [quality-testing-ci-deps/04](../appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
+Evidence: [quality-testing-ci-deps/04](docs/appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
 
 ## Cluster map
 
@@ -67,55 +67,55 @@ flowchart TD
 
 | Package | Range | Why it matters |
 | --- | --- | --- |
-| `next` | `16.2.11` exact | App Router, middleware, the `instrumentation.ts` hook, `next/font`. 62 of the 69 route files import `next/server`, 2 import `next/headers`. `middleware.ts:1` and `app/layout.tsx:1` are the other anchors. |
-| `react` / `react-dom` | `19.2.3` exact | Suspense boundaries around `useSearchParams` (`app/workspace/page.tsx`), the whole provider stack in `app/layout.tsx:48`-`:59`. |
-| `tailwindcss` 4 + `@tailwindcss/postcss` | `^4` | Sole PostCSS plugin (`postcss.config.mjs:3`). `app/globals.css:1`-`:16` carries five `@source` directives: four dist scans Tailwind 4's auto-detection would not find — `streamdown`, `@streamdown/code`, `@streamdown/math`, `@openmaic/renderer/dist` (`:9`-`:12`) — plus `./slide-renderer-demo/**` at `:16`, re-included because that local sandbox is gitignored and auto-detection therefore skips it (reason at `:13`-`:15`). |
-| `shadcn` | `^3.6.3` | Not just a CLI: `app/globals.css:3` does `@import 'shadcn/tailwind.css'`, so it is a runtime CSS dependency. `components.json` pins `iconLibrary: "lucide"` and `style: "radix-vega"`. |
-| `tw-animate-css` | `^1.4.0` | `@import` at `app/globals.css:2`. |
-| `geist` | `^1.7.0` | `GeistSans`/`GeistMono` via `next/font`, applied as CSS variables on `<body>` (`app/layout.tsx:2`-`:3`, `:45`). |
-| `animate.css` | `^4.1.1` | Global side-effect import at `app/layout.tsx:6`. |
+| `next` | `16.2.11` exact | App Router, middleware, the `instrumentation.ts` hook, `next/font`. 62 of the 69 route files import `next/server`, 2 import `next/headers`. [`middleware.ts:1`](middleware.ts#L1) and [`app/layout.tsx:1`](app/layout.tsx#L1) are the other anchors. |
+| `react` / `react-dom` | `19.2.3` exact | Suspense boundaries around `useSearchParams` (`app/workspace/page.tsx`), the whole provider stack in [`app/layout.tsx:48`](app/layout.tsx#L48)-[`:59`](app/layout.tsx#L59). |
+| `tailwindcss` 4 + `@tailwindcss/postcss` | `^4` | Sole PostCSS plugin ([`postcss.config.mjs:3`](postcss.config.mjs#L3)). [`app/globals.css:1`](app/globals.css#L1)-[`:16`](app/globals.css#L16) carries five `@source` directives: four dist scans Tailwind 4's auto-detection would not find — `streamdown`, `@streamdown/code`, `@streamdown/math`, `@openmaic/renderer/dist` ([`:9`](app/globals.css#L9)-[`:12`](app/globals.css#L12)) — plus `./slide-renderer-demo/**` at [`:16`](app/globals.css#L16), re-included because that local sandbox is gitignored and auto-detection therefore skips it (reason at [`:13`](app/globals.css#L13)-[`:15`](app/globals.css#L15)). |
+| `shadcn` | `^3.6.3` | Not just a CLI: [`app/globals.css:3`](app/globals.css#L3) does `@import 'shadcn/tailwind.css'`, so it is a runtime CSS dependency. `components.json` pins `iconLibrary: "lucide"` and `style: "radix-vega"`. |
+| `tw-animate-css` | `^1.4.0` | `@import` at [`app/globals.css:2`](app/globals.css#L2). |
+| `geist` | `^1.7.0` | `GeistSans`/`GeistMono` via `next/font`, applied as CSS variables on `<body>` ([`app/layout.tsx:2`](app/layout.tsx#L2)-[`:3`](app/layout.tsx#L3), [`:45`](app/layout.tsx#L45)). |
+| `animate.css` | `^4.1.1` | Global side-effect import at [`app/layout.tsx:6`](app/layout.tsx#L6). |
 
 ### The font decision worth reading
 
 `@fontsource-variable/inter` plus 13 `@fontsource/*` families are installed, and
 the UI font is loaded from the **stylesheet**, not `next/font`
-(`app/layout.tsx:29`). The 14-line comment at `app/layout.tsx:16`-`:28` explains
+([`app/layout.tsx:29`](app/layout.tsx#L29)). The 14-line comment at [`app/layout.tsx:16`](app/layout.tsx#L16)-[`:28`](app/layout.tsx#L28) explains
 why: only the stylesheet carries per-subset `unicode-range` declarations. Pointing
 `next/font` at `inter-latin-wght-normal.woff2` loaded exactly one subset, so
 Cyrillic (ru-RU) and tone-marked Vietnamese fell back to an arbitrary OS font
 mid-word — and declaring the other subsets as sibling faces without
 `unicode-range` does not fall through per glyph either. Twelve of the thirteen
 `@fontsource/*` families feed the slide-editor font picker
-(`app/editor-fonts.ts:15`-`:39`). The thirteenth, `@fontsource/noto-sans-kr`, is
+([`app/editor-fonts.ts:15`](app/editor-fonts.ts#L15)-[`:39`](app/editor-fonts.ts#L39)). The thirteenth, `@fontsource/noto-sans-kr`, is
 never imported: it is read through a `node_modules` path by
-`scripts/generate-video-export-noto-cjk.mjs:16` to produce the offline
+[`scripts/generate-video-export-noto-cjk.mjs:16`](scripts/generate-video-export-noto-cjk.mjs#L16) to produce the offline
 video-export Korean face.
 
 ### `next-themes` is installed but never mounted
 
-`next-themes ^0.4.6` (`package.json:120`) has exactly one importer:
-`components/ui/sonner.tsx:3` reads `useTheme()` from it to pick the toast
+`next-themes ^0.4.6` ([`package.json:120`](package.json#L120)) has exactly one importer:
+[`components/ui/sonner.tsx:3`](components/ui/sonner.tsx#L3) reads `useTheme()` from it to pick the toast
 palette. The app's theme provider is first-party — `ThemeProvider` from
-`lib/hooks/use-theme.tsx:15`, mounted at `app/layout.tsx:8`, `:48` — and no
+[`lib/hooks/use-theme.tsx:15`](lib/hooks/use-theme.tsx#L15), mounted at [`app/layout.tsx:8`](app/layout.tsx#L8), [`:48`](app/layout.tsx#L48) — and no
 `next-themes` provider is mounted anywhere, so that `useTheme()` sees no context
-and the destructuring default in `sonner.tsx:14` (`{ theme = 'system' }`) always
+and the destructuring default in [`sonner.tsx:14`](components/ui/sonner.tsx#L14) (`{ theme = 'system' }`) always
 wins. The toaster follows the OS preference rather than the app's theme state.
 
 ## AI and agent SDKs
 
 | Package | Range | Role |
 | --- | --- | --- |
-| `ai` | `^6.0.168` | The actual transport. `generateText`/`streamText` behind `callLLM`/`streamLLM`; `APICallError`/`RetryError` status extraction in `lib/server/llm-error-response.ts:1`; `tool()` and `stepCountIs()` in the PBL agents. |
+| `ai` | `^6.0.168` | The actual transport. `generateText`/`streamText` behind `callLLM`/`streamLLM`; `APICallError`/`RetryError` status extraction in [`lib/server/llm-error-response.ts:1`](lib/server/llm-error-response.ts#L1); `tool()` and `stepCountIs()` in the PBL agents. |
 | `@ai-sdk/openai` | `^3.0.84` | `createOpenAI` — 14 of the 19 provider slots (`type: 'openai'` in the `PROVIDERS` literal). |
-| `@ai-sdk/anthropic`, `@ai-sdk/google`, `@ai-sdk/azure`, `@ai-sdk/amazon-bedrock` | `^3`/`^4` | One slot family each (`lib/ai/providers.ts:29`-`:34`). |
-| `@aws-sdk/credential-providers` | `^3.1045.0` | `fromNodeProviderChain()` for Bedrock, dynamically imported to stay out of the client bundle (`lib/ai/providers.ts:1794`). |
+| `@ai-sdk/anthropic`, `@ai-sdk/google`, `@ai-sdk/azure`, `@ai-sdk/amazon-bedrock` | `^3`/`^4` | One slot family each ([`lib/ai/providers.ts:29`](lib/ai/providers.ts#L29)-[`:34`](lib/ai/providers.ts#L34)). |
+| `@aws-sdk/credential-providers` | `^3.1045.0` | `fromNodeProviderChain()` for Bedrock, dynamically imported to stay out of the client bundle ([`lib/ai/providers.ts:1794`](lib/ai/providers.ts#L1794)). |
 | `@earendil-works/pi-agent-core` | `0.78.0` **exact** | The agent loop itself: `Agent`, `Session`, `loadSkills`, compaction, `InMemorySessionRepo`. 43 source files import it, 69 including `tests/`. |
 | `@earendil-works/pi-ai` | `0.78.0` **exact** | Event protocol and message types; 8 source files, 14 including `tests/`. |
 | `@langchain/core` + `@langchain/langgraph` | `^1` | Only the legacy classroom director `StateGraph` (`lib/orchestration/director-graph.ts`) and its message adapter (`lib/orchestration/ai-sdk-adapter.ts`). Two files, two packages. |
 | `tokenlens` | `^1.3.1` | One import site. |
 
 Both `@earendil-works` packages are pinned exact, and the reason is written down:
-`lib/agent/VENDOR.md:19`-`:21` records `0.78.0` as the baseline for a possible
+[`lib/agent/VENDOR.md:19`](lib/agent/VENDOR.md#pinning-rationale)-[`:21`](lib/agent/VENDOR.md#pinning-rationale) records `0.78.0` as the baseline for a possible
 future source vendoring, with a four-step fork procedure and the rule *"do not
 vendor the source until you actually need to modify the loop."*
 
@@ -128,24 +128,24 @@ expression is too dynamic"* at runtime on the Pro-mode edit path.
 
 | Package | Range | Role |
 | --- | --- | --- |
-| `pptxgenjs` | `workspace:*` → 4.0.1 | Writes the `.pptx` package. Vendored fork — see [04-vendored-forks.md](./04-vendored-forks.md). |
+| `pptxgenjs` | `workspace:*` → 4.0.1 | Writes the `.pptx` package. Vendored fork — see [04-vendored-forks.md](docs/13-dependencies/04-vendored-forks.md). |
 | `mathml2omml` | `workspace:*` → 0.5.0 | MathML → OMML for editable PowerPoint formulas. Vendored fork, **LGPL-3.0-or-later**. |
-| `temml` | `^0.13.1` | LaTeX → MathML, stage one of the pptx formula pipeline (`lib/export/latex-to-omml.ts:1`). |
-| `pptxtojson` | `^1.11.0` | Declared at root and in `@openmaic/importer` — but the importer *is* a fork of it, and imports it purely for the parsed-JSON **types** (`transformParsedToSlides.ts:1`, `:34`). |
+| `temml` | `^0.13.1` | LaTeX → MathML, stage one of the pptx formula pipeline ([`lib/export/latex-to-omml.ts:1`](lib/export/latex-to-omml.ts#L1)). |
+| `pptxtojson` | `^1.11.0` | Declared at root and in `@openmaic/importer` — but the importer *is* a fork of it, and imports it purely for the parsed-JSON **types** ([`transformParsedToSlides.ts:1`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L1), [`:34`](packages/@openmaic/importer/src/import-pipeline/transformParsedToSlides.ts#L34)). |
 | `jszip` | `^3.10.1` | Classroom ZIP, resource pack, video-export ZIP, MinerU Cloud result unpack, skill zip parse. Also a real dependency of the pptxgenjs fork. |
 | `file-saver` | `^2.0.5` | Downloads the produced Blob. |
 | `unpdf` | `^1.4.0` | Built-in PDF text and raw-image extraction. |
-| `sharp` | `0.35.4` exact | Raw PDF image buffers → PNG base64. Native; `pnpm.ignoredBuiltDependencies` suppresses its install script (`package.json:203`-`:207`) and `Dockerfile:32` installs the toolchain instead. |
+| `sharp` | `0.35.4` exact | Raw PDF image buffers → PNG base64. Native; `pnpm.ignoredBuiltDependencies` suppresses its install script ([`package.json:203`](package.json#L203)-[`:207`](package.json#L207)) and [`Dockerfile:32`](Dockerfile#L32) installs the toolchain instead. |
 | `pdf-lib` | `^1.17.1` | 2 import sites. |
 | `docx` | `9.4.1` exact | 1 import site. |
-| `linkedom` | `^0.18.13` | A DOM for the server-side pptx parse worker (`lib/server/agent-runtime/import-pptx-worker.mjs:7`), run inside a `worker_threads` worker so its globals never touch the request process. |
+| `linkedom` | `^0.18.13` | A DOM for the server-side pptx parse worker ([`lib/server/agent-runtime/import-pptx-worker.mjs:7`](lib/server/agent-runtime/import-pptx-worker.mjs#L7)), run inside a `worker_threads` worker so its globals never touch the request process. |
 | `parse5`, `sanitize-html` (`2.17.0` exact), `turndown`, `@joplin/turndown-plugin-gfm`, `@mozilla/readability`, `parse-srcset`, `postcss-value-parser` | — | HTML ingest, sanitising and asset inlining. |
 
 ## Media and raster
 
 | Package | Range | Role |
 | --- | --- | --- |
-| `katex` | `^0.16.33` | Server-side LaTeX render for slide `latex` elements and the `wb_draw_latex` whiteboard tool; the CSS is a global import (`app/layout.tsx:7`); the build scripts read its `dist/fonts` to vendor 20 WOFF2 faces for offline video export. |
+| `katex` | `^0.16.33` | Server-side LaTeX render for slide `latex` elements and the `wb_draw_latex` whiteboard tool; the CSS is a global import ([`app/layout.tsx:7`](app/layout.tsx#L7)); the build scripts read its `dist/fonts` to vendor 20 WOFF2 faces for offline video export. |
 | `echarts` | `^6.0.0` | Chart elements. **Optional peer** of `@openmaic/renderer` (`>=5`), a hard dep of the app and of `render-service`. |
 | `shiki` | `^3.21.0` | Code-element highlighting. Same optional-peer shape as `echarts`. |
 | `motion` | `^12.27.5` | Hero entrance, generation-step animation, `AnimatePresence` around the renderer's laser overlay, PBL workspace transitions. Machine-forbidden inside `lib/video-export/**` by ESLint. |
@@ -157,7 +157,7 @@ expression is too dynamic"* at runtime on the Pro-mode edit path.
 Note there is **no `gsap` runtime dependency** despite GSAP driving the exported
 video composition. GSAP is a committed file — `public/vendor/gsap.min.js`, 72 927
 bytes measured with `ls -la` — copied into the export ZIP so the render container
-needs no CDN (`lib/video-export-app/package-zip.ts:19`, `:34`). `gsap` appears
+needs no CDN ([`lib/video-export-app/package-zip.ts:19`](lib/video-export-app/package-zip.ts#L19), [`:34`](lib/video-export-app/package-zip.ts#L34)). `gsap` appears
 only in `devDependencies`.
 
 ## State, schema and data
@@ -173,7 +173,7 @@ only in `devDependencies`.
 | `partial-json` | `^0.1.7` | Last-resort parse of a truncated action array, and the legacy classroom child's streaming JSON. |
 | `js-yaml` | `4.3.0` exact | Parses `server-providers.yml`, reads a skill's `title` frontmatter, and parses `.github/workflows/ci.yml` in the workflow meta-tests. |
 | `nanoid` | `5.1.16` exact | Ids for outlines, elements, actions, scenes, messages, generated media, classroom jobs. |
-| `lodash` | `4.18.1` exact | Three functions across nine files: `isEqual` (six files — snapshot equality for conflict detection, chat/stage storage and PBL hydration), `debounce` (`components/slide-renderer/components/element/TextElement/index.tsx:4`, `ProsemirrorEditor.tsx:4`) and `uniq` (`Editor/Canvas/hooks/useSelectElement.ts:2`). |
+| `lodash` | `4.18.1` exact | Three functions across nine files: `isEqual` (six files — snapshot equality for conflict detection, chat/stage storage and PBL hydration), `debounce` ([`components/slide-renderer/components/element/TextElement/index.tsx:4`](components/slide-renderer/components/element/TextElement/index.tsx#L4), [`ProsemirrorEditor.tsx:4`](components/slide-renderer/components/element/ProsemirrorEditor.tsx#L4)) and `uniq` ([`Editor/Canvas/hooks/useSelectElement.ts:2`](components/slide-renderer/Editor/Canvas/hooks/useSelectElement.ts#L2)). |
 | `mitt`, `es-module-lexer` | — | 1 import site each. |
 
 **Two schema libraries, disjoint jobs.** `zod` owns data the app authors (the
@@ -187,25 +187,25 @@ Three packages, all load-bearing for security:
 
 - `pg` `^8.16.3` — the only PostgreSQL driver anywhere. Injected into
   `@openmaic/storage` as `Queryable`/`WithTransaction` so no storage backend
-  imports a driver (`lib/persistence/server-provider.ts:8`, `:72`). Reached from
+  imports a driver ([`lib/persistence/server-provider.ts:8`](lib/persistence/server-provider.ts#L8), [`:72`](lib/persistence/server-provider.ts#L72)). Reached from
   `instrumentation.ts` only by dynamic import, with the comment *"so the Edge
-  bundle never pulls in `pg`"* at `instrumentation.ts:18`.
+  bundle never pulls in `pg`"* at [`instrumentation.ts:18`](instrumentation.ts#L18).
 - `undici` `7.29.0` exact — `ProxyAgent` so server-side fetches honour
   `https_proxy`/`http_proxy`/`no_proxy` (Node's built-in `fetch` ignores them,
-  `lib/server/proxy-fetch.ts:15`-`:25`), and DNS-answer pinning in the hardened
+  [`lib/server/proxy-fetch.ts:15`](lib/server/proxy-fetch.ts#L15)-[`:25`](lib/server/proxy-fetch.ts#L25)), and DNS-answer pinning in the hardened
   agent fetch path.
 - `ipaddr.js` `^2.5.0` — address classification inside `assertSafeIp`, including
   IPv4-mapped IPv6 unwrapping and 6to4/Teredo/ISATAP tunnel detection
-  (`lib/server/ssrf-guard.ts:9`, `:35`-`:49`).
+  ([`lib/server/ssrf-guard.ts:9`](lib/server/ssrf-guard.ts#L9), [`:35`](lib/server/ssrf-guard.ts#L35)-[`:49`](lib/server/ssrf-guard.ts#L49)).
 
 ## Rich text
 
 Eleven `prosemirror-*` packages at root **and** the same eleven in
-`packages/@openmaic/editor/package.json:48`-`:58`. Both a legacy in-app editor
+[`packages/@openmaic/editor/package.json:48`](packages/@openmaic/editor/package.json#L48)-[`:58`](packages/@openmaic/editor/package.json#L58). Both a legacy in-app editor
 (`lib/prosemirror`) and the packaged one ship today, selected by
 `NEXT_PUBLIC_MAIC_EDITOR_RENDERER_ENABLED`. That duplication is the main
 structural debt of the editor subsystem, not a packaging accident — see
-[07-dsl-renderer-editor](../07-dsl-renderer-editor/index.md).
+[07-dsl-renderer-editor](docs/07-dsl-renderer-editor/index.md).
 
 ## Declared with no first-party importer
 
@@ -218,7 +218,7 @@ quoted specifier, then confirming the only remaining occurrences are
 | `@copilotkit/backend`, `@copilotkit/runtime`, `copilotkit` | dependencies | CopilotKit is not imported anywhere. |
 | `@modelcontextprotocol/sdk` | dependencies | No MCP client or server code in the repository. |
 | `@ai-sdk/react` | dependencies | The app hand-rolls `useChatSessions` instead of the SDK's React hooks. |
-| `@alicloud/credentials` | dependencies | `lib/pdf/alidocmind-client.ts:12`-`:14` uses only `docmind-api20220711`, `openapi-client`, `tea-util`. |
+| `@alicloud/credentials` | dependencies | [`lib/pdf/alidocmind-client.ts:12`](lib/pdf/alidocmind-client.ts#L12)-[`:14`](lib/pdf/alidocmind-client.ts#L14) uses only `docmind-api20220711`, `openapi-client`, `tea-util`. |
 | `openai` | dependencies | Zero import sites. The nineteen provider slots reach OpenAI-compatible endpoints through `@ai-sdk/openai`'s `createOpenAI`; the only tree-wide occurrences of the bare string are the `type: 'openai'` / `id: 'openai'` literals in `lib/ai/providers.ts`. |
 | `vue-to-react` | devDependencies | No Vue source in the repository. |
 
@@ -232,7 +232,7 @@ an optional peer of `unpdf`, `@fontsource/noto-sans` /
 `@fontsource/noto-sans-arabic` are read by
 `scripts/generate-video-export-noto-script-fonts.mjs` through a `node_modules`
 path, and `@fontsource/noto-sans-kr` is read the same way by
-`scripts/generate-video-export-noto-cjk.mjs:16`, `:42` alongside
+[`scripts/generate-video-export-noto-cjk.mjs:16`](scripts/generate-video-export-noto-cjk.mjs#L16), [`:42`](scripts/generate-video-export-noto-cjk.mjs#L42) alongside
 `@fontsource/noto-sans-sc`.
 
 ## Cross-manifest duplication
@@ -243,10 +243,10 @@ not:
 
 | Package | Declarations | Reading |
 | --- | --- | --- |
-| `katex` | root `^0.16.33`, generation `^0.16.22`, renderer/editor/importer `^0.16.33` | The generation package's floor is 11 patches behind its siblings. Compatible under caret, but the four are meant to move together — the video-export font script asserts exactly 20 WOFF2 faces (`scripts/generate-video-export-katex.mjs:36`) against whichever copy resolves. |
+| `katex` | root `^0.16.33`, generation `^0.16.22`, renderer/editor/importer `^0.16.33` | The generation package's floor is 11 patches behind its siblings. Compatible under caret, but the four are meant to move together — the video-export font script asserts exactly 20 WOFF2 faces ([`scripts/generate-video-export-katex.mjs:36`](scripts/generate-video-export-katex.mjs#L36)) against whichever copy resolves. |
 | `nanoid` | root `5.1.16` exact, generation/importer `^5.1.6` | Root pins, packages float. |
 | `tinycolor2` | root `^1.6.0`, renderer `^1.6.0`, importer `1.6.0` exact | Importer pins where its siblings do not. |
-| `echarts`, `shiki` | root dep, `render-service` dep, renderer **optional peer** | Correct shape: the renderer declares them optional (`peerDependenciesMeta.optional = true`, `packages/@openmaic/renderer/package.json:72`-`:79`), and the two applications that execute the chart/code paths supply them. |
+| `echarts`, `shiki` | root dep, `render-service` dep, renderer **optional peer** | Correct shape: the renderer declares them optional (`peerDependenciesMeta.optional = true`, [`packages/@openmaic/renderer/package.json:72`](packages/@openmaic/renderer/package.json#L72)-[`:79`](packages/@openmaic/renderer/package.json#L79)), and the two applications that execute the chart/code paths supply them. |
 | `motion` | root dep, `render-service` dep, renderer **required peer** `>=11` | The same three declarations, but `motion` is absent from `peerDependenciesMeta`, so it is a plain required peer: installing `@openmaic/renderer` without `motion` is an unmet-peer error, unlike `echarts`/`shiki`. Nothing in the renderer's source makes animation more mandatory than charting, so this reads as an oversight rather than a decision. |
 | `react`, `react-dom` | root `19.2.3`, `render-service` `19.2.3`, renderer/editor peer `>=18` | Correct. |
 | `@openmaic/dsl` | root `workspace:*`, five packages `workspace:^`, `render-service` **`0.11.0` exact from the registry** | The render service is outside the pnpm workspace, so it consumes published tarballs. It is currently pinned to dsl `0.11.0` and renderer `0.1.4` while the workspace copies are `0.11.1` and `0.1.6`. Nothing in CI compares the two. |
@@ -293,7 +293,7 @@ packages that all resolve to one copy, so the lowest floor among them
 - `render-service`'s registry pins (`@openmaic/dsl@0.11.0`,
   `@openmaic/renderer@0.1.4`) drift silently from the workspace versions. No gate
   compares them, and the DSL format-version rule
-  ([05-published-packages.md](./05-published-packages.md)) does not reach across
+  ([05-published-packages.md](docs/13-dependencies/05-published-packages.md)) does not reach across
   the workspace boundary.
 - `katex ^0.16.22` in `@openmaic/generation` versus `^0.16.33` elsewhere: no
   comment explains the older floor.

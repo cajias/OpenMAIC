@@ -5,13 +5,13 @@ security-relevant part of the subsystem; every statement below is exact.
 
 ## 1. Split placeholder / host
 
-`InteractiveRenderer` (`components/scene-renderers/interactive-renderer.tsx:23`)
+`InteractiveRenderer` ([`components/scene-renderers/interactive-renderer.tsx:23`](components/scene-renderers/interactive-renderer.tsx#L23))
 renders only `<div className="w-full h-full" aria-hidden />`. It (a) registers the
 patched HTML in a keep-alive pool, (b) marks the scene active and claims
 visibility with a `useId()` ownership token, (c) reports its screen rect every
 animation frame (`:55`). The real `<iframe>` elements live in
-`InteractiveIframeHost` (`InteractiveIframeHost.tsx:88`), mounted once at the
-`Stage` root (`components/stage.tsx:385`) — **above** the mode-swap subtree — and
+`InteractiveIframeHost` ([`InteractiveIframeHost.tsx:88`](components/scene-renderers/InteractiveIframeHost.tsx#L88)), mounted once at the
+`Stage` root ([`components/stage.tsx:385`](components/stage.tsx#L385)) — **above** the mode-swap subtree — and
 portalled to `document.fullscreenElement ?? document.body` (`:99`).
 
 ```mermaid
@@ -32,15 +32,15 @@ flowchart TD
 ```
 
 Pool: `useInteractiveIframePool`, `IFRAME_POOL_CAP = 3`
-(`lib/store/interactive-iframe-pool.ts:21`), LRU by a monotonic `tick`, active
+([`lib/store/interactive-iframe-pool.ts:21`](lib/store/interactive-iframe-pool.ts#L21)), LRU by a monotonic `tick`, active
 scene never evicted (`:79`). A content change is the **only** intended reload path
 (`:117`); an equal-but-new `srcDoc` string hits the keep-alive fast path because
 the comparison is by value (`:111`).
 
 Geometry: the page is authored against a fixed logical viewport `1280 × 720`
-(`lib/interactive/logical-viewport.ts:4`); `fitGenUiViewport` contain-fits and
+([`lib/interactive/logical-viewport.ts:4`](lib/interactive/logical-viewport.ts#L4)); `fitGenUiViewport` contain-fits and
 centres it (`:13`), and the host applies `transform: scale(...)` with the iframe
-at full logical size (`InteractiveIframeHost.tsx:262-271`). The wrapper is clipped
+at full logical size ([`InteractiveIframeHost.tsx:262-271`](components/scene-renderers/InteractiveIframeHost.tsx#L262-L271)). The wrapper is clipped
 to `intersectClientBoxes(viewport.box, clip)` (`:236`) so an overflow-hidden
 ancestor still clips a `position: fixed` iframe.
 
@@ -50,7 +50,7 @@ ancestor still clips a `position: fixed` iframe.
 sandbox="allow-scripts allow-forms allow-popups"
 ```
 
-`InteractiveIframeHost.tsx:281`. `allow-same-origin` is **deliberately omitted**;
+[`InteractiveIframeHost.tsx:281`](components/scene-renderers/InteractiveIframeHost.tsx#L281). `allow-same-origin` is **deliberately omitted**;
 the reasoning is written out at `:145-155`: combining `allow-scripts` with
 `allow-same-origin` on a `srcDoc` iframe negates the sandbox, and the HTML may
 come from LLM output or imported classroom JSON. The document therefore runs in a
@@ -61,7 +61,7 @@ sandbox. `allow-top-navigation`, `allow-modals`, `allow-downloads` and
 
 ## 3. CSP — what actually exists
 
-The **only** app-level CSP is set in `next.config.ts:38-56`:
+The **only** app-level CSP is set in [`next.config.ts:38-56`](next.config.ts#L38-L56):
 
 ```ts
 key: 'Content-Security-Policy',
@@ -78,7 +78,7 @@ That is it. There is **no** `default-src`, `script-src`, `connect-src` or
 interactive document itself** on the live-classroom path. The sandbox attribute is
 the whole isolation boundary in the browser. A static CSP meta *does* exist, but
 only on the video-export path
-(`lib/video-export-app/prepare-interactive-html.ts:35`):
+([`lib/video-export-app/prepare-interactive-html.ts:35`](lib/video-export-app/prepare-interactive-html.ts#L35)):
 `default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' data: blob:;
 style-src 'unsafe-inline' data:; img-src data: blob:; font-src data:;
 media-src data: blob:; worker-src 'none'; connect-src 'none'; frame-src 'none';
@@ -146,7 +146,7 @@ flowchart TD
   G3 -->|yes| APPLY["useElementRefsStore.toggle(makeInteractiveElementRef(...))"]
 ```
 
-`handleInteractivePickerMessage` is exported (`InteractiveIframeHost.tsx:36`)
+`handleInteractivePickerMessage` is exported ([`InteractiveIframeHost.tsx:36`](components/scene-renderers/InteractiveIframeHost.tsx#L36))
 specifically so this validation chain is unit-testable — and
 `tests/scene-renderers/interactive-iframe-picker.test.ts` exercises it.
 
@@ -164,8 +164,8 @@ stale frame cannot disarm a picker it does not own.
 Facts, not speculation:
 
 - `entry.src` is used when no inline HTML exists
-  (`InteractiveIframeHost.tsx:278`), i.e. an `InteractiveContent.url`
-  (`packages/@openmaic/dsl/src/interactive.ts:53`) is loaded into the same
+  ([`InteractiveIframeHost.tsx:278`](components/scene-renderers/InteractiveIframeHost.tsx#L278)), i.e. an `InteractiveContent.url`
+  ([`packages/@openmaic/dsl/src/interactive.ts:53`](packages/@openmaic/dsl/src/interactive.ts#L53)) is loaded into the same
   sandbox. There is no allowlist on that URL anywhere in the render path.
 - The sandbox has no `allow-same-origin`, so the document cannot read app
   cookies, `localStorage`, or the parent DOM. But with no `connect-src` /
@@ -180,6 +180,6 @@ Facts, not speculation:
   intended design (the sandbox is the boundary), not an oversight, but it means
   the sandbox attribute is load-bearing and must never gain `allow-same-origin`.
 - The error shim's own `message` listener does not check `event.source`
-  (`lib/utils/iframe.ts:73`), so any frame able to reach it can trigger a buffer
+  ([`lib/utils/iframe.ts:73`](lib/utils/iframe.ts#L73)), so any frame able to reach it can trigger a buffer
   replay. Impact is bounded: the replay only re-posts to `window.parent`, and the
   parent's `addError` dedupes.

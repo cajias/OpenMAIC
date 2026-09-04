@@ -71,7 +71,7 @@ classDiagram
 
 ## The model seam and result envelope
 
-`packages/@openmaic/generation/src/pipeline-types.ts:54`
+[`packages/@openmaic/generation/src/pipeline-types.ts:54`](packages/@openmaic/generation/src/pipeline-types.ts#L54)
 
 ```ts
 export interface GenerationResult<T> {
@@ -87,7 +87,7 @@ export type AICallFn = (
 ) => Promise<string>;
 ```
 
-`pipeline-types.ts:8` and `:18`:
+[`pipeline-types.ts:8`](packages/@openmaic/generation/src/pipeline-types.ts#L8) and [`:18`](packages/@openmaic/generation/src/pipeline-types.ts#L18):
 
 ```ts
 export interface AgentInfo {
@@ -105,7 +105,7 @@ export interface SceneGenerationContext {
 }
 ```
 
-`pipeline-types.ts:31` — the *raw* parse target for slide generation, before DSL
+[`pipeline-types.ts:31`](packages/@openmaic/generation/src/pipeline-types.ts#L31) — the *raw* parse target for slide generation, before DSL
 normalisation:
 
 ```ts
@@ -133,7 +133,7 @@ export interface GeneratedSlideData {
 
 ## `SceneOutline` — the pivot type
 
-`outline-types.ts:70`, the single most load-bearing type in the subsystem:
+[`outline-types.ts:70`](packages/@openmaic/generation/src/outline-types.ts#L70), the single most load-bearing type in the subsystem:
 
 ```ts
 export interface SceneOutline {
@@ -178,10 +178,10 @@ export interface SceneOutline {
 
 Note the mismatch worth flagging to a doc reader: `quizConfig.questionTypes`
 allows `'text'` (`:85`) while `generateQuizContent` branches on
-`q.type === 'short_answer'` (`scene-generator.ts:896`) — the outline vocabulary
+`q.type === 'short_answer'` ([`scene-generator.ts:896`](packages/@openmaic/generation/src/scene-generator.ts#L896)) — the outline vocabulary
 and the question vocabulary are not the same enum.
 
-`outline-types.ts:33` — `WidgetOutline` is a flat union of every widget's fields
+[`outline-types.ts:33`](packages/@openmaic/generation/src/outline-types.ts#L33) — `WidgetOutline` is a flat union of every widget's fields
 with no discriminant; the discriminant is the sibling `widgetType`:
 
 ```ts
@@ -214,7 +214,7 @@ export interface WidgetOutline {
 }
 ```
 
-`outline-types.ts:6`, `:21`, `:24`, `:61`:
+[`outline-types.ts:6`](packages/@openmaic/generation/src/outline-types.ts#L6), [`:21`](packages/@openmaic/generation/src/outline-types.ts#L21), [`:24`](packages/@openmaic/generation/src/outline-types.ts#L24), [`:61`](packages/@openmaic/generation/src/outline-types.ts#L61):
 
 ```ts
 export interface PdfImage {
@@ -256,11 +256,11 @@ export interface MediaGenerationRequest {
 the asset transport. A browser-backed pool stores base64 data URLs; a
 server-backed pool stores allocated asset ids, which the renderer resolves
 through the pool registry. `resolveImageIds` writes the value verbatim so no flag
-has to be threaded into the package (`scene-generator.ts:342-353`).
+has to be threaded into the package ([`scene-generator.ts:342-353`](packages/@openmaic/generation/src/scene-generator.ts#L342-L353)).
 
 ## Outline generation entry points
 
-`outline-generator.ts:82` and `:120`:
+[`outline-generator.ts:82`](packages/@openmaic/generation/src/outline-generator.ts#L82) and [`:120`](packages/@openmaic/generation/src/outline-generator.ts#L120):
 
 ```ts
 export function buildOutlinePrompt(
@@ -279,7 +279,7 @@ export async function generateSceneOutlinesFromRequirements(
 >
 ```
 
-`outline-generator.ts:23`, `:34`, `:41`:
+[`outline-generator.ts:23`](packages/@openmaic/generation/src/outline-generator.ts#L23), [`:34`](packages/@openmaic/generation/src/outline-generator.ts#L34), [`:41`](packages/@openmaic/generation/src/outline-generator.ts#L41):
 
 ```ts
 export interface OutlinePromptContext {
@@ -306,7 +306,7 @@ export interface OutlineFallbackOptions {
 }
 ```
 
-`outline-generator.ts:20`:
+[`outline-generator.ts:20`](packages/@openmaic/generation/src/outline-generator.ts#L20):
 
 ```ts
 export const DEFAULT_LANGUAGE_DIRECTIVE =

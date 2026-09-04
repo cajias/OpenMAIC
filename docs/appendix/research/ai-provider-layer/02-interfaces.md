@@ -176,7 +176,7 @@ export type ThinkingRequestAdapter =
 ```
 
 `ProviderId` is a union with a template-literal member, so
-`Record<ProviderId, ProviderConfig>` at `lib/ai/providers.ts:75` behaves as an
+`Record<ProviderId, ProviderConfig>` at [`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75) behaves as an
 index signature and does **not** force exhaustiveness over
 `BuiltInProviderId`. All 19 built-ins happen to be present; the type does not
 enforce it.
@@ -283,7 +283,7 @@ export function streamLLM<T extends StreamTextParams>(
 ```
 
 `source` is the label that lands in the usage log's `source` field
-(`buildUsageMeta`, `lib/ai/llm.ts:287`) and in log grouping.
+(`buildUsageMeta`, [`lib/ai/llm.ts:287`](lib/ai/llm.ts#L287)) and in log grouping.
 
 ## `lib/ai/thinking-config.ts`
 
@@ -345,8 +345,8 @@ export function getThinkingDisplayValue(
 
 ---
 
-**Continued in [`02b-interfaces-server-and-usage.md`](./02b-interfaces-server-and-usage.md)** —
+**Continued in [`02b-interfaces-server-and-usage.md`](docs/appendix/research/ai-provider-layer/02b-interfaces-server-and-usage.md)** —
 the server-only half (`model-metadata`, `model-aliases`, `resolve-model`, `model-routes`
 with the 20 `LLM_STAGES`, `provider-config`, `agent-driver-model`, the usage types,
 `model-fetch`). Split from a single 598-line file; no signature was dropped.
-Pack entry [`00-overview.md`](./00-overview.md) · all packs [`../index.md`](../index.md)
+Pack entry [`00-overview.md`](docs/appendix/research/ai-provider-layer/00-overview.md) · all packs [`../index.md`](docs/appendix/research/index.md)

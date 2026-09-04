@@ -5,16 +5,16 @@ scenes" and "which types" are decided by the outline model in stage 2; stage pla
 the act of minting a course container to hang them on, and the three code paths that do it
 do not share an implementation.
 
-**Sources:** `packages/@openmaic/dsl/src/stage.ts:141`,
-`app/generation-preview/page.tsx:533-544`, `:731`, `:943`,
-`lib/server/classroom-generation.ts:522-553`, `app/api/stages/route.ts:29-110`,
-`app/api/stage-meta/[stageId]/route.ts`, `lib/media/video-manifest.ts:6`;
-evidence: [`01c-modules-app-generation.md`](../appendix/research/generation-pipeline/01c-modules-app-generation.md).
+**Sources:** [`packages/@openmaic/dsl/src/stage.ts:141`](packages/@openmaic/dsl/src/stage.ts#L141),
+[`app/generation-preview/page.tsx:533-544`](app/generation-preview/page.tsx#L533-L544), [`:731`](app/generation-preview/page.tsx#L731), [`:943`](app/generation-preview/page.tsx#L943),
+[`lib/server/classroom-generation.ts:522-553`](lib/server/classroom-generation.ts#L522-L553), [`app/api/stages/route.ts:29-110`](app/api/stages/route.ts#L29-L110),
+`app/api/stage-meta/[stageId]/route.ts`, [`lib/media/video-manifest.ts:6`](lib/media/video-manifest.ts#L6);
+evidence: [`01c-modules-app-generation.md`](docs/appendix/research/generation-pipeline/01c-modules-app-generation.md).
 
 ## What a stage is
 
 A `Stage` is the course document header: identity, name, and the cross-scene metadata the
-runtime needs before any scene loads (`packages/@openmaic/dsl/src/stage.ts:141`).
+runtime needs before any scene loads ([`packages/@openmaic/dsl/src/stage.ts:141`](packages/@openmaic/dsl/src/stage.ts#L141)).
 
 ```mermaid
 classDiagram
@@ -60,7 +60,7 @@ classDiagram
 ```
 
 The `Stage` carries **no scene count and no outline list**. The outlines live in a separate
-`outline` member of the persisted document (`app/api/stages/route.ts:82-88`), which is what
+`outline` member of the persisted document ([`app/api/stages/route.ts:82-88`](app/api/stages/route.ts#L82-L88)), which is what
 lets a partially generated course be resumed: the outline list is the plan, the scene list
 is the progress, and `generationComplete` is the terminator.
 
@@ -71,9 +71,9 @@ decision.
 
 | Path | Where | Id shape | Persistence |
 | --- | --- | --- | --- |
-| Browser generation | `app/generation-preview/page.tsx:534` | `nanoid(10)` | client store → `store.saveToStorage()` (`page.tsx:1051`) |
-| Headless job | `lib/server/classroom-generation.ts:522` | `nanoid(10)` | `persistClassroom` after the loop |
-| Workbench / agent tools | `app/api/stages/route.ts:31` | `stage-${randomBytes(9).toString('base64url')}` | owner-scoped PostgreSQL document store |
+| Browser generation | [`app/generation-preview/page.tsx:534`](app/generation-preview/page.tsx#L534) | `nanoid(10)` | client store → `store.saveToStorage()` ([`page.tsx:1051`](app/generation-preview/page.tsx#L1051)) |
+| Headless job | [`lib/server/classroom-generation.ts:522`](lib/server/classroom-generation.ts#L522) | `nanoid(10)` | `persistClassroom` after the loop |
+| Workbench / agent tools | [`app/api/stages/route.ts:31`](app/api/stages/route.ts#L31) | `stage-${randomBytes(9).toString('base64url')}` | owner-scoped PostgreSQL document store |
 
 ```mermaid
 flowchart TD
@@ -107,10 +107,10 @@ flowchart TD
 Two consequences worth carrying:
 
 - **The browser mints the id before it knows the course title**, then overwrites
-  `stage.name` once the outline model returns one (`page.tsx:731-732`). The headless job
+  `stage.name` once the outline model returns one ([`page.tsx:731-732`](app/generation-preview/page.tsx#L731-L732)). The headless job
   mints after, so it never needs the overwrite.
 - **`POST /api/stages` validates the body before resolving the owner**
-  (`app/api/stages/route.ts:47-49`) so a malformed request cannot mint an anonymous cookie
+  ([`app/api/stages/route.ts:47-49`](app/api/stages/route.ts#L47-L49)) so a malformed request cannot mint an anonymous cookie
   partition for a request that will not proceed.
 
 ## How many scenes, and who chose
@@ -132,21 +132,21 @@ So the count is: **whatever the model emitted, minus whatever a human deleted, p
 whatever a human added.** There is no minimum, no maximum, and no server-side clamp. The
 only count assertion anywhere is post-hoc: the headless job throws
 `'No scenes were generated'` if the loop produced zero scenes
-(`lib/server/classroom-generation.ts:662-664`).
+([`lib/server/classroom-generation.ts:662-664`](lib/server/classroom-generation.ts#L662-L664)).
 
 Scene *type* mix is likewise the model's call, then narrowed by three gates:
 
 | Gate | Effect | Line |
 | --- | --- | --- |
-| Template guidance | "Limit to 1-2 interactive per course" | `requirements-to-outlines/user.md:90` |
-| `sanitizeNonTaskEngineOutline` (streaming route) | `procedural-skill` demoted to `diagram` unless the vocational flag is on | `scene-outlines-stream/route.ts:247` |
-| `applyOutlineFallbacks` (per scene, later) | `interactive` without widget config → slide; `pbl` without config or model → slide | `outline-generator.ts:205` |
+| Template guidance | "Limit to 1-2 interactive per course" | [`requirements-to-outlines/user.md:90`](packages/@openmaic/generation/templates/requirements-to-outlines/user.md) |
+| `sanitizeNonTaskEngineOutline` (streaming route) | `procedural-skill` demoted to `diagram` unless the vocational flag is on | [`scene-outlines-stream/route.ts:247`](app/api/generate/scene-outlines-stream/route.ts#L247) |
+| `applyOutlineFallbacks` (per scene, later) | `interactive` without widget config → slide; `pbl` without config or model → slide | [`outline-generator.ts:205`](packages/@openmaic/generation/src/outline-generator.ts#L205) |
 
 ## Stage metadata: the tenancy sidecar
 
 The document seam returns content and says nothing about who is asking, so per-viewer
 facts live in a separate endpoint. `GET /api/stage-meta/[stageId]` returns exactly five
-fields (`app/api/stage-meta/[stageId]/route.ts:57-67`):
+fields ([`app/api/stage-meta/[stageId]/route.ts:57-67`](app/api/stage-meta/[stageId]/route.ts#L57-L67)):
 
 ```
 { isOwner, isPublic, publishedAt, generationComplete, source }
@@ -180,7 +180,7 @@ sequenceDiagram
 ```
 
 Three deliberate properties, all stated in the route's header comment
-(`app/api/stage-meta/[stageId]/route.ts:11-23`):
+([`app/api/stage-meta/[stageId]/route.ts:11-23`](app/api/stage-meta/[stageId]/route.ts#L11-L23)):
 
 - **Fail-closed on the tombstone.** A deleted course 404s identically to one that never
   existed, because the endpoint is unauthenticated-friendly and a leaked
@@ -204,8 +204,8 @@ canvas) can follow along without polling the whole document:
 | `GET /api/stages/[id]/manifest` | `{ rev, scenes: [{ id, order, rev }] }` from DB triggers | diff which scenes changed |
 | `GET /api/stages/[id]/scenes?ids=a,b` | `{ scenes }`, deduped, capped at `MAX_BATCH_SCENE_IDS = 200` | fetch only the changed ones |
 
-See [08](./08-progress-reporting.md#transport-4-rev-diffing-manifest) for how those three
-compose, and [`../12-api-reference/index.md`](../12-api-reference/index.md) for the full
+See [08](docs/06-generation-pipeline/08-progress-reporting.md#transport-4-rev-diffing-manifest) for how those three
+compose, and [`../12-api-reference/index.md`](docs/12-api-reference/index.md) for the full
 contracts.
 
 Two write-side guards on the same family:
@@ -227,7 +227,7 @@ if (!isAgentRuntimeConfigured()) return new Response('Not found', { status: 404 
 deployment without PostgreSQL answers a byte-identical plain-text 404 for "feature off",
 "not yours", and "does not exist" — a deliberate no-existence-oracle posture shared with
 the rest of the agent-runtime control plane
-([`../05-agent-runtime/index.md`](../05-agent-runtime/index.md)).
+([`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md)).
 
 This is why the browser generation path does **not** use `POST /api/stages`: it mints its
 own id and persists through the client store, so generation works on a deployment with no
@@ -237,7 +237,7 @@ database at all.
 
 - **Why three id shapes.** `nanoid(10)` twice and `stage-${base64url(9 bytes)}` once. The
   workbench prefix is documented as being "in the same `stage-` family as the agent tools"
-  (`app/api/stages/route.ts:29`), but nothing reconciles the two generation paths with it,
+  ([`app/api/stages/route.ts:29`](app/api/stages/route.ts#L29)), but nothing reconciles the two generation paths with it,
   and nothing validates the shape on read.
 - **Whether the two generation paths are expected to converge on the document store.** The
   browser path deliberately works without `DATABASE_URL`; the headless job persists through

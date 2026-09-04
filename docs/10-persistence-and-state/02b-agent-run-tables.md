@@ -4,14 +4,14 @@ The eight PostgreSQL tables that hold a durable agent run — lifecycle and leas
 the event log the browser replays, the append-only entry tree, the URL trust gate,
 session materials with their leased extraction state, the per-owner navigation
 projection, and user skills. Split out of
-[02-data-model.md](./02-data-model.md) because the constraint set is the domain
+[02-data-model.md](docs/10-persistence-and-state/02-data-model.md) because the constraint set is the domain
 model here, not decoration.
 
-**Sources:** `packages/@openmaic/storage/src/agent-session/pg.ts:87-245`,
-`src/agent-session/types.ts:11,71,77,269,424`, `src/material/pg.ts:55-89`,
-`src/material/types.ts:44-51,156`, `src/skill/pg.ts:50-76`; evidence
-[../appendix/research/persistence-storage-state/02b-entities.md](../appendix/research/persistence-storage-state/02b-entities.md),
-[../appendix/research/agent-runtime/](../appendix/research/agent-runtime/).
+**Sources:** [`packages/@openmaic/storage/src/agent-session/pg.ts:87-245`](packages/@openmaic/storage/src/agent-session/pg.ts#L87-L245),
+[`src/agent-session/types.ts:11,71,77,269,424`](packages/@openmaic/storage/src/agent-session/types.ts#L11), [`src/material/pg.ts:55-89`](packages/@openmaic/storage/src/material/pg.ts#L55-L89),
+[`src/material/types.ts:44-51,156`](packages/@openmaic/storage/src/material/types.ts#L44-L51), [`src/skill/pg.ts:50-76`](packages/@openmaic/storage/src/skill/pg.ts#L50-L76); evidence
+[../appendix/research/persistence-storage-state/02b-entities.md](docs/appendix/research/persistence-storage-state/02b-entities.md),
+[../appendix/research/agent-runtime/00-overview.md](docs/appendix/research/agent-runtime/00-overview.md).
 
 ## The tables
 
@@ -128,7 +128,7 @@ Verbatim from the DDL:
 
 | Table | Constraint | Meaning |
 | --- | --- | --- |
-| `agent_sessions` | `status IN ('queued','running','succeeded','failed','cancelled')` (constraint `agent_sessions_status_known`), `attempt >= 0` | the five-state lifecycle, matching `AGENT_SESSION_STATUSES` (`types.ts:11`) |
+| `agent_sessions` | `status IN ('queued','running','succeeded','failed','cancelled')` (constraint `agent_sessions_status_known`), `attempt >= 0` | the five-state lifecycle, matching `AGENT_SESSION_STATUSES` ([`types.ts:11`](packages/@openmaic/storage/src/agent-session/types.ts#L11)) |
 | `agent_session_events` | `PRIMARY KEY (session_id, seq)`, `CHECK (seq > 0)` | a gapless 1-based per-session event log — this is what `Last-Event-ID` replay indexes |
 | `agent_session_entries` | `PRIMARY KEY (session_id, seq)`, `UNIQUE (session_id, entry_id)`, plus `FOREIGN KEY (session_id, parent_id) REFERENCES agent_session_entries (session_id, entry_id)` | an append-only tree that structurally cannot reference a parent in another session |
 | `agent_session_urls` | `PRIMARY KEY (session_id, url)`, `source IN ('user','web_search')` | the fetch trust gate: only URLs the user typed or `web_search` surfaced |
@@ -186,17 +186,17 @@ These come from the interface doc comments and matter when reading the runner:
 
 | Behaviour | Detail |
 | --- | --- |
-| `claimNextSession` | scans optimistically, then locks and rechecks; the second check is the authority. Attempt charging is per *takeover* — a cleanly released (null) lease costs no attempt, an abandoned one does (`types.ts:275-294`) |
-| `postUserMessage` | locks, persists, classifies delivery (`steer` vs `queued`) and revives a terminal session in one transaction, "so a message cannot fall into the runner's settle window" (`types.ts:328-337`) |
-| `OwnerSessionEventProjection.append` | runs inside the caller's transaction through a SAVEPOINT and returns `null` on error: "derived navigation data must never veto the authoritative lifecycle write" (`types.ts:455-462`) |
-| `AgentSessionUrlStore` | "links scraped from fetched pages are never registered, so a page cannot widen the allowlist by itself" (`types.ts:569-575`) |
-| `softDeleteSession` | tombstones a visible session "while deliberately preserving every child row" (`types.ts:273-274`) |
+| `claimNextSession` | scans optimistically, then locks and rechecks; the second check is the authority. Attempt charging is per *takeover* — a cleanly released (null) lease costs no attempt, an abandoned one does ([`types.ts:275-294`](packages/@openmaic/storage/src/agent-session/types.ts#L275-L294)) |
+| `postUserMessage` | locks, persists, classifies delivery (`steer` vs `queued`) and revives a terminal session in one transaction, "so a message cannot fall into the runner's settle window" ([`types.ts:328-337`](packages/@openmaic/storage/src/agent-session/types.ts#L328-L337)) |
+| `OwnerSessionEventProjection.append` | runs inside the caller's transaction through a SAVEPOINT and returns `null` on error: "derived navigation data must never veto the authoritative lifecycle write" ([`types.ts:455-462`](packages/@openmaic/storage/src/agent-session/types.ts#L455-L462)) |
+| `AgentSessionUrlStore` | "links scraped from fetched pages are never registered, so a page cannot widen the allowlist by itself" ([`types.ts:569-575`](packages/@openmaic/storage/src/agent-session/types.ts#L569-L575)) |
+| `softDeleteSession` | tombstones a visible session "while deliberately preserving every child row" ([`types.ts:273-274`](packages/@openmaic/storage/src/agent-session/types.ts#L273-L274)) |
 | Material extraction | `MAX_MATERIAL_EXTRACTION_RETRIES = 2`; `createMaterial` inserts `'idle'` for `kind='source'` and `'done'` otherwise; `enqueueExtraction` only moves rows in `('idle','failed')`; `listMaterials` is keyset-paged, default 50, capped 200 |
-| Material ids | `mat_` + Crockford-base32 of 128 random bits (`material/types.ts:21-38`) |
+| Material ids | `mat_` + Crockford-base32 of 128 random bits ([`material/types.ts:21-38`](packages/@openmaic/storage/src/material/types.ts#L21-L38)) |
 | Material bytes | a material row records asset ids only — `text_asset_id` for extracted markdown, `raw_asset_id` for the optional raw download. Bytes live in the asset store |
 
 The four store interfaces are split so that "a control-plane reader [cannot]
-accidentally gain lease-bound write authority" (`types.ts:1-9`):
+accidentally gain lease-bound write authority" ([`types.ts:1-9`](packages/@openmaic/storage/src/agent-session/types.ts#L1-L9)):
 `AgentSessionStore` (lifecycle + leases), `AgentSessionEventLog`,
 `AgentSessionEntryTree`, `OwnerSessionEventProjection`, plus
 `AgentSessionTitleStore` and `AgentSessionUrlStore`.
@@ -220,18 +220,18 @@ stateDiagram-v2
 `createMaterial`'s insert is shaped
 `INSERT … SELECT … FROM agent_sessions WHERE session.id = $2 AND session.deleted_at
 IS NULL`, so a material can only ever be attached to a live session
-(`material/pg.ts:249-257`).
+([`material/pg.ts:249-257`](packages/@openmaic/storage/src/material/pg.ts#L249-L257)).
 
 ## Unconfirmed
 
 - **`agent_sessions.active_stage_id`** exists in the DDL but no writer for it
   appears anywhere in `packages/@openmaic/storage/src`, and `AgentSessionMeta`
-  (`types.ts:77`) has no corresponding field.
+  ([`types.ts:77`](packages/@openmaic/storage/src/agent-session/types.ts#L77)) has no corresponding field.
 - **`'session_active_stage'`** is accepted by the SQL `CHECK` and listed by the
-  browser client (`lib/workbench/owner-session-client.ts:13-20`,
-  `lib/workbench/pro-home-data.ts:82,128`) but is **absent** from the package's
+  browser client ([`lib/workbench/owner-session-client.ts:13-20`](lib/workbench/owner-session-client.ts#L13-L20),
+  [`lib/workbench/pro-home-data.ts:82,128`](lib/workbench/pro-home-data.ts#L82)) but is **absent** from the package's
   exported `OWNER_SESSION_EVENT_TYPES` and the `NewOwnerSessionEvent` union
-  (`types.ts:424-446`). The client's own comment says its set is closed "because
+  ([`types.ts:424-446`](packages/@openmaic/storage/src/agent-session/types.ts#L424-L446)). The client's own comment says its set is closed "because
   EventSource dispatches named events only to matching listeners", which suggests
   the client list is authoritative for the UI — but that does not explain the
   package's narrower type.
@@ -239,12 +239,12 @@ IS NULL`, so a material can only ever be attached to a live session
 Whether these two are forward compatibility for an unported feature, a
 column/constraint the host writes directly, or drift from a partial port is not
 determinable from the code
-([evidence 07-open-questions.md §1](../appendix/research/persistence-storage-state/07-open-questions.md)).
+([evidence 07-open-questions.md §1](docs/appendix/research/persistence-storage-state/07-open-questions.md)).
 
 ## Cross-references
 
 - Who reads and writes these tables:
-  [../05-agent-runtime/index.md](../05-agent-runtime/index.md)
-- The rest of the schema: [02-data-model.md](./02-data-model.md)
-- The interfaces above them: [01-storage-abstraction.md](./01-storage-abstraction.md)
-- Retention of tombstoned sessions: [08-data-lifecycle.md](./08-data-lifecycle.md)
+  [../05-agent-runtime/index.md](docs/05-agent-runtime/index.md)
+- The rest of the schema: [02-data-model.md](docs/10-persistence-and-state/02-data-model.md)
+- The interfaces above them: [01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)
+- Retention of tombstoned sessions: [08-data-lifecycle.md](docs/10-persistence-and-state/08-data-lifecycle.md)

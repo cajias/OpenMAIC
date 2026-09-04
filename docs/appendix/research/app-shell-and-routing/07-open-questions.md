@@ -8,7 +8,7 @@ evidence is named.
 
 ### Q1 — Which runtime does `middleware.ts` actually run on?
 
-`middleware.ts:53` branches on `process.env.NEXT_RUNTIME !== 'edge'` and the
+[`middleware.ts:53`](middleware.ts#L53) branches on `process.env.NEXT_RUNTIME !== 'edge'` and the
 comment at lines 50-52 says middleware "cannot reliably inspect server-only
 deployment variables, so it enforces the public gate and leaves the complete
 runtime/database check to Node. A Node-hosted middleware uses the same gate as
@@ -69,8 +69,8 @@ toast.
 
 ### Q3 — Is the missing `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` Docker build arg a bug or a policy?
 
-`Dockerfile:51-72` and `docker-compose.yml:5-21` list 11 build-time variables and
-omit this one, while `README.md:456-461` documents it as the enablement path. Every
+[`Dockerfile:51-72`](Dockerfile#L51-L72) and [`docker-compose.yml:5-21`](docker-compose.yml#L5-L21) list 11 build-time variables and
+omit this one, while [`README.md:456-461`](README.md#optional-agent-workbench-and-runtime) documents it as the enablement path. Every
 other `NEXT_PUBLIC_*` flag in `.env.example` that gates a UI surface **is** wired
 through as an `ARG`.
 
@@ -98,14 +98,14 @@ shutdown — not for tracing. Open: whether OTel is planned. Nothing in
 ### Q5 — Is `/eval/whiteboard` intended to ship to production?
 
 It is a plain route with no flag check (`app/eval/whiteboard/page.tsx`), reached
-only by `eval/whiteboard-layout/capture.ts:19`. Nothing in `next.config.ts`
+only by [`eval/whiteboard-layout/capture.ts:19`](eval/whiteboard-layout/capture.ts#L19). Nothing in `next.config.ts`
 excludes it. Whether the maintainers consider its presence on a public deployment
 acceptable is a product decision I cannot read from the code. The concrete risk is
 low: `window.__setElements` writes only to the synthetic `__eval_stage__`.
 
 ### Q6 — Does the middleware matcher's literal `favicon.ico` exclusion still apply?
 
-`middleware.ts:89` excludes `favicon.ico`, but the icon is
+[`middleware.ts:89`](middleware.ts#L89) excludes `favicon.ico`, but the icon is
 `app/favicon.ico` — a Next metadata file, which the framework serves from a
 generated route, not necessarily at the literal path `/favicon.ico`.
 `app/apple-icon.png` has no exclusion at all. **Resolve by** inspecting the
@@ -115,7 +115,7 @@ page pass-through branch at line 85); it is only middleware invocation cost.
 
 ### Q7 — Does `experimental.proxyClientMaxBodySize: '200mb'` affect page segments?
 
-`next.config.ts:36` sets it, and `vercel.json:6-10` caps `maxDuration` only for
+[`next.config.ts:36`](next.config.ts#L36) sets it, and [`vercel.json:6-10`](vercel.json#L6-L10) caps `maxDuration` only for
 `app/api/**/*.ts`. Whether the 200 MB body limit applies to every request or only
 to proxied ones is a Next semantic I could not confirm without the installed
 package. No file in scope reads a request body, so this does not change any
@@ -123,7 +123,7 @@ behaviour I documented.
 
 ### Q8 — Is the double `ThemeProvider` on `/classroom/[id]` load-bearing?
 
-`app/classroom/[id]/page.tsx:224` nests a second `ThemeProvider` inside the root
+[`app/classroom/[id]/page.tsx:224`](app/classroom/[id]/page.tsx#L224) nests a second `ThemeProvider` inside the root
 layout's. The inner one wins for its subtree, but both write the same `dark` class
 to the same `documentElement`, so the outcome is identical. Whether it predates
 the root-layout provider or guards some render path I did not find is unclear —
@@ -131,10 +131,10 @@ there is no comment. Removing it looks safe but I did not test that.
 
 ### Q9 — Which surface renders `pro-swap.css` on the exit direction?
 
-`lib/workbench/pro-swap.ts:123` sets `data-pro-swap='exit'` when leaving
-`/workspace`, and the CSS that reads it (`components/workbench/pro-swap.css:193`)
-is imported by `components/workbench/ProBadge.tsx:16`. The exit is triggered from
-`components/workbench/workspace/WorkspaceShell.tsx:648` (`exitPro`). Whether the
+[`lib/workbench/pro-swap.ts:123`](lib/workbench/pro-swap.ts#L123) sets `data-pro-swap='exit'` when leaving
+`/workspace`, and the CSS that reads it ([`components/workbench/pro-swap.css:193`](components/workbench/pro-swap.css#L193))
+is imported by [`components/workbench/ProBadge.tsx:16`](components/workbench/ProBadge.tsx#L16). The exit is triggered from
+[`components/workbench/workspace/WorkspaceShell.tsx:648`](components/workbench/workspace/WorkspaceShell.tsx#L648) (`exitPro`). Whether the
 workspace shell mounts a `ProBadge` — and therefore whether the exit stylesheet is
 present when the exit animation runs — is inside the workbench subsystem, which is
 out of scope here. Flagging it because a missing stylesheet on the exit path would
@@ -182,11 +182,11 @@ Boundaries I stopped at, and the exact seam:
 
 | Adjacent subsystem | Seam in this subsystem |
 | --- | --- |
-| Workbench shell | `components/workbench/WorkspaceEntry.tsx:5` → `<WorkspaceShell />` |
-| Classroom playback | `app/classroom/[id]/page.tsx:250` → `<Stage onRetryOutline={…} />` |
-| Classroom loading | `app/classroom/[id]/page.tsx:50` → `runClassroomLoad({ … })` |
-| Generation pipeline | `app/generation-preview/page.tsx:24-27` → `fetchSceneActions` / `fetchSceneContent` / `generateTTSForScene` |
+| Workbench shell | [`components/workbench/WorkspaceEntry.tsx:5`](components/workbench/WorkspaceEntry.tsx#L5) → `<WorkspaceShell />` |
+| Classroom playback | [`app/classroom/[id]/page.tsx:250`](app/classroom/[id]/page.tsx#L250) → `<Stage onRetryOutline={…} />` |
+| Classroom loading | [`app/classroom/[id]/page.tsx:50`](app/classroom/[id]/page.tsx#L50) → `runClassroomLoad({ … })` |
+| Generation pipeline | [`app/generation-preview/page.tsx:24-27`](app/generation-preview/page.tsx#L24-L27) → `fetchSceneActions` / `fetchSceneContent` / `generateTTSForScene` |
 | Persistence + asset lifecycle | `instrumentation.ts:20,86` → `asset-collector-schedule`, `server-provider` |
 | Agent runtime | `instrumentation.ts:43,48,50` → notify bus + two runners |
-| Settings / provider config | `components/server-providers-init.tsx:11` → `useSettingsStore.fetchServerProviders` |
+| Settings / provider config | [`components/server-providers-init.tsx:11`](components/server-providers-init.tsx#L11) → `useSettingsStore.fetchServerProviders` |
 | API surface | `middleware.ts:66,77` (allowlist + 401) and `app/api/agent/runtime/route.ts` (the probe) |

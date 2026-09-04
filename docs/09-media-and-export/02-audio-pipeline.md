@@ -9,17 +9,17 @@ live playback and the video exporter agree on to the millisecond.
 `lib/media/asset-pool.ts`, `lib/utils/audio-player.ts`, `lib/playback/engine.ts`,
 `lib/choreography/timing.ts`, `lib/choreography/timeline.ts`,
 `lib/video-export/deps.ts`, `lib/video-export-app/timeline-deps.ts`;
-[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md),
-[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md).
+[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md),
+[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](docs/appendix/research/media-audio-video/02d-interfaces-choreography-ir.md).
 
 ## 1. The four stages
 
 | Stage | Owner | Output |
 | --- | --- | --- |
-| Synthesis | `generateAndStoreTTS` (`lib/hooks/use-scene-generator.ts:263`) → `POST /api/generate/tts` → `generateTTS` | base64 audio + `format` |
-| Measurement | `measureAudioDuration(bytes, format)` (`lib/audio/audio-duration.ts:210`) | `duration` in seconds, or `null` |
-| Storage | `db.audioFiles.put({...})` (`use-scene-generator.ts:474`) plus the content-addressed asset pool | an `audioId` a `SpeechAction` can reference |
-| Delivery + playback | `resolveAudioBlob` (`lib/media/resolve-audio-bytes.ts:15`) → `AudioPlayer.play` (`lib/utils/audio-player.ts:99`) | an `HTMLAudioElement` and an `ended` event |
+| Synthesis | `generateAndStoreTTS` ([`lib/hooks/use-scene-generator.ts:263`](lib/hooks/use-scene-generator.ts#L263)) → `POST /api/generate/tts` → `generateTTS` | base64 audio + `format` |
+| Measurement | `measureAudioDuration(bytes, format)` ([`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210)) | `duration` in seconds, or `null` |
+| Storage | `db.audioFiles.put({...})` ([`use-scene-generator.ts:474`](lib/hooks/use-scene-generator.ts#L474)) plus the content-addressed asset pool | an `audioId` a `SpeechAction` can reference |
+| Delivery + playback | `resolveAudioBlob` ([`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15)) → `AudioPlayer.play` ([`lib/utils/audio-player.ts:99`](lib/utils/audio-player.ts#L99)) | an `HTMLAudioElement` and an `ended` event |
 
 The measurement step is not an optimisation — it is the reason the export
 compiler's whole dependency-injection surface can be **synchronous**
@@ -60,7 +60,7 @@ sequenceDiagram
   Dexie-->>Gen: audioId
 ```
 
-The decode at `use-scene-generator.ts:463-468` is a hand-rolled
+The decode at [`use-scene-generator.ts:463-468`](lib/hooks/use-scene-generator.ts#L463-L468) is a hand-rolled
 `atob` → `charCodeAt` loop, then `new Blob([bytes], { type: audio/${format} })`
 (`:468`). `duration` is `measureAudioDuration(...) ?? undefined` (`:472`) — a
 `null` measurement stores the clip without a duration rather than rejecting it.
@@ -68,7 +68,7 @@ The decode at `use-scene-generator.ts:463-468` is a hand-rolled
 ## 2. Narrator voice fallback
 
 `generateAndStoreTTS` bounds its own retry: `MAX_NARRATOR_VOICE_FALLBACK_HOPS = 1`
-(`use-scene-generator.ts:260`), i.e. at most two `/api/generate/tts` attempts per
+([`use-scene-generator.ts:260`](lib/hooks/use-scene-generator.ts#L260)), i.e. at most two `/api/generate/tts` attempts per
 clip. The trigger is a `QWEN_VC_VOICE_NOT_FOUND` error code on the *bound* voice.
 
 ```mermaid
@@ -91,7 +91,7 @@ back to the estimated reading timer.
 
 ## 3. Delivery: pool-first, Dexie-second, legacy URL last
 
-`AudioPlayer.play(audioId, legacyUrl?)` (`lib/utils/audio-player.ts:99`) is the
+`AudioPlayer.play(audioId, legacyUrl?)` ([`lib/utils/audio-player.ts:99`](lib/utils/audio-player.ts#L99)) is the
 only playback entry point, and its resolution order is deliberate:
 
 1. `resolveAudioBlob(audioId)` — dynamically imported (`:23`) so the module stays
@@ -125,18 +125,18 @@ Stale callbacks are harmless because the engine's generation check gates
 ## 4. Playback: which mechanism owns the clock
 
 There is no single clock. For a `speech` action, `PlaybackEngine.processNext`
-(`lib/playback/engine.ts:583-656`) installs *one* of three advance mechanisms:
+([`lib/playback/engine.ts:583-656`](lib/playback/engine.ts#L583-L656)) installs *one* of three advance mechanisms:
 
 | Mechanism | Fires | Anchor |
 | --- | --- | --- |
-| Pre-generated audio | `audioPlayer.onEnded(...)` → `processNext` when `mode === 'playing'` | `engine.ts:589-595` |
-| Browser-native TTS | per-sentence `utterance.onend` | `engine.ts:644` → `playBrowserTTS` |
-| Reading timer | `setTimeout(estimateSpeechDurationMs(text, {speed}))` | `engine.ts:601-614` |
+| Pre-generated audio | `audioPlayer.onEnded(...)` → `processNext` when `mode === 'playing'` | [`engine.ts:589-595`](lib/playback/engine.ts#L589-L595) |
+| Browser-native TTS | per-sentence `utterance.onend` | [`engine.ts:644`](lib/playback/engine.ts#L644) → `playBrowserTTS` |
+| Reading timer | `setTimeout(estimateSpeechDurationMs(text, {speed}))` | [`engine.ts:601-614`](lib/playback/engine.ts#L601-L614) |
 
 The selection is *result-driven*, not configuration-driven: `audioPlayer.play()`
 resolves `false`, and only then does the engine check whether browser TTS is both
 the selected provider **and** actually enabled — an opt-in gate
-(`engine.ts:632-643`). Anything else schedules the reading timer. A
+([`engine.ts:632-643`](lib/playback/engine.ts#L632-L643)). Anything else schedules the reading timer. A
 `play()` rejection also lands on the reading timer (`:650-654`).
 
 A speech action with empty text (`hasText === false`, `:621`) skips synthesis
@@ -163,7 +163,7 @@ flowchart TD
 
 Cancellation across all three is one mechanism: a monotonic
 `playbackGeneration` counter, checked with `isCurrentGeneration(generation)` at
-every callback boundary (`engine.ts:590`, `:602`, `:608`, `:628`, `:651`). Pause
+every callback boundary ([`engine.ts:590`](lib/playback/engine.ts#L590), `:602`, `:608`, `:628`, `:651`). Pause
 stashes the remaining reading time (`speechTimerStart` / `speechTimerRemaining`,
 `:605-606`) and, for browser TTS, saves the remaining chunks and calls
 `speechSynthesis.cancel()` because `speechSynthesis.pause()` is broken on Firefox
@@ -173,13 +173,13 @@ stashes the remaining reading time (`speechTimerStart` / `speechTimerRemaining`,
 
 `lib/choreography/` is the shared spec. It is imported by *both* the live
 `PlaybackEngine` and the pure export compiler, and it is machine-fenced (see
-[`./09-execution-constraints.md`](./09-execution-constraints.md)) so it cannot
+[`./09-execution-constraints.md`](docs/09-media-and-export/09-execution-constraints.md)) so it cannot
 acquire a React or DOM dependency and drift.
 
 Three pieces matter here.
 
 **(a) The no-audio estimate is one function, used by both sides.**
-`estimateSpeechDurationMs` (`lib/choreography/timing.ts:113`) was moved verbatim
+`estimateSpeechDurationMs` ([`lib/choreography/timing.ts:113`](lib/choreography/timing.ts#L113)) was moved verbatim
 out of the engine's `scheduleReadingTimer`. Its constants:
 `CJK_REGEX` over CJK Unified Ideographs + Ext-A + Hiragana + Katakana + Hangul
 Syllables (`:83`), `CJK_RATIO_THRESHOLD = 0.3` (`:86`), `MIN_READING_MS = 2000`
@@ -188,7 +188,7 @@ Syllables (`:83`), `CJK_RATIO_THRESHOLD = 0.3` (`:86`), `MIN_READING_MS = 2000`
 (`:120`).
 
 **(b) A stored clip's dwell is `duration / speed`, not `duration`.**
-`actionDurationMs` (`lib/choreography/timeline.ts:184-195`):
+`actionDurationMs` ([`lib/choreography/timeline.ts:184-195`](lib/choreography/timeline.ts#L184-L195)):
 
 ```ts
 const audio = opts.getAudioDurationMs?.(action);
@@ -202,7 +202,7 @@ divided by speed — the same scaling the no-audio estimate applies. "Keeping th
 two paths in lockstep is what stops non-1× exports from drifting."
 
 **(c) `resolveActionTimeline` turns the index domain into wall-clock.**
-`lib/choreography/timeline.ts:282` walks scenes and actions in order with a
+[`lib/choreography/timeline.ts:282`](lib/choreography/timeline.ts#L282) walks scenes and actions in order with a
 single accumulator `clockMs`, and a per-segment split between *visual presence*
 and *cursor advance*:
 
@@ -218,7 +218,7 @@ Two behaviours it models that a naive sum would miss:
 
 - **Implicit whiteboard open.** A `wb_*` mutation on a closed board emits a
   synthetic `IMPLICIT_WB_OPEN` beat first (`:319-322`), mirroring the engine's
-  `ensureWhiteboardOpen` (`lib/action/engine.ts:443`). The open flag carries
+  `ensureWhiteboardOpen` ([`lib/action/engine.ts:443`](lib/action/engine.ts#L443)). The open flag carries
   across scenes and is toggled by `wb_open` / `wb_close` (`:324-325`).
 - **Empty scene dwell.** A scene with zero actions still yields one
   `EMPTY_SCENE_DWELL` beat (`:330-331`) so it appears on screen, matching
@@ -254,16 +254,16 @@ flowchart LR
 ```
 
 **The one deliberate divergence.** `resolveVideoDurationMs`
-(`timeline.ts:161-178`) defaults `onUnresolvedVideoDuration` to `'throw'`,
+([`timeline.ts:161-178`](lib/choreography/timeline.ts#L161-L178)) defaults `onUnresolvedVideoDuration` to `'throw'`,
 because "a missing duration would silently shift later actions early". The
-exporter's probe pass overrides it to `'cap'` (`lib/video-export/passes/probe.ts:41`)
+exporter's probe pass overrides it to `'cap'` ([`lib/video-export/passes/probe.ts:41`](lib/video-export/passes/probe.ts#L41))
 and additionally forces an *unavailable* clip to a 0 ms dwell, preferring a
 recorded diagnostic over a failed compile. A resolved duration is always capped
-at `MAX_VIDEO_WAIT_MS = 5 * 60 * 1000` (`timing.ts` / `timeline.ts:163`).
+at `MAX_VIDEO_WAIT_MS = 5 * 60 * 1000` (`timing.ts` / [`timeline.ts:163`](lib/choreography/timeline.ts#L163)).
 
 ## 6. The export side of the same bytes
 
-`createVideoTimelineDeps` (`lib/video-export-app/timeline-deps.ts:205`) is the
+`createVideoTimelineDeps` ([`lib/video-export-app/timeline-deps.ts:205`](lib/video-export-app/timeline-deps.ts#L205)) is the
 impure implementation of the synchronous probes. For audio it:
 
 1. Gates on `enumerateAssetManifest({ stage, scenes })` (`:233`) so an orphan
@@ -286,7 +286,7 @@ keeps *old documents* accurate. Both feed the same `TimingProbe.audioDurationMs`
 - A duration measured at synthesis time and a duration probed at export time can
   disagree (different container interpretation, different decoder). Nothing
   reconciles or reports the delta; the probe silently wins.
-- `AudioPlayer.getDuration()` (`lib/utils/audio-player.ts:247`) exists and no
+- `AudioPlayer.getDuration()` ([`lib/utils/audio-player.ts:247`](lib/utils/audio-player.ts#L247)) exists and no
   caller in the playback path was found using it to correct a drifting timer.
 - Whether `EMPTY_SCENE_DWELL`'s value matches the engine's actual behaviour for a
   zero-action scene was not verified end to end; `lib/choreography/cursor.ts` was

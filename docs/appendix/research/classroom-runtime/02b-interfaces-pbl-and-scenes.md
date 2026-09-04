@@ -60,7 +60,7 @@ patch:
 The three `shouldEvaluate*` booleans are the server telling the client *what to do
 next* declaratively, because the server "doesn't know the client's stream state"
 and running the evaluator inline with the instructor would interleave two LLM
-streams (`sse.ts:88-93`).
+streams ([`sse.ts:88-93`](lib/pbl/v2/api/sse.ts#L88-L93)).
 
 ## 2. Instructor entry point — `lib/pbl/v2/agents/instructor.ts`
 
@@ -158,7 +158,7 @@ export type PBLProjectV2 = RuntimeOverlay<
 
 Property *replacement*, not intersection — which is what makes nested microtasks
 and thread messages the app-widened types at every call site
-(`lib/pbl/v2/types.ts:533-538` explains why intersecting the two top-level project
+([`lib/pbl/v2/types.ts:533-538`](lib/pbl/v2/types.ts#L533-L538) explains why intersecting the two top-level project
 types would leave them untyped).
 
 Structural guards, in increasing strictness:
@@ -265,7 +265,7 @@ erDiagram
 ```
 
 `PBLRole.type` is one of `user | instructor | evaluator | mentor | collaborator |
-simulator | system` (`packages/@openmaic/dsl/src/pbl.ts:6`), but only `instructor`
+simulator | system` ([`packages/@openmaic/dsl/src/pbl.ts:6`](packages/@openmaic/dsl/src/pbl.ts#L6)), but only `instructor`
 and `simulator` have a live agent behind them
 (`/api/pbl/v2/instructor`, `/api/pbl/v2/simulator`); `evaluator` runs *without* a
 role record, through `/api/pbl/v2/evaluate`, and its output lands as a

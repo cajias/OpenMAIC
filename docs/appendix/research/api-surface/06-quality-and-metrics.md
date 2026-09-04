@@ -32,7 +32,7 @@ on branch `main`, HEAD `c2c9553a`.
 | Test files importing an `app/api/**` module | **50** | node scan of `git ls-files tests e2e eval` for quoted paths containing `app/api/` |
 | Route files referenced from at least one test | **52 of 69** | same scan, matching each of the 69 paths (with and without the `.ts` suffix) against the collected specifiers |
 | Route files referenced from **no** test | **17** | 69 − 52 |
-| Distinct `app/api/**` specifiers appearing in tests | **62** | same scan; includes `app/api/probe/route`, a synthetic path in `tests/lint-llm-entry-guard.test.ts:47` that is not a real route |
+| Distinct `app/api/**` specifiers appearing in tests | **62** | same scan; includes `app/api/probe/route`, a synthetic path in [`tests/lint-llm-entry-guard.test.ts:47`](tests/lint-llm-entry-guard.test.ts#L47) that is not a real route |
 | Root runtime dependencies | **132** | `node -e` over `package.json` |
 | `zod` usage in `app/api/**` | **0 files** | `grep -rln "from 'zod'" app/api` |
 
@@ -106,47 +106,47 @@ return a byte-identical plain-text `404 'Not found'` for "feature off", "not
 yours" and "does not exist". `agent/sessions/[id]/events` goes further and
 resolves the owner cookie *before* the session lookup precisely so the two 404s
 carry identical cookie headers
-(`app/api/agent/sessions/[id]/events/route.ts:68-85`). The invariant is written
-down where it is implemented (`lib/server/agent-runtime/route-response.ts:36-40`).
+([`app/api/agent/sessions/[id]/events/route.ts:68-85`](app/api/agent/sessions/[id]/events/route.ts#L68-L85)). The invariant is written
+down where it is implemented ([`lib/server/agent-runtime/route-response.ts:36-40`](lib/server/agent-runtime/route-response.ts#L36-L40)).
 
 **2. The SSE routes are unusually careful.** Both agent event streams serialise
 polling behind a single in-flight promise and coalesce NOTIFY wakeups into
 exactly one follow-up read, with the reason spelled out: two concurrent polls
 share a cursor and would emit duplicates or rewind it
-(`events/route.ts:255-259`). Backlog exhaustion is judged on the *raw* page size
+([`events/route.ts:255-259`](app/api/agent/sessions/[id]/events/route.ts#L255-L259)). Backlog exhaustion is judged on the *raw* page size
 rather than the compacted length so a page of pure `message_update` frames does
-not look exhausted mid-log (`events/route.ts:202-205`). The wakeup subscription
+not look exhausted mid-log ([`events/route.ts:202-205`](app/api/agent/sessions/[id]/events/route.ts#L202-L205)). The wakeup subscription
 is registered before the first read to close the race window (`:280-284`). Both
 streams treat an `enqueue` throw as closure because "some runtimes do not invoke
-cancel() for every broken socket" (`owner-events/route.ts:92-98`).
+cancel() for every broken socket" ([`owner-events/route.ts:92-98`](app/api/agent/owner-events/route.ts#L92-L98)).
 
 **3. Upload bounds are enforced on real bytes, not on `Content-Length`.**
-`capBodyStream` (`lib/server/capped-stream.ts:19`) and `readMeteredBody`
-(`app/api/materials/route.ts:400`) both count bytes as they flow and abort the
+`capBodyStream` ([`lib/server/capped-stream.ts:19`](lib/server/capped-stream.ts#L19)) and `readMeteredBody`
+([`app/api/materials/route.ts:400`](app/api/materials/route.ts#L400)) both count bytes as they flow and abort the
 stream on the cap; the declared-length check is explicitly documented as "only a
 courtesy 413 for honest clients"
-(`app/api/export-video/render/route.ts:52-55`). `materials` additionally reserves
+([`app/api/export-video/render/route.ts:52-55`](app/api/export-video/render/route.ts#L52-L55)). `materials` additionally reserves
 the per-file maximum when `Content-Length` is stripped by an intermediary, so an
 unmeasured stream cannot bypass the owner byte quota (`:226-229`).
 
 **4. The SSRF address classifier is better than most.** It unwraps IPv4-mapped
 IPv6, 6to4, Teredo and ISATAP embedded addresses
-(`lib/server/ssrf-guard.ts:216-241`) and blocks three cloud metadata addresses
+([`lib/server/ssrf-guard.ts:216-241`](lib/server/ssrf-guard.ts#L216-L241)) and blocks three cloud metadata addresses
 plus `metadata.google.internal` (`:11-12`). `proxy-media` re-validates every
-redirect hop (`app/api/proxy-media/route.ts:54-56`).
+redirect hop ([`app/api/proxy-media/route.ts:54-56`](app/api/proxy-media/route.ts#L54-L56)).
 
 **5. Model routing has a coherent credential story.** When `MODEL_ROUTES` pins a
 stage, the client's `apiKey`/`baseUrl`/`providerType` are discarded, so a routed
 Anthropic model can never be built with the client's OpenAI credentials
-(`lib/server/resolve-model.ts:72-81`). There is no hardcoded vendor fallback —
+([`lib/server/resolve-model.ts:72-81`](lib/server/resolve-model.ts#L72-L81)). There is no hardcoded vendor fallback —
 unresolvable config throws (`:66-70`).
 
 **6. Timeout scoping is thought through in the places it matters.** The MP4
 download bounds only the header fetch, not the body stream, so a large file over
 a slow link is not truncated
-(`app/api/export-video/render/[jobId]/download/route.ts:27-31`).
+([`app/api/export-video/render/[jobId]/download/route.ts:27-31`](app/api/export-video/render/[jobId]/download/route.ts#L27-L31)).
 `generate/voice` composes a route deadline with a shorter lookup slice and cleans
-up both listeners (`app/api/generate/voice/route.ts:39-62`, `:251-254`).
+up both listeners ([`app/api/generate/voice/route.ts:39-62`](app/api/generate/voice/route.ts#L39-L62), [`:251-254`](app/api/generate/voice/route.ts#L251-L254)).
 
 **7. Test coverage of the handlers is high for this style of codebase.** 52 of 69
 route files are referenced by at least one test, including PostgreSQL-backed
@@ -164,11 +164,11 @@ the decisions are written down at the decision site.
 
 **1. No rate limiting anywhere in `app/api/**`.** The only 429s originate
 upstream (a TTS provider, the render service) or from a per-owner *storage* quota
-(`MaterialQuotaExceededError` → 429, `app/api/materials/route.ts:279-285`). With
+(`MaterialQuotaExceededError` → 429, [`app/api/materials/route.ts:279-285`](app/api/materials/route.ts#L279-L285)). With
 `ACCESS_CODE` unset, every `generate/**` route is an open, unmetered spend
 primitive against the operator's keys. `export-video/render` is the only route
 that even derives a caller identity, and it delegates enforcement to the render
-service (`route.ts:23-38`).
+service ([`route.ts:23-38`](app/api/export-video/render/route.ts#L23-L38)).
 
 **2. Four error envelopes plus bare-JSON responses.** `apiError` (45 files),
 `{error:{code,message}}` (4), `{error:'snake_case'}` (5), plain text (25), and
@@ -180,13 +180,13 @@ the routes were ported from, which is a reason but not a contract.
 **3. Validation is entirely hand-written, with 69 different dialects.** `zod` is
 a dependency and is not used in a single route. The quality range is wide:
 `chat/pi/whiteboard-visibility` rejects unknown keys via `Reflect.ownKeys`
-(`route.ts:11-29`) while `usage` splits `?months` on commas with no format check
-at all (`route.ts:73-74`) and `pbl/v2/task/update` accepts an arbitrary
-`PBLProjectV2` from the client and mutates it (`route.ts:51-59`).
+([`route.ts:11-29`](app/api/chat/pi/whiteboard-visibility/route.ts#L11-L29)) while `usage` splits `?months` on commas with no format check
+at all ([`route.ts:73-74`](app/api/usage/route.ts#L73-L74)) and `pbl/v2/task/update` accepts an arbitrary
+`PBLProjectV2` from the client and mutates it ([`route.ts:51-59`](app/api/pbl/v2/task/update/route.ts#L51-L59)).
 
 **4. The access-code token never expires server-side.** `verifyToken`
-(`middleware.ts:18-44`) and `verifyAccessToken`
-(`lib/server/access-token.ts:11-25`) both ignore the timestamp half they verify.
+([`middleware.ts:18-44`](middleware.ts#L18-L44)) and `verifyAccessToken`
+([`lib/server/access-token.ts:11-25`](lib/server/access-token.ts#L11-L25)) both ignore the timestamp half they verify.
 Rotating `ACCESS_CODE` is the only revocation mechanism, and it invalidates every
 session at once.
 
@@ -194,15 +194,15 @@ session at once.
 modules.** When it is set, `validateUrlForSSRF` returns `null` at `:267-269` —
 *after* the `new URL()` parse (`:255-259`) and the http/https protocol check
 (`:261-263`), which still reject, and *before* the hostname, private-IP and DNS
-checks, which do not run (`lib/server/ssrf-guard.ts:266-269`). The block message
+checks, which do not run ([`lib/server/ssrf-guard.ts:266-269`](lib/server/ssrf-guard.ts#L266-L269)). The block message
 advertises the switch to the caller (`:246-247`). An operator enabling it for one
 internal gateway disables those checks for `proxy-media` (initial URL and every
 redirect hop), every `verify-*` route, `provider/probe-models`, and — less
-obviously — `lib/server/resolve-model.ts:106` and the agent-runtime redirect loops
-in `generate-image.ts:111` / `generate-video.ts:155`, simultaneously.
+obviously — [`lib/server/resolve-model.ts:106`](lib/server/resolve-model.ts#L106) and the agent-runtime redirect loops
+in [`generate-image.ts:111`](lib/server/agent-runtime/generate-image.ts#L111) / [`generate-video.ts:155`](lib/server/agent-runtime/generate-video.ts#L155), simultaneously.
 
 **6. SSRF strictness is inconsistent across sibling routes.** `generate/tts`
-(`route.ts:97-102`) and `generate/voice` (`:125-130`) validate a client base URL
+([`route.ts:97-102`](app/api/generate/tts/route.ts#L97-L102)) and `generate/voice` (`:125-130`) validate a client base URL
 unconditionally; `generate/image` (`:70-75`), `generate/video` (`:65-70`),
 `transcription` (`:57-62`), `parse-pdf` (`:47-52`), `extract-document`,
 `verify-image-provider`, `verify-video-provider`, `verify-pdf-provider` and
@@ -210,49 +210,49 @@ unconditionally; `generate/image` (`:70-75`), `generate/video` (`:65-70`),
 group explains the difference.
 
 **7. Check-then-fetch DNS gap.** `validateUrlForSSRF` performs its own
-`dns.lookup` (`ssrf-guard.ts:288`) and the subsequent `fetch` resolves
+`dns.lookup` ([`ssrf-guard.ts:288`](lib/server/ssrf-guard.ts#L288)) and the subsequent `fetch` resolves
 independently, so a rebinding record can differ between validation and
 connection. The strict, IP-pinning path (`normalizeUrlForStrictFetch` +
-`assertSafeIp`, used by `lib/server/agent-runtime/fetch-url.ts:50`) exists but no
+`assertSafeIp`, used by [`lib/server/agent-runtime/fetch-url.ts:50`](lib/server/agent-runtime/fetch-url.ts#L50)) exists but no
 route uses it.
 
 **8. `proxy-media` and every `verify-*` route bypass `proxyFetch`.** They call
 bare `fetch`, so a deployment behind a forward proxy silently fails those calls
 while `export-video/**` succeeds. `proxy-media` also fully buffers the response
-with `response.blob()` (`route.ts:72`) before the size check, so a lying
+with `response.blob()` ([`route.ts:72`](app/api/proxy-media/route.ts#L72)) before the size check, so a lying
 `content-length` still costs the real byte count in memory.
 
 **9. `persistence/[...path]` buffers every response in memory.** The
 `ServerResponse` shim accumulates `Buffer[]` and resolves a single `Response` at
-`end()` (`route.ts:187`, `:235-245`). Asset byte reads therefore have no
+`end()` ([`route.ts:187`](app/api/persistence/[...path]/route.ts#L187), `:235-245`). Asset byte reads therefore have no
 streaming path unless `ASSET_BYTE_EGRESS=redirect` is on. The route's own
 authenticator takes the partition key from a client-supplied header and the file
-says so (`lib/persistence/server-auth.ts:1-13`).
+says so ([`lib/persistence/server-auth.ts:1-13`](lib/persistence/server-auth.ts#L1-L13)).
 
 **10. Publishing is dead code.** `stages/[id]/publish` and `unpublish` reject
 `anon:`-prefixed owners, and every owner is `anon:`-prefixed because no call site
 passes `authenticatedOwnerId`. See `05-failure-modes.md` §8.
 
-**11. Two unbounded upload paths.** `parse-pdf` (`route.ts:61-62`) and
-`transcription` (`route.ts:79`) buffer the whole uploaded file with no size cap
+**11. Two unbounded upload paths.** `parse-pdf` ([`route.ts:61-62`](app/api/parse-pdf/route.ts#L61-L62)) and
+`transcription` ([`route.ts:79`](app/api/transcription/route.ts#L79)) buffer the whole uploaded file with no size cap
 of their own, unlike `extract-document` (413 at
 `MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES`) and `materials` (per-class caps). The
 framework's body limit is the only bound.
 
 **12. `Content-Disposition` filename injection.**
-`export-video/render/[jobId]/download/route.ts:57` interpolates an unvalidated
+[`export-video/render/[jobId]/download/route.ts:57`](app/api/export-video/render/[jobId]/download/route.ts#L57) interpolates an unvalidated
 path segment into a quoted header value; `skills/[id]` validates first with
 `isSafeSkillId`. See `05-failure-modes.md` §6.
 
 **13. Streaming routes commit a 200 before doing work.** Ten routes do this, so
 `res.ok` is not a success signal and a caller must parse the frames. Only the
 four PBL routes have a typed event union to parse against
-(`lib/pbl/v2/api/sse.ts:168-175`); the other six document their events in
+([`lib/pbl/v2/api/sse.ts:168-175`](lib/pbl/v2/api/sse.ts#L168-L175)); the other six document their events in
 comments.
 
 **14. `agent/skills/[id]` drops the owner cookie on its 404**
-(`route.ts:22`), the one place in the family that breaks the
-"headers ride every response" invariant `with-owner.ts:7-10` exists to enforce.
+([`route.ts:22`](app/api/agent/skills/[id]/route.ts#L22)), the one place in the family that breaks the
+"headers ride every response" invariant [`with-owner.ts:7-10`](lib/server/agent-runtime/with-owner.ts#L7-L10) exists to enforce.
 
 ## Which fragility touches which route family
 

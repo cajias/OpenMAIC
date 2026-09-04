@@ -7,7 +7,7 @@ under Node 22 in a Chromium + FFmpeg container via `tsx`.
 
 ## 1. HTTP contract
 
-`render-service/src/main.ts:12-17` states it verbatim:
+[`render-service/src/main.ts:12-17`](render-service/src/main.ts#L12-L17) states it verbatim:
 
 ```
 POST   /render                 multipart: project(zip) + fps/quality/format → 202 { jobId }
@@ -18,14 +18,14 @@ DELETE /render/:jobId          → cancel
 GET    /health                 → { ok: true, accepting: boolean, ... }
 ```
 
-`/health` body (`main.ts:241-250`): `{ ok, accepting, resourceProfile, versions }` —
+`/health` body ([`main.ts:241-250`](render-service/src/main.ts#L241-L250)): `{ ok, accepting, resourceProfile, versions }` —
 `resourceProfile` is `publicResourceProfile(config.resourceProfile)`, `versions` is
 `RuntimeVersions | null`, and `accepting` is aggregate-only (never queue depths,
 never per-identity data).
 
 ## 2. Public job types
 
-`render-service/src/types.ts:15`, `:18`, `:26`, `:37`, `:48`, `:57`
+[`render-service/src/types.ts:15`](render-service/src/types.ts#L15), [`:18`](render-service/src/types.ts#L18), [`:26`](render-service/src/types.ts#L26), [`:37`](render-service/src/types.ts#L37), [`:48`](render-service/src/types.ts#L48), [`:57`](render-service/src/types.ts#L57)
 
 ```ts
 export type RenderJobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
@@ -61,7 +61,7 @@ ffmpegPath, containerImage: string | null }`, collected by `collectRuntimeVersio
 diagnostics record: `{ totalElapsedMs, stages: Record<string, number>, workers,
 totalFrames, captureMode?, peakRssMb?, tmpPeakBytes? }`.
 
-`render-service/src/types.ts:68`, `:74`, `:79`, `:84`, `:130`, `:153`
+[`render-service/src/types.ts:68`](render-service/src/types.ts#L68), [`:74`](render-service/src/types.ts#L74), [`:79`](render-service/src/types.ts#L79), [`:84`](render-service/src/types.ts#L84), [`:130`](render-service/src/types.ts#L130), [`:153`](render-service/src/types.ts#L153)
 
 ```ts
 export type RenderFailureCode =
@@ -86,7 +86,7 @@ string.
 
 ## 3. The executor seam
 
-`render-service/src/types.ts:87`, `:107`
+[`render-service/src/types.ts:87`](render-service/src/types.ts#L87), [`:107`](render-service/src/types.ts#L107)
 
 ```ts
 export interface RenderExecutionRequest {
@@ -109,7 +109,7 @@ export type RenderExecutionResult =
   | { status: 'failed'; failure: RenderFailedFailure; performance?: RenderPerformanceSummary; metrics?: RenderExecutionMetrics };
 ```
 
-`render-service/src/render-executor.ts:26`, `:46`, `:66`, `:126`, `:168`
+[`render-service/src/render-executor.ts:26`](render-service/src/render-executor.ts#L26), [`:46`](render-service/src/render-executor.ts#L46), [`:66`](render-service/src/render-executor.ts#L66), [`:126`](render-service/src/render-executor.ts#L126), [`:168`](render-service/src/render-executor.ts#L168)
 
 ```ts
 export interface RenderExecutor {
@@ -133,7 +133,7 @@ export class InProcessExecutor implements RenderExecutor { /* … */ }
 
 ## 4. Coordinator
 
-`render-service/src/render-coordinator.ts:29`, `:38`, `:55`, `:66`, `:73`, `:345`
+[`render-service/src/render-coordinator.ts:29`](render-service/src/render-coordinator.ts#L29), [`:38`](render-service/src/render-coordinator.ts#L38), [`:55`](render-service/src/render-coordinator.ts#L55), [`:66`](render-service/src/render-coordinator.ts#L66), [`:73`](render-service/src/render-coordinator.ts#L73), [`:345`](render-service/src/render-coordinator.ts#L345)
 
 ```ts
 export type RenderRejectionReason = 'queue_full' | 'per_identity_limit';
@@ -166,7 +166,7 @@ export async function makeProjectDir(): Promise<string>;
 
 ## 5. Resource profiles
 
-`render-service/src/resource-profile.ts:6`, `:10`, `:107`, `:129`, `:138`, `:168`
+[`render-service/src/resource-profile.ts:6`](render-service/src/resource-profile.ts#L6), [`:10`](render-service/src/resource-profile.ts#L10), [`:107`](render-service/src/resource-profile.ts#L107), [`:129`](render-service/src/resource-profile.ts#L129), [`:138`](render-service/src/resource-profile.ts#L138), [`:168`](render-service/src/resource-profile.ts#L168)
 
 ```ts
 export type ResourceProfileName = 'standard' | 'low-memory';
@@ -198,7 +198,7 @@ export function validateResourceProfileStartup(
 export function publicResourceProfile(profile: ResourceProfile);
 ```
 
-Concrete values (`resource-profile.ts:47-48`, `:55-58`): `standard` =
+Concrete values ([`resource-profile.ts:47-48`](render-service/src/resource-profile.ts#L47-L48), [`:55-58`](render-service/src/resource-profile.ts#L55-L58)): `standard` =
 `prefer-beginframe`, 8 GiB floor, 3840×2160 preview pixels, device scale ≤2,
 `maxParallelChunks 4`; `low-memory` = `screenshot-only`, 4 GiB floor, 1920×1080,
 device scale ≤1, `maxParallelChunks 1`. Both fix `producerWorkers`,
@@ -208,14 +208,14 @@ compatibility-sensitive compositions such as iframe GenUI.
 
 ## 6. Archive extraction, chunking, preview
 
-`render-service/src/unzip.ts:25`, `:31`
+[`render-service/src/unzip.ts:25`](render-service/src/unzip.ts#L25), [`:31`](render-service/src/unzip.ts#L31)
 
 ```ts
 export class InvalidProjectError extends Error {}
 export async function unzipProject(zip: Uint8Array, destDir: string): Promise<void>;
 ```
 
-`render-service/src/chunk-executor.ts:29`, `:37`, `:67`, `:98`, `:104` (plus
+[`render-service/src/chunk-executor.ts:29`](render-service/src/chunk-executor.ts#L29), [`:37`](render-service/src/chunk-executor.ts#L37), [`:67`](render-service/src/chunk-executor.ts#L67), [`:98`](render-service/src/chunk-executor.ts#L98), [`:104`](render-service/src/chunk-executor.ts#L104) (plus
 `CHUNK_PLAN_SCHEMA_VERSION = 1`, `DEFAULT_CHUNK_COUNT = 1`,
 `DEFAULT_CHUNK_WORKERS = 1` at `:25-27`)
 
@@ -241,7 +241,7 @@ framesEncoded?, … }`, and `ImmutableRenderPlan` (`:67`) additionally carries
 `chromiumVersion`, `captureMode`, and per-asset/font `PlanAsset[]` — so a plan is
 content-addressed and a stale or mismatched chunk is detectable.
 
-`render-service/src/preview-renderer.ts:19`, `:35`, `:43`, `:47`
+[`render-service/src/preview-renderer.ts:19`](render-service/src/preview-renderer.ts#L19), [`:35`](render-service/src/preview-renderer.ts#L35), [`:43`](render-service/src/preview-renderer.ts#L43), [`:47`](render-service/src/preview-renderer.ts#L47)
 
 ```ts
 export type PreviewScene = Scene<
@@ -263,7 +263,7 @@ export class PreviewTimeoutError extends Error {}
 
 ## 7. Injected collaborators
 
-`render-service/src/main.ts:76`, `:229`
+[`render-service/src/main.ts:76`](render-service/src/main.ts#L76), [`:229`](render-service/src/main.ts#L229)
 
 ```ts
 export interface AppDeps {
@@ -286,7 +286,7 @@ export function createApp(deps: AppDeps): Hono;
 ```
 
 Route-local error classes exist purely to translate to status codes
-(`main.ts:62`, `:64`, `:66`): `UploadTooLargeError` → 413, `BadRequestError` →
+([`main.ts:62`](render-service/src/main.ts#L62), [`:64`](render-service/src/main.ts#L64), [`:66`](render-service/src/main.ts#L66)): `UploadTooLargeError` → 413, `BadRequestError` →
 400, `UnprocessablePreviewError` → 422 (a valid payload whose scene cannot
 produce a faithful preview).
 

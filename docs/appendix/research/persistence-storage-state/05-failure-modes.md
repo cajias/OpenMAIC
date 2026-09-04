@@ -4,7 +4,7 @@
 
 The whole module is a failure-handling design. Its rule: a failed read is never
 absence, a failed write never leaves a key writable, and either raises the health
-signal and asks for recovery (`kv-persist.ts:26-31`).
+signal and asks for recovery ([`kv-persist.ts:26-31`](lib/store/kv-persist.ts#L26-L31)).
 
 ```mermaid
 stateDiagram-v2
@@ -36,12 +36,12 @@ Concrete outcomes:
 
 - **`localStorage` unreachable in a browser** (privacy mode) — treated as a
   failure, not an empty store, because the alternative is silent data loss:
-  `state.onFailure('reach browser storage', …)` (`kv-persist.ts:649-654`). During
+  `state.onFailure('reach browser storage', …)` ([`kv-persist.ts:649-654`](lib/store/kv-persist.ts#L649-L654)). During
   SSR the same condition is expected and silent (`isBrowserRuntime()`
   `:458-460`).
 - **Read throws** — key stays `unhydrated`; the store keeps whatever it holds and
   the write gate refuses, rather than settling defaults over unreadable data
-  (`kv-persist.ts:662-666`).
+  ([`kv-persist.ts:662-666`](lib/store/kv-persist.ts#L662-L666)).
 - **Write throws after settle** (quota exhausted) — `noteWriteFailed(value)`
   remembers the newest copy, phase becomes `unavailable`, recovery is scheduled
   (`:692-697`).
@@ -60,7 +60,7 @@ Concrete outcomes:
   stands. The comment names the real fix as a hydration gate the app consumes
   (`:244-255`).
 
-User-visible surface: `subscribeToPersistHealth` (`persist-health.ts:138`).
+User-visible surface: `subscribeToPersistHealth` ([`persist-health.ts:138`](lib/store/persist-health.ts#L138)).
 `changes-lost` is final until `acknowledgePersistLoss(name)` (`:118`); `recovered`
 retracts an `unavailable` notice **only if it was actually delivered**
 (`:96-102`).
@@ -69,28 +69,28 @@ retracts an `unavailable` notice **only if it was actually delivered**
 
 | Condition | Response | Where |
 | --- | --- | --- |
-| `DATABASE_URL` unset | `404 {error:{code:'PERSISTENCE_NOT_CONFIGURED'}}` | `route.ts:271-274` |
-| `PERSISTENCE_DEV_TOKEN` unset | `503 PERSISTENCE_DEV_TOKEN_MISSING` | `route.ts:275-281` |
-| `decideDocumentAccess` → `not-found` | `404 DOCUMENT_NOT_FOUND` | `route.ts:303-305` |
-| `decideDocumentAccess` → `forbid` | handler constructed with `authorizeDocuments: () => false`; the package's document handler maps it | `route.ts:115` |
-| any throw during init or dispatch | `console.error('Embedded persistence route initialization failed')` + `500 PERSISTENCE_INIT_FAILED` | `route.ts:312-321` |
-| handler calls `res.destroy(err)` | the adapter promise rejects with that error or `Persistence HTTP handler destroyed the response` | `route.ts:249-252` |
-| unknown/unhandled owner error | `withRequestOwnerId` catches, logs, returns `500` **with the `Set-Cookie` intact** | `lib/server/agent-runtime/with-owner.ts:18-23` |
+| `DATABASE_URL` unset | `404 {error:{code:'PERSISTENCE_NOT_CONFIGURED'}}` | [`route.ts:271-274`](app/api/persistence/[...path]/route.ts#L271-L274) |
+| `PERSISTENCE_DEV_TOKEN` unset | `503 PERSISTENCE_DEV_TOKEN_MISSING` | [`route.ts:275-281`](app/api/persistence/[...path]/route.ts#L275-L281) |
+| `decideDocumentAccess` → `not-found` | `404 DOCUMENT_NOT_FOUND` | [`route.ts:303-305`](app/api/persistence/[...path]/route.ts#L303-L305) |
+| `decideDocumentAccess` → `forbid` | handler constructed with `authorizeDocuments: () => false`; the package's document handler maps it | [`route.ts:115`](app/api/persistence/[...path]/route.ts#L115) |
+| any throw during init or dispatch | `console.error('Embedded persistence route initialization failed')` + `500 PERSISTENCE_INIT_FAILED` | [`route.ts:312-321`](app/api/persistence/[...path]/route.ts#L312-L321) |
+| handler calls `res.destroy(err)` | the adapter promise rejects with that error or `Persistence HTTP handler destroyed the response` | [`route.ts:249-252`](app/api/persistence/[...path]/route.ts#L249-L252) |
+| unknown/unhandled owner error | `withRequestOwnerId` catches, logs, returns `500` **with the `Set-Cookie` intact** | [`lib/server/agent-runtime/with-owner.ts:18-23`](lib/server/agent-runtime/with-owner.ts#L18-L23) |
 
 Every response path appends the owner `Set-Cookie`, including errors — a 500 that
 dropped it "would silently make the retry a different anonymous owner"
-(`with-owner.ts:6-11`, applied at `route.ts:310,319`).
+([`with-owner.ts:6-11`](lib/server/agent-runtime/with-owner.ts#L6-L11), applied at [`route.ts:310,319`](app/api/persistence/[...path]/route.ts#L310)).
 
 `ASSET_BYTE_EGRESS` misconfiguration degrades rather than failing:
-an unrecognised value warns and uses direct egress (`route.ts:47-48`); a grace
+an unrecognised value warns and uses direct egress ([`route.ts:47-48`](app/api/persistence/[...path]/route.ts#L47-L48)); a grace
 period shorter than ten signed-URL lifetimes warns and falls back, because "the
 asset backend is optional, and its misconfiguration must never take document and
-runtime traffic down with it" (`route.ts:51-77`).
+runtime traffic down with it" ([`route.ts:51-77`](app/api/persistence/[...path]/route.ts#L51-L77)).
 
 ## 3. Document ownership refusals
 
 `StageAccessRefusal = 'foreign' | 'unclaimed' | 'tombstoned' | 'reserved-document'`
-(`lib/persistence/stage-meta.ts:90`). `StageAccessError extends DocumentNotFoundError`
+([`lib/persistence/stage-meta.ts:90`](lib/persistence/stage-meta.ts#L90)). `StageAccessError extends DocumentNotFoundError`
 (`:92`) so the package's existing 404 mapping applies without a new branch.
 
 ```mermaid
@@ -119,7 +119,7 @@ flowchart TD
 ```
 
 Reads convert any `StageAccessError` to `null` via `readGated`
-(`owner-bound-document-store.ts:120-127`) — a miss, not an error, keeping the
+([`owner-bound-document-store.ts:120-127`](lib/persistence/owner-bound-document-store.ts#L120-L127)) — a miss, not an error, keeping the
 no-existence-oracle posture.
 
 ## 4. Chat storage (`lib/utils/chat-storage.ts`)
@@ -179,7 +179,7 @@ Idempotency of the migration: keyed on KV `device` marker
 
 ## 6. Runtime deletion cascade
 
-`beginStageRuntimeDeletionSafely` (`lib/runtime/store.ts:110`) is fail-soft by
+`beginStageRuntimeDeletionSafely` ([`lib/runtime/store.ts:110`](lib/runtime/store.ts#L110)) is fail-soft by
 construction: bounded by `STAGE_RUNTIME_DELETE_TIMEOUT_MS = 5000` (`:54`), any
 error or timeout logs `Failed to delete runtime data for stage <id>` and moves on.
 It returns two promises — `completion` (bounded, caller-visible) and `settlement`
@@ -205,7 +205,7 @@ flowchart LR
 
 Deliberate choices recorded in the source: the first pass is one full interval
 away so a cold start does not race PostgreSQL coming up
-(`asset-collector-schedule.ts:169-172`); the timer is `unref()`ed so it never keeps
+([`asset-collector-schedule.ts:169-172`](lib/persistence/asset-collector-schedule.ts#L169-L172)); the timer is `unref()`ed so it never keeps
 the process alive (`:174`); and several concurrent collectors are safe because
 each candidate is re-checked under `FOR UPDATE` — the header explicitly asks not
 to add a distributed lock (`:13-17`).
@@ -214,36 +214,36 @@ to add a distributed lock (`:13-17`).
 
 - `configureDocumentStorage` called twice, or after resolution started → throws
   with an explanatory message; configuration stays sealed even if resolution
-  failed, and the fix is to retry the consumer (`lib/document-store/config.ts:69-78`).
+  failed, and the fix is to retry the consumer ([`lib/document-store/config.ts:69-78`](lib/document-store/config.ts#L69-L78)).
 - Bootstrap does both `assert*Configurable()` checks before either `configure*`,
   so a failure cannot leave only one seam server-backed
-  (`lib/persistence/bootstrap.ts:62-74`); the catch logs
+  ([`lib/persistence/bootstrap.ts:62-74`](lib/persistence/bootstrap.ts#L62-L74)); the catch logs
   `FATAL: server-backed persistence bootstrap failed` and the app stays local.
 - A configured factory that throws is **not** cached: `defaultStore ??= (() => …)()`
-  assigns only on success (`document-store/store.ts:66-71`;
-  same in `runtime/store.ts:47-51` and `learner-key.ts:88-99`).
+  assigns only on success ([`document-store/store.ts:66-71`](lib/document-store/store.ts#L66-L71);
+  same in [`runtime/store.ts:47-51`](lib/runtime/store.ts#L47-L51) and [`learner-key.ts:88-99`](lib/runtime/learner-key.ts#L88-L99)).
 - HMR caveat documented twice: configuration and consumer caches live in separate
   modules, so partial replacement can fragment their module-level state — reload
-  the page (`config.ts:45-48`, `learner-key.ts:76-79`).
+  the page ([`config.ts:45-48`](lib/document-store/config.ts#L45-L48), [`learner-key.ts:76-79`](lib/runtime/learner-key.ts#L76-L79)).
 
 ## 9. i18n
 
-`config.ts:37-44` sets `lng: defaultLocale`, `fallbackLng: defaultLocale`
+[`config.ts:37-44`](lib/i18n/config.ts#L37-L44) sets `lng: defaultLocale`, `fallbackLng: defaultLocale`
 (`'zh-CN'`), and `supportedLngs` from the registry, so an unknown locale code
 resolves to Simplified Chinese rather than raw keys. Workbench copy has its own
 fallback chain: `workbenchResourceFor` merges an overlay over English (or over
 Simplified for `zh-TW`), so "an untranslated key degrades to a readable sentence
-rather than to `workbench.tool.label.x`" (`lib/i18n/workbench.ts:12-16`).
+rather than to `workbench.tool.label.x`" ([`lib/i18n/workbench.ts:12-16`](lib/i18n/workbench.ts#L12-L16)).
 
 A missing key in a JSON locale is caught at CI time, not runtime:
 `pnpm check:i18n-keys` exits 1 and prints every missing and extra key per file
-(`scripts/check-i18n-keys.mjs:76-111`).
+([`scripts/check-i18n-keys.mjs:76-111`](scripts/check-i18n-keys.mjs#L76-L111)).
 
 ## 10. Usage metering
 
 `recordUsage` is explicitly fire-and-forget and never throws — a `try/catch`
 around the whole body logs `Failed to record usage (ignored)`
-(`lib/server/usage-storage.ts:133-135`). `readUsageRecords` returns `[]` when the
+([`lib/server/usage-storage.ts:133-135`](lib/server/usage-storage.ts#L133-L135)). `readUsageRecords` returns `[]` when the
 directory is absent and silently skips malformed JSONL lines
 (`:180-208`). One notable guard: under `VITEST` or `NODE_ENV=test` with no
 explicit `baseDir` the function returns immediately, added after test rows were

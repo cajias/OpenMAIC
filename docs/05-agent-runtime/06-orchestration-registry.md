@@ -15,9 +15,9 @@ there is no "orchestration registry" of *runtimes* — the registry registers
 
 ## What the registry registers
 
-`useAgentRegistry` (`lib/orchestration/registry/store.ts:207`) is a zustand store
+`useAgentRegistry` ([`lib/orchestration/registry/store.ts:207`](lib/orchestration/registry/store.ts#L207)) is a zustand store
 with `persist` over `localStorage`, holding `Record<agentId, AgentConfig>`. An
-`AgentConfig` (`registry/types.ts:9-29`) is a persona plus a capability list:
+`AgentConfig` ([`registry/types.ts:9-29`](lib/orchestration/registry/types.ts#L9-L29)) is a persona plus a capability list:
 
 | Field | Meaning |
 | --- | --- |
@@ -28,11 +28,11 @@ with `persist` over `localStorage`, holding `Record<agentId, AgentConfig>`. An
 | `voiceConfig` / `voiceDesign` | per-agent TTS binding, or a provider-neutral vocal descriptor |
 | `isDefault`, `isGenerated`, `boundStageId` | provenance |
 
-Six built-in agents ship in `DEFAULT_AGENTS` (`store.ts:47`): `default-1`
+Six built-in agents ship in `DEFAULT_AGENTS` ([`store.ts:47`](lib/orchestration/registry/store.ts#L47)): `default-1`
 (`teacher`), `default-2` (`assistant`) and `default-3` … `default-6` (`student`).
 Only `default-1` gets slide actions.
 
-`ROLE_ACTIONS` (`registry/types.ts:83-87`) is the canonical role → action map:
+`ROLE_ACTIONS` ([`registry/types.ts:83-87`](lib/orchestration/registry/types.ts#L83-L87)) is the canonical role → action map:
 
 ```
 teacher   : SLIDE_ACTIONS (spotlight, laser, play_video) + 12 WHITEBOARD_ACTIONS
@@ -62,23 +62,23 @@ flowchart TD
   MEM -.->|"generated agents excluded"| LS
 ```
 
-`applyGeneratedAgentsToRegistry(stageId, agents)` (`store.ts:355`) is a pure
+`applyGeneratedAgentsToRegistry(stageId, agents)` ([`store.ts:355`](lib/orchestration/registry/store.ts#L355)) is a pure
 in-memory side effect: it deletes every currently-loaded generated agent first —
 even when the incoming roster is empty, so a prior classroom's roster cannot leak
 — re-derives `allowedActions` from the role rather than trusting the document,
 drops a `voiceConfig` whose `providerId` is not a known TTS provider, and
 fire-and-forget warms each generated agent's auto voice. Nothing it writes becomes
 durable; `stage.generatedAgentConfigs` is the persisted truth
-(`store.ts:340-353`).
+([`store.ts:340-353`](lib/orchestration/registry/store.ts#L340-L353)).
 
-`agentsToParticipants(agentIds, t)` (`store.ts:280`) is the UI projection: teacher
+`agentsToParticipants(agentIds, t)` ([`store.ts:280`](lib/orchestration/registry/store.ts#L280)) is the UI projection: teacher
 first, then by descending `priority`; the first `role === 'teacher'` takes the
 teacher seat, and if none has that role the highest-priority agent does
 (`:298-307`). A `user-1` participant is always appended from the user-profile store.
 
 ## How a selection is made when a classroom loads
 
-`restoreAgentSelection(params)` (`registry/agent-selection.ts:27`) is a pure
+`restoreAgentSelection(params)` ([`registry/agent-selection.ts:27`](lib/orchestration/registry/agent-selection.ts#L27)) is a pure
 function with one non-obvious rule.
 
 ```mermaid
@@ -110,7 +110,7 @@ flowchart TD
   Q6 -->|no| TRIO
 ```
 
-The rule (`agent-selection.ts:12-25`): **only an explicit user choice may cross
+The rule ([`agent-selection.ts:12-25`](lib/orchestration/registry/agent-selection.ts#L12-L25)): **only an explicit user choice may cross
 classrooms**, and only while it is still valid for the loaded stage. Stage-derived
 defaults written by previous classroom loads are not user choices and must never be
 re-read as one — otherwise "visiting a preset classroom would permanently downgrade
@@ -122,16 +122,16 @@ Two live paths behind three flags.
 
 | Flag | Function | Selects | Default |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_PI_CHAT_ENABLED` | `isPiChatEnabled()` (`feature-flags.ts:72`) | the Pi director path **and** gates `POST /api/chat/pi` (404 when off) | OFF |
+| `NEXT_PUBLIC_PI_CHAT_ENABLED` | `isPiChatEnabled()` ([`feature-flags.ts:72`](lib/config/feature-flags.ts#L72)) | the Pi director path **and** gates `POST /api/chat/pi` (404 when off) | OFF |
 | `OPENMAIC_ENABLE_PI_NATIVE_CHILD_RUNTIME` | `isPiNativeChildRuntimeEnabled()` (`:80`) | native tool-calling child vs the legacy JSON-action child | OFF |
 | `OPENMAIC_ENABLE_PI_NATIVE_CHILD_SPOTLIGHT` | `isPiNativeChildSpotlightEnabled()` (`:88`) | the native `spotlight` tool; **never** selects the child runtime and has no effect on the legacy harness | OFF |
 
 All three are commented out in `.env.example` (`:298`, `:300`, `:324`), so the
 shipped default is the **LangGraph** director with the **legacy** JSON-action
 child. Only `NEXT_PUBLIC_PI_CHAT_ENABLED` is public; the other two are declared
-"Server-only" (`feature-flags.ts:76-90`). Both paths emit
+"Server-only" ([`feature-flags.ts:76-90`](lib/config/feature-flags.ts#L76-L90)). Both paths emit
 the same `StatelessEvent` SSE protocol, which is what lets one browser loop
-(`lib/chat/agent-loop.ts:154`) drive either.
+([`lib/chat/agent-loop.ts:154`](lib/chat/agent-loop.ts#L154)) drive either.
 
 ```mermaid
 flowchart TD
@@ -160,7 +160,7 @@ flowchart TD
 
 ## The LangGraph director
 
-`createOrchestrationGraph()` (`director-graph.ts:484-493`) is two nodes —
+`createOrchestrationGraph()` ([`director-graph.ts:484-493`](lib/orchestration/director-graph.ts#L484-L493)) is two nodes —
 `director` (`:486`) and `agent_generate` (`:487`); START and END are LangGraph
 sentinels, not nodes:
 
@@ -184,7 +184,7 @@ accumulating channels use append reducers: `agentResponses` and
 | `availableAgentIds.length <= 1`, turn 0 | dispatch the sole agent (falls back to `default-1`) | none |
 | single agent, turn 1+ | cue the user, keeping the session active | none |
 | multi-agent, turn 0 with a `triggerAgentId` | dispatch the trigger agent | none |
-| multi-agent otherwise | LLM decision parsed by `parseDirectorDecision` (`director-prompt.ts:216`) | one |
+| multi-agent otherwise | LLM decision parsed by `parseDirectorDecision` ([`director-prompt.ts:216`](lib/orchestration/director-prompt.ts#L216)) | one |
 
 `resolveAgent(state, agentId)` (`:85-87`) reads `state.agentConfigOverrides` first
 and only then the global registry. That is what keeps the server stateless:
@@ -194,7 +194,7 @@ Node output reaches the client through LangGraph's **custom** stream mode — ea
 node pushes `StatelessEvent` chunks via `config.writer()` (`:20-21`), wrapped in a
 try/catch so a controller closed after an abort cannot throw (`:108-114`).
 
-`parseStructuredChunk(chunk, state)` (`stateless-generate.ts:136`) is the
+`parseStructuredChunk(chunk, state)` ([`stateless-generate.ts:136`](lib/orchestration/stateless-generate.ts#L136)) is the
 incremental JSON-array parser (over `partial-json`) that turns a legacy child's
 `[{"type":"action",…},{"type":"text",…}]` stream into action and text events.
 `finalizeParser` (`:327`) structurally recovers visible text when the model never
@@ -205,18 +205,18 @@ residue rather than leaking `{"type":"text"…}` into a chat bubble.
 
 Seven modules under `lib/orchestration/summarizers/`. They are the one part of
 `lib/orchestration/` that both classroom paths depend on — `lib/chat/pi/prompts.ts`
-imports three of them directly (`prompts.ts:4-6`), as does
-`lib/chat/pi/tools/read-scene.ts:4`.
+imports three of them directly ([`prompts.ts:4-6`](lib/chat/pi/prompts.ts#L4-L6)), as does
+[`lib/chat/pi/tools/read-scene.ts:4`](lib/chat/pi/tools/read-scene.ts#L4).
 
 | Module | Lines | Entry | What it produces | Consumers |
 | --- | --- | --- | --- | --- |
-| `state-context.ts` | 271 | `buildStateContext(storeState)` (`:136`), `summarizeElements` (`:103`) | the request-start slide + board summary | `prompt-builder.ts:11`, `lib/chat/pi/prompts.ts:5`, `read-scene.ts:4` |
-| `whiteboard-ledger.ts` | 316 | `buildVirtualWhiteboardContext` (`:135`) | this round's mutations as a *virtual* board the child can address | `prompt-builder.ts:12`, `lib/chat/pi/prompts.ts:6` |
-| `whiteboard-conflicts.ts` | 242 | `buildWhiteboardConflicts(elements)` (`:178`) | geometric overlap / line-intersection / edge-clipping findings as prose | `state-context.ts:2` |
-| `peer-context.ts` | 33 | `buildPeerContextSection` (`:9`) | what peers already said this round | `prompt-builder.ts:13`, `lib/chat/pi/prompts.ts:4` |
-| `code-line-budget.ts` | 83 | `renderCodeLines` (`:45`), `createCodeRenderBudget` (`:31`) | the **single** truncation rule shared by the two board summarizers | `state-context.ts:3`, `whiteboard-ledger.ts:3` |
-| `conversation-summary.ts` | 69 | `summarizeConversation` (`:35`) | condensed prior conversation for the director | `director-graph.ts:36` |
-| `message-converter.ts` | 114 | `convertMessagesToOpenAI` (`:9`) | UI messages → OpenAI format, including tool-call info | `director-graph.ts:37` |
+| `state-context.ts` | 271 | `buildStateContext(storeState)` (`:136`), `summarizeElements` (`:103`) | the request-start slide + board summary | [`prompt-builder.ts:11`](lib/orchestration/prompt-builder.ts#L11), [`lib/chat/pi/prompts.ts:5`](lib/chat/pi/prompts.ts#L5), [`read-scene.ts:4`](lib/chat/pi/tools/read-scene.ts#L4) |
+| `whiteboard-ledger.ts` | 316 | `buildVirtualWhiteboardContext` (`:135`) | this round's mutations as a *virtual* board the child can address | [`prompt-builder.ts:12`](lib/orchestration/prompt-builder.ts#L12), [`lib/chat/pi/prompts.ts:6`](lib/chat/pi/prompts.ts#L6) |
+| `whiteboard-conflicts.ts` | 242 | `buildWhiteboardConflicts(elements)` (`:178`) | geometric overlap / line-intersection / edge-clipping findings as prose | [`state-context.ts:2`](lib/orchestration/summarizers/state-context.ts#L2) |
+| `peer-context.ts` | 33 | `buildPeerContextSection` (`:9`) | what peers already said this round | [`prompt-builder.ts:13`](lib/orchestration/prompt-builder.ts#L13), [`lib/chat/pi/prompts.ts:4`](lib/chat/pi/prompts.ts#L4) |
+| `code-line-budget.ts` | 83 | `renderCodeLines` (`:45`), `createCodeRenderBudget` (`:31`) | the **single** truncation rule shared by the two board summarizers | [`state-context.ts:3`](lib/orchestration/summarizers/state-context.ts#L3), [`whiteboard-ledger.ts:3`](lib/orchestration/summarizers/whiteboard-ledger.ts#L3) |
+| `conversation-summary.ts` | 69 | `summarizeConversation` (`:35`) | condensed prior conversation for the director | [`director-graph.ts:36`](lib/orchestration/director-graph.ts#L36) |
+| `message-converter.ts` | 114 | `convertMessagesToOpenAI` (`:9`) | UI messages → OpenAI format, including tool-call info | [`director-graph.ts:37`](lib/orchestration/director-graph.ts#L37) |
 
 Two of these carry real design content.
 
@@ -264,7 +264,7 @@ flowchart LR
   SC --> RS
 ```
 
-`getEffectiveActions(allowedActions, sceneType)` (`tool-schemas.ts:16`) is the last
+`getEffectiveActions(allowedActions, sceneType)` ([`tool-schemas.ts:16`](lib/orchestration/tool-schemas.ts#L16)) is the last
 capability filter before a prompt: it strips slide-only actions for non-slide
 scenes. `getActionDescriptions` (`:29`) is the prose action catalogue injected into
 structured-output prompts.
@@ -277,8 +277,8 @@ structured-output prompts.
   Whether the LangGraph path is scheduled for removal is not stated anywhere in the
   tree.
 - **`WHITEBOARD_ACTIONS` / `SLIDE_ACTIONS` are duplicated.**
-  `registry/store.ts:29-44` re-declares both locally even though
-  `registry/types.ts:62-77` exports exactly those two constants. They currently
+  [`registry/store.ts:29-44`](lib/orchestration/registry/store.ts#L29-L44) re-declares both locally even though
+  [`registry/types.ts:62-77`](lib/orchestration/registry/types.ts#L62-L77) exports exactly those two constants. They currently
   agree; nothing enforces that.
 - **Which path the hosted deployment actually runs** is not determinable from this
   repository — all three path flags are commented out in `.env.example`.

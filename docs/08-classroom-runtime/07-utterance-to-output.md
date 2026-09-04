@@ -10,19 +10,19 @@ stroke to a word.
 `lib/utils/audio-player.ts`, `lib/media/resolve-audio-bytes.ts`,
 `lib/api/stage-api-whiteboard.ts`, `lib/store/canvas.ts`,
 `components/canvas/canvas-area.tsx`, `components/edit/PlaybackChromeRoot.tsx`,
-[`../appendix/research/classroom-runtime/03a-flows-playback.md`](../appendix/research/classroom-runtime/03a-flows-playback.md),
-[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md).
+[`../appendix/research/classroom-runtime/03a-flows-playback.md`](docs/appendix/research/classroom-runtime/03a-flows-playback.md),
+[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md).
 
 ## The synchronisation model, stated plainly
 
 | Question | Answer | Where |
 | --- | --- | --- |
-| What aligns narration with a stroke? | Nothing at runtime. The author emits `speech` then `wb_draw_text` as sibling actions; `processNext` runs them strictly in order, and each blocks the next | `lib/playback/engine.ts:552`, `:735` |
-| What ends a narration line? | Whichever of four clocks is live: audio `ended`, per-chunk TTS `onend`, a reading timer, or an awaited `ActionEngine.execute` | `engine.ts:589`, `:829`, `:601`, `:735` |
-| Can a stroke land *during* a line? | Only if the author emitted `spotlight`/`laser` — the two non-blocking verbs. Every `wb_*` verb is blocking, so it lands strictly after the preceding line finishes | `packages/@openmaic/dsl/src/action.ts:261` |
-| What guarantees the whiteboard is open before a draw? | `ActionEngine.execute` awaits `ensureWhiteboardOpen()` for every `wb_*` verb other than `wb_open`/`wb_close` | `lib/action/engine.ts:228-230` |
-| Where does board content live? | The **last** entry of `stage.whiteboard`, mutated through `createWhiteboardAPI`. Not `scene.whiteboards` | `lib/api/stage-api-whiteboard.ts:64` |
-| What clears an effect? | One shared timer on `ActionEngine`, reset by each new effect | `lib/action/engine.ts:308-316` |
+| What aligns narration with a stroke? | Nothing at runtime. The author emits `speech` then `wb_draw_text` as sibling actions; `processNext` runs them strictly in order, and each blocks the next | [`lib/playback/engine.ts:552`](lib/playback/engine.ts#L552), [`:735`](lib/playback/engine.ts#L735) |
+| What ends a narration line? | Whichever of four clocks is live: audio `ended`, per-chunk TTS `onend`, a reading timer, or an awaited `ActionEngine.execute` | [`engine.ts:589`](lib/playback/engine.ts#L589), `:829`, `:601`, `:735` |
+| Can a stroke land *during* a line? | Only if the author emitted `spotlight`/`laser` — the two non-blocking verbs. Every `wb_*` verb is blocking, so it lands strictly after the preceding line finishes | [`packages/@openmaic/dsl/src/action.ts:261`](packages/@openmaic/dsl/src/action.ts#L261) |
+| What guarantees the whiteboard is open before a draw? | `ActionEngine.execute` awaits `ensureWhiteboardOpen()` for every `wb_*` verb other than `wb_open`/`wb_close` | [`lib/action/engine.ts:228-230`](lib/action/engine.ts#L228-L230) |
+| Where does board content live? | The **last** entry of `stage.whiteboard`, mutated through `createWhiteboardAPI`. Not `scene.whiteboards` | [`lib/api/stage-api-whiteboard.ts:64`](lib/api/stage-api-whiteboard.ts#L64) |
+| What clears an effect? | One shared timer on `ActionEngine`, reset by each new effect | [`lib/action/engine.ts:308-316`](lib/action/engine.ts#L308-L316) |
 
 ## The trace
 
@@ -102,7 +102,7 @@ sequenceDiagram
 
 ## Ordering rules that are load-bearing
 
-1. **`onProgress` fires before the cursor advances** (`engine.ts:579`, comment at
+1. **`onProgress` fires before the cursor advances** ([`engine.ts:579`](lib/playback/engine.ts#L579), comment at
    `:576-578`). The persisted snapshot therefore points at the action *about to
    run*, so a restore replays a half-heard line rather than skipping it.
 2. **`onSpeechStart` fires before any audio decision.** The bubble and the
@@ -120,7 +120,7 @@ sequenceDiagram
 
 ## The audio path in detail
 
-`AudioPlayer.play(audioId, legacyUrl)` (`lib/utils/audio-player.ts:99`) returns
+`AudioPlayer.play(audioId, legacyUrl)` ([`lib/utils/audio-player.ts:99`](lib/utils/audio-player.ts#L99)) returns
 `Promise<boolean>` — `true` only if playback actually started. It is guarded by a
 monotonic `requestToken` (`:100`) re-checked at four points (`:105`, `:124`,
 `:142`, `:173`) so a superseded play resolves `false` instead of hijacking the
@@ -155,12 +155,12 @@ Two consequences worth internalising:
 
 - **No cache.** Every play of a line re-resolves and re-fetches its bytes. There is
   no memo in `AudioPlayer` and none in `resolveAudioBlob`
-  (`lib/media/resolve-audio-bytes.ts:15`). Restarting a scene refetches every clip.
+  ([`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15)). Restarting a scene refetches every clip.
 - **`hasActiveAudio()` decides the resume branch, and it replays an ended clip.**
   The method is bare `this.audio !== null` (`:233`) despite its docstring claiming
   "playing or paused, but **not ended**" (`:230`), and the element is nulled only
   by `stopAudioElement()`. So after a clip ends naturally the element is still
-  non-null and `resume()` takes the `hasActiveAudio()` branch (`engine.ts:287`)
+  non-null and `resume()` takes the `hasActiveAudio()` branch ([`engine.ts:287`](lib/playback/engine.ts#L287))
   rather than the `speechTimerRemaining` branch: it re-registers `onEnded` and
   calls `audioPlayer.resume()`. That call is **not** a no-op. `AudioPlayer.resume()`
   is `if (this.audio?.paused) { … this.audio.play(); }` (`:213-220`), and an ended
@@ -171,7 +171,7 @@ Two consequences worth internalising:
 
 Volume, mute and rate are applied live rather than at next play: three effects in
 the host push `setMuted`, `setVolume` and `setPlaybackRate` into the player
-whenever settings change (`PlaybackChromeRoot.tsx:989-999`, and the
+whenever settings change ([`PlaybackChromeRoot.tsx:989-999`](components/edit/PlaybackChromeRoot.tsx#L989-L999), and the
 `playbackSpeed` effect below them).
 
 ## The whiteboard path in detail
@@ -181,7 +181,7 @@ The whiteboard is **not** a stroke stream. Every `wb_*` verb constructs a
 
 | Verb | Element written | Extra behaviour |
 | --- | --- | --- |
-| `wb_draw_text` | `type: 'text'`, HTML content wrapped in a `<p>` with the font size when it is not already markup (`lib/action/engine.ts:481-483`) | `getLikelyLatexMath` reroutes a LaTeX-looking string to `wb_draw_latex` (`:465-475`); empty content returns with no delay |
+| `wb_draw_text` | `type: 'text'`, HTML content wrapped in a `<p>` with the font size when it is not already markup ([`lib/action/engine.ts:481-483`](lib/action/engine.ts#L481-L483)) | `getLikelyLatexMath` reroutes a LaTeX-looking string to `wb_draw_latex` ([`:465-475`](lib/action/engine.ts#L465-L475)); empty content returns with no delay |
 | `wb_draw_shape` | `type: 'shape'` with one of three hardcoded SVG paths, `rectangle` as the unknown fallback (`:520`) | — |
 | `wb_draw_chart` | `type: 'chart'` with a five-colour default theme (`:557`) | — |
 | `wb_draw_latex` | `type: 'latex'` with `katex.renderToString(latex, {throwOnError:false, displayMode:true})` (`:574`) | a render throw logs a warning and returns without drawing (`:597-600`) |
@@ -193,13 +193,13 @@ The whiteboard is **not** a stroke stream. Every `wb_*` verb constructs a
 | `wb_delete` | `deleteElement(elementId)` | — |
 | `wb_open` / `wb_close` | `setWhiteboardOpen(true/false)` plus the open/close animation dwell | — |
 
-`whiteboard.get()` (`lib/api/stage-api-whiteboard.ts:58`) returns
+`whiteboard.get()` ([`lib/api/stage-api-whiteboard.ts:58`](lib/api/stage-api-whiteboard.ts#L58)) returns
 `state.stage.whiteboard.at(-1)` and creates an entry when the array is empty
 (`:42`). Playback therefore always writes to the **last stage-level whiteboard**,
 never to `scene.whiteboards` — which are a separate authored field.
 
 Every `addElement` goes through `withProductionPersistence`
-(`lib/api/stage-api.ts:101`), so a playback-time stroke marks the stage document
+([`lib/api/stage-api.ts:101`](lib/api/stage-api.ts#L101)), so a playback-time stroke marks the stage document
 dirty for persistence exactly like an edit would.
 
 ## Slide state
@@ -209,11 +209,11 @@ document:
 
 1. **Effects**, held in `useCanvasStore`: `setSpotlight(elementId, {dimness})`,
    `setLaser(elementId, {color})`, `clearAllEffects()`
-   (`lib/action/engine.ts:320-332`, `:293`). Defaults are `dimOpacity ?? 0.5` and
+   ([`lib/action/engine.ts:320-332`](lib/action/engine.ts#L320-L332), [`:293`](lib/action/engine.ts#L293)). Defaults are `dimOpacity ?? 0.5` and
    `color ?? '#ff0000'`.
 2. **Video playback**, also in the canvas store: `playVideo(elementId)` and
    `pauseVideo()`, with `playingVideoElementId` as the observable
-   (`lib/action/engine.ts:402`, `:419-420`).
+   ([`lib/action/engine.ts:402`](lib/action/engine.ts#L402), [`:419-420`](lib/action/engine.ts#L419-L420)).
 
 `play_video` is the most involved verb because it has to wait for *bytes* before it
 waits for *playback* (`:353-438`):
@@ -255,27 +255,27 @@ covered. So a `wb_open` during playback tears down the slide subtree, and
 `wb_close` remounts it. For a `slide` scene that is a re-render; for an
 `interactive` scene it would be a document reload, which is exactly why the iframe
 lives in a keep-alive host above this subtree — see
-[`./09-interactive-scene-sandbox.md`](./09-interactive-scene-sandbox.md).
+[`./09-interactive-scene-sandbox.md`](docs/08-classroom-runtime/09-interactive-scene-sandbox.md).
 
 `SceneRenderer` has two other call sites worth knowing: `CanvasArea` (the playback
-path) and `lib/edit/noop-surface.tsx:38`, which renders it with a hardcoded
+path) and [`lib/edit/noop-surface.tsx:38`](lib/edit/noop-surface.tsx#L38), which renders it with a hardcoded
 `mode="playback"` as the editor's fallback surface.
 
 ## The transcript rail is independent
 
 `onSpeechStart` also pushes the line into the `ChatArea` transcript via
-`addLectureMessage` (`PlaybackChromeRoot.tsx:788-795`), which does
+`addLectureMessage` ([`PlaybackChromeRoot.tsx:788-795`](components/edit/PlaybackChromeRoot.tsx#L788-L795)), which does
 `pushText` + `sealText` on a lecture `StreamBuffer`
-(`components/chat/use-chat-sessions.ts:2187-2189`). That buffer paces the
+([`components/chat/use-chat-sessions.ts:2187-2189`](components/chat/use-chat-sessions.ts#L2187-L2189)). That buffer paces the
 transcript at 30 ms/char with **no** relation to the audio's real length: a long
 clip finishes its transcript early, a short one late. `pauseBuffer` /
 `resumeBuffer` on the lecture session are driven from `handlePlayPause`
-(`PlaybackChromeRoot.tsx:1136-1144`) so at least the two freeze together.
+([`PlaybackChromeRoot.tsx:1136-1144`](components/edit/PlaybackChromeRoot.tsx#L1136-L1144)) so at least the two freeze together.
 
 Effect badges take the same route through `onEffectFire`
-(`PlaybackChromeRoot.tsx:804-821`), with a monotonic
+([`PlaybackChromeRoot.tsx:804-821`](components/edit/PlaybackChromeRoot.tsx#L804-L821)), with a monotonic
 `lectureActionCounterRef` supplying the dedup index — `addLectureMessage` skips any
-`actionIndex <= lastIndex` (`use-chat-sessions.ts:2168-2170`), which is what makes
+`actionIndex <= lastIndex` ([`use-chat-sessions.ts:2168-2170`](components/chat/use-chat-sessions.ts#L2168-L2170)), which is what makes
 a replayed line idempotent in the transcript.
 
 ## Open questions
@@ -283,16 +283,16 @@ a replayed line idempotent in the transcript.
 - Nothing measures the drift between `estimateSpeechDurationMs` and real TTS
   duration, and nothing measures the drift between the 30 ms/char transcript and
   the audio. Both are accepted by construction.
-- `resume()`'s `speechTimerRemaining` branch (`engine.ts:298`) is only reachable
+- `resume()`'s `speechTimerRemaining` branch ([`engine.ts:298`](lib/playback/engine.ts#L298)) is only reachable
   when `hasActiveAudio()` is false, i.e. after a `stop()`/`jumpToAction` cleared
   the element. Whether the reading-timer resume path is exercised in practice was
   not established.
 
 ## Next
 
-- [`./02-playback-state-machine.md`](./02-playback-state-machine.md) — the loop
+- [`./02-playback-state-machine.md`](docs/08-classroom-runtime/02-playback-state-machine.md) — the loop
   that drives this.
-- [`./03-choreography.md`](./03-choreography.md) — the same ordering expressed as a
+- [`./03-choreography.md`](docs/08-classroom-runtime/03-choreography.md) — the same ordering expressed as a
   wall clock for the exporter.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — TTS
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — TTS
   synthesis and the whiteboard runtime log.

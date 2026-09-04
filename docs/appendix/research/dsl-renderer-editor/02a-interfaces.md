@@ -8,7 +8,7 @@ Continued in `02b-interfaces.md` (actions, validation, versioning, the asset sea
 
 ## 1. The element model
 
-`packages/@openmaic/dsl/src/slides.ts:156`
+[`packages/@openmaic/dsl/src/slides.ts:156`](packages/@openmaic/dsl/src/slides.ts#L156)
 
 ```ts
 export interface PPTBaseElement {
@@ -25,7 +25,7 @@ export interface PPTBaseElement {
 }
 ```
 
-`packages/@openmaic/dsl/src/slides.ts:480` — the one variant that drops base fields:
+[`packages/@openmaic/dsl/src/slides.ts:480`](packages/@openmaic/dsl/src/slides.ts#L480) — the one variant that drops base fields:
 
 ```ts
 export interface PPTLineElement extends Omit<PPTBaseElement, 'height' | 'rotate'> {
@@ -46,7 +46,7 @@ export interface PPTLineElement extends Omit<PPTBaseElement, 'height' | 'rotate'
 }
 ```
 
-`packages/@openmaic/dsl/src/slides.ts:820`
+[`packages/@openmaic/dsl/src/slides.ts:820`](packages/@openmaic/dsl/src/slides.ts#L820)
 
 ```ts
 export type PPTElement =
@@ -62,7 +62,7 @@ export type PPTElement =
   | PPTCodeElement;
 ```
 
-`packages/@openmaic/dsl/src/slides.ts:953`
+[`packages/@openmaic/dsl/src/slides.ts:953`](packages/@openmaic/dsl/src/slides.ts#L953)
 
 ```ts
 export interface Slide {
@@ -176,11 +176,11 @@ Diagram reading notes: each variant's first member is written `+<literal> type`,
 `'top' | 'middle' | 'bottom'`. `end_` is `PPTLineElement.end` (renamed only to keep the member list
 unambiguous). The dashed inheritance arrow on `PPTLineElement` marks the `Omit`, not a different
 relationship kind. `PPTChartElement`, `PPTAudioElement` and `PPTCodeElement` are omitted from the
-diagram for space; their signatures are at `slides.ts:531`, `:774` and `:811`.
+diagram for space; their signatures are at [`slides.ts:531`](packages/@openmaic/dsl/src/slides.ts#L531), [`:774`](packages/@openmaic/dsl/src/slides.ts#L774) and [`:811`](packages/@openmaic/dsl/src/slides.ts#L811).
 
 ## 2. Lesson skeleton
 
-`packages/@openmaic/dsl/src/stage.ts:228` and `:278`
+[`packages/@openmaic/dsl/src/stage.ts:228`](packages/@openmaic/dsl/src/stage.ts#L228) and [`:278`](packages/@openmaic/dsl/src/stage.ts#L278)
 
 ```ts
 export interface SceneCore<TAction = Action> {
@@ -203,7 +203,7 @@ export type Scene<
   : never;
 ```
 
-`packages/@openmaic/dsl/src/stage.ts:184`, `:211`, `:22`, `:51`
+[`packages/@openmaic/dsl/src/stage.ts:184`](packages/@openmaic/dsl/src/stage.ts#L184), [`:211`](packages/@openmaic/dsl/src/stage.ts#L211), [`:22`](packages/@openmaic/dsl/src/stage.ts#L22), [`:51`](packages/@openmaic/dsl/src/stage.ts#L51)
 
 ```ts
 export interface SlideContent {
@@ -219,7 +219,7 @@ export type SceneType = 'slide' | 'quiz' | 'interactive' | 'pbl';
 export type Whiteboard = Omit<Slide, 'theme' | 'turningMode' | 'sectionTag' | 'type'>;
 ```
 
-`packages/@openmaic/dsl/src/stage.ts:141` — the top-level container:
+[`packages/@openmaic/dsl/src/stage.ts:141`](packages/@openmaic/dsl/src/stage.ts#L141) — the top-level container:
 
 ```ts
 export interface Stage {
@@ -239,7 +239,7 @@ export interface Stage {
 }
 ```
 
-`packages/@openmaic/dsl/src/interactive.ts:51`
+[`packages/@openmaic/dsl/src/interactive.ts:51`](packages/@openmaic/dsl/src/interactive.ts#L51)
 
 ```ts
 export type InteractiveContent<TWidgetConfig extends WidgetConfigBase = WidgetConfigBase> = {
@@ -251,7 +251,7 @@ export type InteractiveContent<TWidgetConfig extends WidgetConfigBase = WidgetCo
 };
 ```
 
-`packages/@openmaic/dsl/src/schema-roots.ts:23` — the codegen-only root, intentionally not exported
+[`packages/@openmaic/dsl/src/schema-roots.ts:23`](packages/@openmaic/dsl/src/schema-roots.ts#L23) — the codegen-only root, intentionally not exported
 from `index.ts`:
 
 ```ts
@@ -281,5 +281,5 @@ erDiagram
 ```
 
 The `SCENE ||--|| SCENE_CONTENT` edge is the invariant `Scene`'s distributive conditional enforces at
-the type level and `validateScene` re-checks at runtime (`validate.ts:266`): a `slide`-typed scene must
+the type level and `validateScene` re-checks at runtime ([`validate.ts:266`](packages/@openmaic/dsl/src/validate.ts#L266)): a `slide`-typed scene must
 carry `SlideContent`, a `quiz`-typed scene `QuizContent`, and so on for all four kinds.

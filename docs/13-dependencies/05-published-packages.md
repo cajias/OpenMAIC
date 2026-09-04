@@ -12,10 +12,10 @@ rests on.
 `scripts/check-internal-dependency-ranges.mjs`,
 `scripts/smoke-test-package-tarballs.mjs`,
 `scripts/verify-package-artifacts.mjs`, `scripts/sync-maic-importer.mjs`,
-`scripts/assert-vendor-maic-importer.mjs`, `package.json:10`,
+`scripts/assert-vendor-maic-importer.mjs`, [`package.json:10`](package.json#L10),
 `.github/workflows/publish-packages.yml`, `.github/workflows/ci.yml`. Evidence:
-[quality-testing-ci-deps/01b](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[dsl-renderer-editor/04](../appendix/research/dsl-renderer-editor/04-dependencies-and-config.md).
+[quality-testing-ci-deps/01b](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[dsl-renderer-editor/04](docs/appendix/research/dsl-renderer-editor/04-dependencies-and-config.md).
 
 ## The family
 
@@ -30,11 +30,11 @@ rests on.
 
 `@openmaic/editor` has no `license` field in its manifest even though a MIT
 `LICENSE` file is present and listed in `files` — npm will publish it with no SPDX
-identifier. See [07-licences.md](./07-licences.md).
+identifier. See [07-licences.md](docs/13-dependencies/07-licences.md).
 
 ## One list, four gates
 
-Every check reads `OPENMAIC_PACKAGES` from `scripts/openmaic-packages.mjs:34`,
+Every check reads `OPENMAIC_PACKAGES` from [`scripts/openmaic-packages.mjs:34`](scripts/openmaic-packages.mjs#L34),
 ordered by dependency (`dsl` first). The module's docstring at `:5`-`:33` explains
 why the list is shared and states the threat model verbatim: these gates are
 configuration in the same repository as the code they check, so anyone who can
@@ -105,7 +105,7 @@ flowchart TD
 ```
 
 The rule this whole gate exists for is stated at
-`packages/@openmaic/dsl/src/version.ts:25`: changing `DSL_VERSION` or
+[`packages/@openmaic/dsl/src/version.ts:25`](packages/@openmaic/dsl/src/version.ts#L25): changing `DSL_VERSION` or
 `RUNTIME_DSL_VERSION` requires an npm version increase the **dependents' caret
 range will not admit**. The failure it prevents is spelled out in the script: one
 published `@openmaic/storage` version resolving two different admitted dsl
@@ -221,10 +221,10 @@ tests.
 
 ## The `postinstall` chain
 
-One `&&`-joined shell line, `package.json:10`. Nine steps, strictly ordered, no
+One `&&`-joined shell line, [`package.json:10`](package.json#L10). Nine steps, strictly ordered, no
 parallelism, no idempotence check, run on **every** `pnpm install` — locally, in
-`ci.yml:91`, in the release `validate` job, and in the Docker `deps` stage
-(`Dockerfile:46`).
+[`ci.yml:91`](.github/workflows/ci.yml#L91), in the release `validate` job, and in the Docker `deps` stage
+([`Dockerfile:46`](Dockerfile#L46)).
 
 ```mermaid
 flowchart LR
@@ -251,19 +251,19 @@ must precede `editor`, and `importer` must be built before step 9 can copy its
 | Written with **relative `cd`s** (`cd ../generation`, then `cd ../../..`) | Renaming or reordering a package directory silently redirects a build rather than failing. |
 | **Two steps use `npm`, six use `pnpm`, and step 9 is a bare `node scripts/sync-maic-importer.mjs`** | The vendored forks keep their original npm-style scripts. A pnpm-only assumption elsewhere would miss them. |
 | **No idempotence check** | Nine builds on every install, including a `sharp`-free `pnpm install --frozen-lockfile` that changed nothing. |
-| **`renderer` regenerates tracked, publishable files** (`fonts.css`, a KaTeX font snapshot) | This is why `ci.yml:107`-`:121` and `publish-packages.yml:143`-`:157` diff the tree against `$GITHUB_SHA` after install/build: a stale committed copy becomes a PR failure rather than a release shipping content absent from the commit. Both compare against `GITHUB_SHA` with `--no-replace-objects`, and both first assert `HEAD` did not move — because build code ran before the check and could move `HEAD` but not `GITHUB_SHA`. |
+| **`renderer` regenerates tracked, publishable files** (`fonts.css`, a KaTeX font snapshot) | This is why [`ci.yml:107`](.github/workflows/ci.yml#L107)-[`:121`](.github/workflows/ci.yml#L121) and [`publish-packages.yml:143`](.github/workflows/publish-packages.yml#L143)-[`:157`](.github/workflows/publish-packages.yml#L157) diff the tree against `$GITHUB_SHA` after install/build: a stale committed copy becomes a PR failure rather than a release shipping content absent from the commit. Both compare against `GITHUB_SHA` with `--no-replace-objects`, and both first assert `HEAD` did not move — because build code ran before the check and could move `HEAD` but not `GITHUB_SHA`. |
 | **Step 9's output is gitignored** | `public/vendor/maic-importer/index.js` exists only after a successful install. `scripts/assert-vendor-maic-importer.mjs` fails `pnpm build` when it is missing or zero-length, with the failure it prevents named in the header: a 404 HTML page parsed as JavaScript, surfacing as an opaque `SyntaxError`. |
 | **`postinstall` runs third-party build code** | The stated reason the release pipeline confines install and build to the tokenless `validate` job. |
 
 `pnpm.ignoredBuiltDependencies` is `['sharp', 'unrs-resolver']`
-(`package.json:203`-`:207`), so those two do not run their own install scripts;
-`Dockerfile:32` installs the native toolchain (`python3`, `build-base`, `g++`,
+([`package.json:203`](package.json#L203)-[`:207`](package.json#L207)), so those two do not run their own install scripts;
+[`Dockerfile:32`](Dockerfile#L32) installs the native toolchain (`python3`, `build-base`, `g++`,
 `cairo-dev`, `pango-dev`, `jpeg-dev`, `giflib-dev`, `librsvg-dev`) and lets
 `sharp` resolve prebuilt binaries instead.
 
 ## Open questions
 
-- `CONTRIBUTING.md:132` names **four** published packages where the code has six,
+- [`CONTRIBUTING.md:132`](CONTRIBUTING.md#commit-message-convention) names **four** published packages where the code has six,
   omitting `generation` and `editor`. The gates use the code's list, so this is a
   documentation defect rather than a release defect — but it is the document a
   new contributor reads.

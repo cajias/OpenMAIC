@@ -8,34 +8,34 @@ Only packages this subsystem's files import directly. Versions from
 | Package | Version | Where | Why |
 | --- | --- | --- | --- |
 | `next` | `16.2.11` | everywhere | app router, `middleware.ts`, `instrumentation.ts` |
-| `react` / `react-dom` | `19.2.3` | everywhere | `Suspense`, `useDeferredValue` (`app/page.tsx:3`) |
-| `geist` | `^1.7.0` | `app/layout.tsx:2-3` | `GeistSans` / `GeistMono` via `next/font` |
-| `@fontsource-variable/inter` | `^5.2.8` | `app/layout.tsx:29` | UI font stylesheet with per-subset `unicode-range` |
-| `@fontsource/*` (13 families) | `^5.2.x` | `app/editor-fonts.ts:15-39` | slide-editor font picker |
-| `animate.css` | `^4.1.1` | `app/layout.tsx:6` | global animation classes |
-| `katex` | `^0.16.33` | `app/layout.tsx:7` | `katex.min.css` for slide math |
-| `@openmaic/renderer` | `workspace:*` | `app/layout.tsx:5` | `fonts.css` side effect |
-| `sonner` | `^2.0.7` | `components/ui/sonner.tsx:4`, `components/storage-health-notice.tsx:4`, `app/workbench/new/client.tsx:12` | toasts |
-| `next-themes` | `^0.4.6` | `components/ui/sonner.tsx:3` | **only** consumer; see the mismatch note below |
+| `react` / `react-dom` | `19.2.3` | everywhere | `Suspense`, `useDeferredValue` ([`app/page.tsx:3`](app/page.tsx#L3)) |
+| `geist` | `^1.7.0` | [`app/layout.tsx:2-3`](app/layout.tsx#L2-L3) | `GeistSans` / `GeistMono` via `next/font` |
+| `@fontsource-variable/inter` | `^5.2.8` | [`app/layout.tsx:29`](app/layout.tsx#L29) | UI font stylesheet with per-subset `unicode-range` |
+| `@fontsource/*` (13 families) | `^5.2.x` | [`app/editor-fonts.ts:15-39`](app/editor-fonts.ts#L15-L39) | slide-editor font picker |
+| `animate.css` | `^4.1.1` | [`app/layout.tsx:6`](app/layout.tsx#L6) | global animation classes |
+| `katex` | `^0.16.33` | [`app/layout.tsx:7`](app/layout.tsx#L7) | `katex.min.css` for slide math |
+| `@openmaic/renderer` | `workspace:*` | [`app/layout.tsx:5`](app/layout.tsx#L5) | `fonts.css` side effect |
+| `sonner` | `^2.0.7` | [`components/ui/sonner.tsx:4`](components/ui/sonner.tsx#L4), [`components/storage-health-notice.tsx:4`](components/storage-health-notice.tsx#L4), [`app/workbench/new/client.tsx:12`](app/workbench/new/client.tsx#L12) | toasts |
+| `next-themes` | `^0.4.6` | [`components/ui/sonner.tsx:3`](components/ui/sonner.tsx#L3) | **only** consumer; see the mismatch note below |
 | `react-i18next` / `i18next` | `^17.0.1` / `^26.0.1` | `lib/hooks/use-i18n.tsx:4,6` | translation runtime |
-| `motion` | `^12.27.5` | `app/page.tsx:5`, `app/generation-preview/page.tsx:5` | hero and step animations |
-| `lucide-react` | `^0.562.0` | `app/page.tsx:6-30` (25 icons), `components/site-header/theme-toggle.tsx:4` | icon set (`components.json:13` pins `iconLibrary`) |
+| `motion` | `^12.27.5` | [`app/page.tsx:5`](app/page.tsx#L5), [`app/generation-preview/page.tsx:5`](app/generation-preview/page.tsx#L5) | hero and step animations |
+| `lucide-react` | `^0.562.0` | [`app/page.tsx:6-30`](app/page.tsx#L6-L30) (25 icons), [`components/site-header/theme-toggle.tsx:4`](components/site-header/theme-toggle.tsx#L4) | icon set ([`components.json:13`](components.json#L13) pins `iconLibrary`) |
 | `zustand` | `^5.0.10` | via `lib/store/*` from every client page | stage, settings, media, whiteboard stores |
-| `tailwindcss` + `@tailwindcss/postcss` | `^4` | `postcss.config.mjs:3`, `app/globals.css:1` | CSS pipeline |
-| `tw-animate-css` | `^1.4.0` | `app/globals.css:2` | Tailwind v4 animation utilities |
-| `shadcn` | `^3.6.3` | `app/globals.css:3` (`shadcn/tailwind.css`), `components.json` | component generator + base stylesheet |
+| `tailwindcss` + `@tailwindcss/postcss` | `^4` | [`postcss.config.mjs:3`](postcss.config.mjs#L3), [`app/globals.css:1`](app/globals.css#L1) | CSS pipeline |
+| `tw-animate-css` | `^1.4.0` | [`app/globals.css:2`](app/globals.css#L2) | Tailwind v4 animation utilities |
+| `shadcn` | `^3.6.3` | [`app/globals.css:3`](app/globals.css#L3) (`shadcn/tailwind.css`), `components.json` | component generator + base stylesheet |
 | `radix-ui` / `@radix-ui/react-*` | `^1.4.3` / various | 20 of 34 `components/ui/*` | primitives |
-| `@base-ui/react` | `^1.1.0` | `components/ui/combobox.tsx:4` | the one non-Radix primitive |
+| `@base-ui/react` | `^1.1.0` | [`components/ui/combobox.tsx:4`](components/ui/combobox.tsx#L4) | the one non-Radix primitive |
 | `pg` | `^8.16.3` | reached via dynamic import from `instrumentation.ts` | asset collector pool, `pool.end()` on drain |
-| `@playwright/test` | `^1.58.2` (dev) | `eval/whiteboard-layout/capture.ts:1` | drives `/eval/whiteboard` |
+| `@playwright/test` | `^1.58.2` (dev) | [`eval/whiteboard-layout/capture.ts:1`](eval/whiteboard-layout/capture.ts#L1) | drives `/eval/whiteboard` |
 
 ### `next-themes` provider mismatch — verified
 
-`components/ui/sonner.tsx:3` imports `useTheme` from `next-themes`, but the root
+[`components/ui/sonner.tsx:3`](components/ui/sonner.tsx#L3) imports `useTheme` from `next-themes`, but the root
 layout mounts the hand-rolled `ThemeProvider` from `@/lib/hooks/use-theme`
 (`app/layout.tsx:8,48`). `next-themes`' own `ThemeProvider` is mounted **nowhere** —
 `rtk grep 'next-themes' .` returns exactly four first-party hits, all of them the
-one import at `sonner.tsx:3` plus `package.json`. `sonner.tsx:14` destructures
+one import at [`sonner.tsx:3`](components/ui/sonner.tsx#L3) plus `package.json`. [`sonner.tsx:14`](components/ui/sonner.tsx#L14) destructures
 with a default: `const { theme = 'system' } = useTheme();`.
 
 Inferred: with no `next-themes` provider in the tree, `theme` is `undefined`, the
@@ -52,21 +52,21 @@ differently in a user-visible way when unset.
 
 | Variable | Required | Read at | Effect |
 | --- | --- | --- | --- |
-| `ACCESS_CODE` | no | `middleware.ts:60`, `app/api/access-code/status/route.ts:6`, `.../verify/route.ts:7` | unset ⇒ middleware short-circuits to `next()` and the guard reports `enabled: false`. Set ⇒ HMAC cookie gate; API 401, pages get a modal |
-| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | no | `lib/config/feature-flags.ts:33` | build-time. Gates the home Pro badge, `/workspace`, `/workbench/new`, and the middleware `/workbench*` 404 |
-| `OPENMAIC_AGENT_RUNTIME_ENABLED` | no | `lib/config/feature-flags.ts:19` | server-only intent flag for the agent runtime |
-| `DATABASE_URL` | no | `lib/config/feature-flags.ts:24`, `instrumentation.ts:82` | promotes the runtime flag from "intended" to "configured"; also gates the asset collector and the shutdown `pool.end()` |
-| `NEXT_RUNTIME` | set by Next | `instrumentation.ts:16`, `middleware.ts:53` | `'nodejs'` unlocks `register()`; `'edge'` makes middleware skip the server-runtime half of the workbench gate |
-| `ALLOWED_FRAME_ANCESTORS` | no | `next.config.ts:39` | space-separated extra CSP `frame-ancestors`. When set, `X-Frame-Options` is **omitted** entirely (line 48) because it has no allow-list form |
-| `VERCEL` | set by Vercel | `next.config.ts:4` | present ⇒ `output: undefined`; absent ⇒ `output: 'standalone'` |
-| `NODE_ENV` | set by tooling | `next.config.ts:13`, `app/api/access-code/verify/route.ts:37` | `'production'` selects `tsconfig.build.json` and sets the cookie `secure` flag |
-| `NEXT_PUBLIC_MAIC_EDITOR_ENABLED` | no | `lib/config/feature-flags.ts:48` | classroom editor without the workbench; implied by the Pro flag |
-| `NEXT_PUBLIC_ENABLE_PPTX_IMPORT` | no | `lib/config/feature-flags.ts:127` via `app/page.tsx:108` | evaluated at module scope into `PPTX_IMPORT_ENABLED` |
-| `NEXT_PUBLIC_SHOW_VOCATIONAL_TEST_UI` | no | `lib/config/feature-flags.ts:112` via `app/page.tsx:137` | shows the vocational toggle on the composer |
+| `ACCESS_CODE` | no | [`middleware.ts:60`](middleware.ts#L60), [`app/api/access-code/status/route.ts:6`](app/api/access-code/status/route.ts#L6), [`app/api/access-code/verify/route.ts:7`](app/api/access-code/verify/route.ts#L7) | unset ⇒ middleware short-circuits to `next()` and the guard reports `enabled: false`. Set ⇒ HMAC cookie gate; API 401, pages get a modal |
+| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | no | [`lib/config/feature-flags.ts:33`](lib/config/feature-flags.ts#L33) | build-time. Gates the home Pro badge, `/workspace`, `/workbench/new`, and the middleware `/workbench*` 404 |
+| `OPENMAIC_AGENT_RUNTIME_ENABLED` | no | [`lib/config/feature-flags.ts:19`](lib/config/feature-flags.ts#L19) | server-only intent flag for the agent runtime |
+| `DATABASE_URL` | no | [`lib/config/feature-flags.ts:24`](lib/config/feature-flags.ts#L24), [`instrumentation.ts:82`](instrumentation.ts#L82) | promotes the runtime flag from "intended" to "configured"; also gates the asset collector and the shutdown `pool.end()` |
+| `NEXT_RUNTIME` | set by Next | [`instrumentation.ts:16`](instrumentation.ts#L16), [`middleware.ts:53`](middleware.ts#L53) | `'nodejs'` unlocks `register()`; `'edge'` makes middleware skip the server-runtime half of the workbench gate |
+| `ALLOWED_FRAME_ANCESTORS` | no | [`next.config.ts:39`](next.config.ts#L39) | space-separated extra CSP `frame-ancestors`. When set, `X-Frame-Options` is **omitted** entirely (line 48) because it has no allow-list form |
+| `VERCEL` | set by Vercel | [`next.config.ts:4`](next.config.ts#L4) | present ⇒ `output: undefined`; absent ⇒ `output: 'standalone'` |
+| `NODE_ENV` | set by tooling | [`next.config.ts:13`](next.config.ts#L13), [`app/api/access-code/verify/route.ts:37`](app/api/access-code/verify/route.ts#L37) | `'production'` selects `tsconfig.build.json` and sets the cookie `secure` flag |
+| `NEXT_PUBLIC_MAIC_EDITOR_ENABLED` | no | [`lib/config/feature-flags.ts:48`](lib/config/feature-flags.ts#L48) | classroom editor without the workbench; implied by the Pro flag |
+| `NEXT_PUBLIC_ENABLE_PPTX_IMPORT` | no | [`lib/config/feature-flags.ts:127`](lib/config/feature-flags.ts#L127) via [`app/page.tsx:108`](app/page.tsx#L108) | evaluated at module scope into `PPTX_IMPORT_ENABLED` |
+| `NEXT_PUBLIC_SHOW_VOCATIONAL_TEST_UI` | no | [`lib/config/feature-flags.ts:112`](lib/config/feature-flags.ts#L112) via [`app/page.tsx:137`](app/page.tsx#L137) | shows the vocational toggle on the composer |
 | `ASSET_COLLECTION_ENABLED` / `_INTERVAL_MS` / `_GRACE_MS` | no | `lib/persistence/asset-collector-schedule.ts:58,62` | reached from `register()`; `'0'`/`'false'` disables, default interval 15 min (line 35) |
-| `PORT` / `HOSTNAME` | no | `Dockerfile:89-90`, `playwright.config.ts:35` | container listens on `0.0.0.0:3000`; e2e uses `3002` |
+| `PORT` / `HOSTNAME` | no | [`Dockerfile:89-90`](Dockerfile#L89-L90), [`playwright.config.ts:35`](playwright.config.ts#L35) | container listens on `0.0.0.0:3000`; e2e uses `3002` |
 
-Truthiness is strict: `readBoolean` (`lib/config/feature-flags.ts:11`) accepts
+Truthiness is strict: `readBoolean` ([`lib/config/feature-flags.ts:11`](lib/config/feature-flags.ts#L11)) accepts
 only the exact strings `'true'` and `'1'`. `'TRUE'`, `'yes'`, and `'on'` are all
 false.
 
@@ -138,12 +138,12 @@ declares `ARG`+`ENV` for 11 build-time variables (lines 51-72) and the runner
 copies `.next/standalone` + `.next/static` and runs `node server.js` as UID 1001.
 
 **Gap:** `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` is **not** among the builder's
-`ARG`s (`Dockerfile:51-61`) nor `docker-compose.yml`'s `build.args`
-(`docker-compose.yml:5-21`), even though `README.md:457` documents it as the way
+`ARG`s ([`Dockerfile:51-61`](Dockerfile#L51-L61)) nor `docker-compose.yml`'s `build.args`
+([`docker-compose.yml:5-21`](docker-compose.yml#L5-L21)), even though [`README.md:457`](README.md#optional-agent-workbench-and-runtime) documents it as the way
 to turn the workbench on. Because it is a `NEXT_PUBLIC_*` value inlined at build
 time, a Compose/Docker build cannot enable the Pro entry — the badge stays hidden
 and `/workspace` redirects to `/` regardless of the runtime env. Setting it in
-`.env.local` (which `docker-compose.yml:24-25` passes as `env_file`) reaches the
+`.env.local` (which [`docker-compose.yml:24-25`](docker-compose.yml#L24-L25) passes as `env_file`) reaches the
 **runtime** container, not the build.
 
 ### Where a `NEXT_PUBLIC_*` value can and cannot enter each deployment
@@ -189,8 +189,8 @@ The dotted edge is the whole finding: `docker-compose.yml`'s `env_file` reaches 
   `select`, `separator`, `tabs`, `tooltip`.
 - Per-package `@radix-ui/react-*` — 4 files: `checkbox`, `popover`, `slider`,
   `switch`. These are exactly the four with explicit entries in
-  `package.json:80-83`.
-- `@base-ui/react` — 1 file: `combobox.tsx:4`.
+  [`package.json:80-83`](package.json#L80-L83).
+- `@base-ui/react` — 1 file: [`combobox.tsx:4`](components/ui/combobox.tsx#L4).
 - The remaining 12 files import no Radix/Base-UI primitive: `alert`,
   `avatar-display`, `card`, `carousel` (uses `embla-carousel-react`), `command`
   (uses `cmdk`), `circular-progress`, `field`, `floating-layer-owner`, `input`,
@@ -222,14 +222,14 @@ and one extra registry: `"@ai-elements": "https://registry.ai-sdk.dev/{name}.jso
 
 `tsconfig.build.json` extends it and **replaces** `exclude` (the comment at line 3
 warns that shared entries must be kept in sync manually), adding `tests`, `eval`,
-and `packages/@openmaic/*/test`. `next.config.ts:13` selects it only when
+and `packages/@openmaic/*/test`. [`next.config.ts:13`](next.config.ts#L13) selects it only when
 `NODE_ENV === 'production'`, so `pnpm dev` typechecks the test tree and
 `pnpm build` does not.
 
 ## Non-obvious data that crosses the wire
 
 Provider credentials travel as **request headers** built client-side by
-`getApiHeaders()` (`app/generation-preview/page.tsx:254-278`):
+`getApiHeaders()` ([`app/generation-preview/page.tsx:254-278`](app/generation-preview/page.tsx#L254-L278)):
 `x-model`, `x-api-key`, `x-base-url`, `x-provider-type`, `x-image-provider`,
 `x-image-model`, `x-image-api-key`, `x-image-base-url`, `x-video-provider`,
 `x-video-model`, `x-video-api-key`, `x-video-base-url`,

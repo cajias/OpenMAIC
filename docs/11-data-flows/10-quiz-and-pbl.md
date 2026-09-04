@@ -12,8 +12,8 @@ silent-fallback edge worth knowing.
 `lib/pbl/v2/api/sse.ts`, `lib/pbl/v2/agents/instructor.ts`,
 `packages/@openmaic/generation/src/pbl/operations/kernel/task-completion.ts`,
 `lib/pbl/v2/operations/kernel/progress.ts`, `lib/pbl/legacy/read.ts`;
-`../appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md`,
-`../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md`.
+[`../appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md`](docs/appendix/research/classroom-runtime/03b-flows-scenes-and-pbl.md),
+[`../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
 
 ## Flow A — quiz attempt to feedback
 
@@ -36,7 +36,7 @@ stateDiagram-v2
 ```
 
 Every phase transition is gated on persistence succeeding first. `handleSubmit`
-returns immediately when `attemptId` is null (`quiz-view.tsx:783`), so a quiz
+returns immediately when `attemptId` is null ([`quiz-view.tsx:783`](components/scene-renderers/quiz-view.tsx#L783)), so a quiz
 whose runtime never hydrated cannot be submitted at all.
 
 ### Sequence
@@ -80,19 +80,19 @@ sequenceDiagram
 
 | # | Where | Call | Notes |
 | --- | --- | --- | --- |
-| 1 | `quiz-view.tsx:727` | `loadQuizAttemptState({stageId, sceneId})` | a throw sets `runtimeGate: 'error'` and the quiz is unusable, not silently local |
-| 2 | `quiz-view.tsx:763-780` | `handleSetAnswer` | writes **two** places: a `sessionStorage` recovery key and a debounced `RuntimeStore` draft |
-| 3 | `quiz-view.tsx:782-794` | `handleSubmit` | `persistQuizSubmission` **before** phase `grading` — grading never runs on unpersisted answers |
-| 4 | `lib/quiz/grading.ts:34` | `gradeChoiceQuestions(questions, answers)` | exact set comparison via `arraysEqual` (order-insensitive, sorted); `earned = correct ? points : 0` |
-| 5 | `lib/quiz/grading.ts:29` | `isShortAnswer(q)` | classification is by **`type === 'short_answer'` only** — "an unanswered choice question (empty `answer`) is still a choice question and must not be re-routed to AI grading. `hasAnswer` does not override the type" |
-| 6 | `quiz-view.tsx:807-811` | `Promise.all` over the short-answer questions | fully parallel, one request each; no concurrency bound |
-| 7 | `app/api/quiz-grade/route.ts:37-44` | validation | missing `question`/`userAnswer` ⇒ 400; `points` must be a positive finite number ⇒ 400 |
-| 8 | `route.ts:55-69` | prompt | two hardcoded variants selected by `language === 'zh-CN'`; the system prompt pins `{"score": <0..points>, "comment": …}` |
-| 9 | `route.ts:88-94` | parse | first `{…}` regex match, then `JSON.parse`; score clamped to `[0, points]` and rounded |
-| 10 | `route.ts:95-103` | **fallback** | any parse failure ⇒ `score = round(points × 0.5)` with a generic comment, returned as a **200 success** |
-| 11 | `quiz-view.tsx:123-130` | client-side clamp | re-clamps to `[0, pts]`; `correct = earned >= pts * 0.8` |
-| 12 | `quiz-view.tsx:131-144` | client-side fallback | a non-OK response or a throw also yields `round(pts * 0.5)`, with `correct: null` and a "grading service unavailable" comment |
-| 13 | `quiz-view.tsx:826-838` | `persistQuizReview` then `setResults` + phase `reviewing` | a persistence failure sets `runtimeGate: 'error'` and the results are **not** shown |
+| 1 | [`quiz-view.tsx:727`](components/scene-renderers/quiz-view.tsx#L727) | `loadQuizAttemptState({stageId, sceneId})` | a throw sets `runtimeGate: 'error'` and the quiz is unusable, not silently local |
+| 2 | [`quiz-view.tsx:763-780`](components/scene-renderers/quiz-view.tsx#L763-L780) | `handleSetAnswer` | writes **two** places: a `sessionStorage` recovery key and a debounced `RuntimeStore` draft |
+| 3 | [`quiz-view.tsx:782-794`](components/scene-renderers/quiz-view.tsx#L782-L794) | `handleSubmit` | `persistQuizSubmission` **before** phase `grading` — grading never runs on unpersisted answers |
+| 4 | [`lib/quiz/grading.ts:34`](lib/quiz/grading.ts#L34) | `gradeChoiceQuestions(questions, answers)` | exact set comparison via `arraysEqual` (order-insensitive, sorted); `earned = correct ? points : 0` |
+| 5 | [`lib/quiz/grading.ts:29`](lib/quiz/grading.ts#L29) | `isShortAnswer(q)` | classification is by **`type === 'short_answer'` only** — "an unanswered choice question (empty `answer`) is still a choice question and must not be re-routed to AI grading. `hasAnswer` does not override the type" |
+| 6 | [`quiz-view.tsx:807-811`](components/scene-renderers/quiz-view.tsx#L807-L811) | `Promise.all` over the short-answer questions | fully parallel, one request each; no concurrency bound |
+| 7 | [`app/api/quiz-grade/route.ts:37-44`](app/api/quiz-grade/route.ts#L37-L44) | validation | missing `question`/`userAnswer` ⇒ 400; `points` must be a positive finite number ⇒ 400 |
+| 8 | [`route.ts:55-69`](app/api/quiz-grade/route.ts#L55-L69) | prompt | two hardcoded variants selected by `language === 'zh-CN'`; the system prompt pins `{"score": <0..points>, "comment": …}` |
+| 9 | [`route.ts:88-94`](app/api/quiz-grade/route.ts#L88-L94) | parse | first `{…}` regex match, then `JSON.parse`; score clamped to `[0, points]` and rounded |
+| 10 | [`route.ts:95-103`](app/api/quiz-grade/route.ts#L95-L103) | **fallback** | any parse failure ⇒ `score = round(points × 0.5)` with a generic comment, returned as a **200 success** |
+| 11 | [`quiz-view.tsx:123-130`](components/scene-renderers/quiz-view.tsx#L123-L130) | client-side clamp | re-clamps to `[0, pts]`; `correct = earned >= pts * 0.8` |
+| 12 | [`quiz-view.tsx:131-144`](components/scene-renderers/quiz-view.tsx#L131-L144) | client-side fallback | a non-OK response or a throw also yields `round(pts * 0.5)`, with `correct: null` and a "grading service unavailable" comment |
+| 13 | [`quiz-view.tsx:826-838`](components/scene-renderers/quiz-view.tsx#L826-L838) | `persistQuizReview` then `setResults` + phase `reviewing` | a persistence failure sets `runtimeGate: 'error'` and the results are **not** shown |
 
 ### Two independent 50 % fallbacks
 
@@ -133,7 +133,7 @@ flowchart LR
   DS -.->|"synchronizePBLProjectRuntime then stripToDesignTemplate"| STRIP["learner state REMOVED from scene.content.projectV2"]
 ```
 
-`PBLSSEEvent` (`lib/pbl/v2/api/sse.ts:168`) is the **only formally typed SSE
+`PBLSSEEvent` ([`lib/pbl/v2/api/sse.ts:168`](lib/pbl/v2/api/sse.ts#L168)) is the **only formally typed SSE
 event union in the whole HTTP surface** — seven variants, six `project_patch`
 kinds. Every other stream in OpenMAIC agrees by convention.
 
@@ -215,10 +215,10 @@ flowchart TD
 The instructor agent has exactly **two** non-advance tools —
 `record_observation` and `adjust_difficulty` — and cannot advance a task at all
 (`lib/pbl/v2/agents/instructor.ts`). Tools are attached only when
-`phase === 'instructing' && !scenarioPrepStage` (`instructor.ts:1500`).
+`phase === 'instructing' && !scenarioPrepStage` ([`instructor.ts:1500`](lib/pbl/v2/agents/instructor.ts#L1500)).
 
 `setPendingTaskCompletion` preserves the original `createdAt` when re-staging the
-same microtask (`task-completion.ts:63-71`), so a re-evaluation does not restart
+same microtask ([`task-completion.ts:63-71`](packages/@openmaic/generation/src/pbl/operations/kernel/task-completion.ts#L63-L71)), so a re-evaluation does not restart
 the clock. `appendTaskCompletionReadyMessage` dedupes by exact content match on
 the same `microtaskId` (`:131-134`), which is also why
 `TASK_COMPLETION_READY_TEXTS` is a precomputed set of all six localizations
@@ -235,15 +235,15 @@ the same `microtaskId` (`:131-134`), which is also why
 | `complete_act` | `project.scenario` set | `completeRoleplayAct(project, 'act_completed_by_learner')` — completes the whole roleplay milestone at once; per-beat achievement is scored later by the final evaluator |
 
 Both scenario actions are *strictly gated* so "it can never affect ordinary
-projects" (`route.ts:118-119`, `:147-148`). `maxDuration = 60` despite no LLM
+projects" ([`route.ts:118-119`](app/api/pbl/v2/task/update/route.ts#L118-L119), `:147-148`). `maxDuration = 60` despite no LLM
 call.
 
 ## Persistence points
 
 | Point | Store | Written when |
 | --- | --- | --- |
-| Quiz draft recovery | `sessionStorage` (`quizDraft:` / `quizAnswers:` / `quizResults:` / `quizAttemptId:` prefixes, `lib/quiz/persistence.ts:19-22`) | synchronously on every answer change |
-| Quiz attempt | `RuntimeStore` via `createQuizAttemptWriter` | debounced draft, then on submit and on review; flushed on unmount (`quiz-view.tsx:717-721`) |
+| Quiz draft recovery | `sessionStorage` (`quizDraft:` / `quizAnswers:` / `quizResults:` / `quizAttemptId:` prefixes, [`lib/quiz/persistence.ts:19-22`](lib/quiz/persistence.ts#L19-L22)) | synchronously on every answer change |
+| Quiz attempt | `RuntimeStore` via `createQuizAttemptWriter` | debounced draft, then on submit and on review; flushed on unmount ([`quiz-view.tsx:717-721`](components/scene-renderers/quiz-view.tsx#L717-L721)) |
 | PBL runtime events | `RuntimeStore` via `drainProjectRuntime` | at-least-once, id-deduped, behind two device-scoped watermarks |
 | PBL document | `DocumentStore` | `synchronizePBLProjectRuntime` then `stripToDesignTemplate` — learner state is **removed** from `scene.content.projectV2` before the save |
 
@@ -254,29 +254,29 @@ project template, the *runtime store* holds one learner's progress through it.
 
 | Failure | Posture | Where |
 | --- | --- | --- |
-| Quiz runtime hydration throws | `runtimeGate: 'error'` — the quiz refuses to run rather than grading unpersistably | `quiz-view.tsx:736-739` |
-| `persistQuizSubmission` throws | phase stays `submitting`, `runtimeGate: 'error'` | `quiz-view.tsx:789-792` |
-| `persistQuizReview` throws | results computed but **not displayed**; `runtimeGate: 'error'` | `quiz-view.tsx:831-835` |
-| LLM grading output unparseable | **silent 50 %**, HTTP 200 | `app/api/quiz-grade/route.ts:95-103` |
-| `/api/quiz-grade` returns 5xx | client-side 50 % with `correct: null` and an explicit comment | `quiz-view.tsx:131-144` |
-| PBL: no active microtask | `error NO_ACTIVE_MICROTASK` + `done` frame | `lib/pbl/v2/agents/instructor.ts:1306` |
-| PBL: instructor generator throws | `createSSEResponse` emits `error` then `done` before closing | `lib/pbl/v2/api/sse.ts:265-273` |
-| PBL: `advanceMicrotask` refuses | 400 `'Could not complete task: <error>'` | `app/api/pbl/v2/task/update/route.ts:91-93` |
-| PBL: client aborts | `signal` listener calls `safeClose()`; the generator is abandoned | `sse.ts:237-246` |
+| Quiz runtime hydration throws | `runtimeGate: 'error'` — the quiz refuses to run rather than grading unpersistably | [`quiz-view.tsx:736-739`](components/scene-renderers/quiz-view.tsx#L736-L739) |
+| `persistQuizSubmission` throws | phase stays `submitting`, `runtimeGate: 'error'` | [`quiz-view.tsx:789-792`](components/scene-renderers/quiz-view.tsx#L789-L792) |
+| `persistQuizReview` throws | results computed but **not displayed**; `runtimeGate: 'error'` | [`quiz-view.tsx:831-835`](components/scene-renderers/quiz-view.tsx#L831-L835) |
+| LLM grading output unparseable | **silent 50 %**, HTTP 200 | [`app/api/quiz-grade/route.ts:95-103`](app/api/quiz-grade/route.ts#L95-L103) |
+| `/api/quiz-grade` returns 5xx | client-side 50 % with `correct: null` and an explicit comment | [`quiz-view.tsx:131-144`](components/scene-renderers/quiz-view.tsx#L131-L144) |
+| PBL: no active microtask | `error NO_ACTIVE_MICROTASK` + `done` frame | [`lib/pbl/v2/agents/instructor.ts:1306`](lib/pbl/v2/agents/instructor.ts#L1306) |
+| PBL: instructor generator throws | `createSSEResponse` emits `error` then `done` before closing | [`lib/pbl/v2/api/sse.ts:265-273`](lib/pbl/v2/api/sse.ts#L265-L273) |
+| PBL: `advanceMicrotask` refuses | 400 `'Could not complete task: <error>'` | [`app/api/pbl/v2/task/update/route.ts:91-93`](app/api/pbl/v2/task/update/route.ts#L91-L93) |
+| PBL: client aborts | `signal` listener calls `safeClose()`; the generator is abandoned | [`sse.ts:237-246`](lib/pbl/v2/api/sse.ts#L237-L246) |
 | Legacy PBL project | read-time upgrade to a synthetic v2 project for rendering, **never persisted back** — progress on an upgraded v1 project is lost from the document | `lib/pbl/legacy/read.ts` |
 
 ## Open questions
 
-- The 50 % grading fallback (`quiz-grade/route.ts:96-103`) has **no test
+- The 50 % grading fallback ([`quiz-grade/route.ts:96-103`](app/api/quiz-grade/route.ts#L96-L103)) has **no test
   coverage** according to the generation-pipeline evidence pack, and no telemetry
   distinguishes it from a real 50 % score.
-- `correct = earned >= pts * 0.8` (`quiz-view.tsx:126`) is a hardcoded threshold
+- `correct = earned >= pts * 0.8` ([`quiz-view.tsx:126`](components/scene-renderers/quiz-view.tsx#L126)) is a hardcoded threshold
   that appears nowhere else and is not configurable per question.
 - The legacy-PBL upgrade path is read-only-reachable but the write side is
   absent; whether any deployment still holds v1 projects is unknown from the tree.
 
 ## Related
 
-- [`04-scene-playback.md`](./04-scene-playback.md) — how a `quiz` or `pbl` scene is reached, and why auto-advance refuses to leave one.
-- [`02-topic-to-classroom.md`](./02-topic-to-classroom.md) — how quiz questions and PBL projects are generated.
-- `../08-classroom-runtime/index.md` — the PBL v2 component structure and its scenario model.
+- [`04-scene-playback.md`](docs/11-data-flows/04-scene-playback.md) — how a `quiz` or `pbl` scene is reached, and why auto-advance refuses to leave one.
+- [`02-topic-to-classroom.md`](docs/11-data-flows/02-topic-to-classroom.md) — how quiz questions and PBL projects are generated.
+- [`../08-classroom-runtime/index.md`](docs/08-classroom-runtime/index.md) — the PBL v2 component structure and its scenario model.

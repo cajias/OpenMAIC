@@ -4,7 +4,7 @@ Nine gates decide whether a change may land. This file covers the six that read
 the working tree — Prettier, ESLint, `tsc --noEmit`, `check:i18n-keys`,
 `check:node-engine`, and the documentation-set check — plus the order the `check`
 job runs everything in. The three package-scoped gates live in
-[`07b-version-and-release-gates.md`](./07b-version-and-release-gates.md).
+[`07b-version-and-release-gates.md`](docs/16-development-view/07b-version-and-release-gates.md).
 
 The ninth, `scripts/check-docs-links.mjs`, is the newest and the only one **with no
 `package.json` script and no workflow step**; §Gate 6 states exactly why, and what does
@@ -13,10 +13,10 @@ run it today.
 **Sources:** `.prettierrc`, `.prettierignore`, `eslint.config.mjs` (670 lines),
 `tsconfig.json`, `tsconfig.build.json`, `scripts/check-i18n-keys.mjs`,
 `scripts/check-node-engine-contract.mjs`, `scripts/ci-run-parallel.sh`,
-`.github/workflows/ci.yml:38-137`. Evidence:
-[`quality-testing-ci-deps/01b`](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[`quality-testing-ci-deps/02b`](../appendix/research/quality-testing-ci-deps/02b-interfaces-gate-contracts.md),
-[`quality-testing-ci-deps/05`](../appendix/research/quality-testing-ci-deps/05-failure-modes.md).
+[`.github/workflows/ci.yml:38-137`](.github/workflows/ci.yml#L38-L137). Evidence:
+[`quality-testing-ci-deps/01b`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[`quality-testing-ci-deps/02b`](docs/appendix/research/quality-testing-ci-deps/02b-interfaces-gate-contracts.md),
+[`quality-testing-ci-deps/05`](docs/appendix/research/quality-testing-ci-deps/05-failure-modes.md).
 
 ## The gate sequence
 
@@ -48,12 +48,12 @@ flowchart TD
 Two ordering decisions carry their reasons in the workflow:
 
 - The **parallel-runner self-test runs before `pnpm install`** so a broken helper
-  fails in seconds rather than after a full install (`ci.yml:38-40`). It asserts
+  fails in seconds rather than after a full install ([`ci.yml:38-40`](.github/workflows/ci.yml#L38-L40)). It asserts
   both the success case and the expected-failure case, with
   `CI_PARALLEL_ANNOTATE=0` so the deliberate failure does not paint a fake
   `::error::` annotation.
 - The **source-level dependency-range check runs before install** too
-  (`ci.yml:83-89`), because the stronger tarball form "installs five package
+  ([`ci.yml:83-89`](.github/workflows/ci.yml#L83-L89)), because the stronger tarball form "installs five package
   tarballs, so it runs only on the release path. This is the cheap source-level
   form, here so that a pull request restoring `workspace:*` fails at review time
   rather than at release time, after a version number has already been spent."
@@ -85,7 +85,7 @@ repo-wide rule tweak (`:58`), nine module-boundary walls (`:97`, `:122`, `:146`,
 `:195`, `:254`, `:348`, `:419`, `:498`, `:539`), and two blocks implementing the
 single-LLM-entry-point guard (`:608`, `:650`).
 
-`globalIgnores` (`eslint.config.mjs:30-57`) — each entry with an inline reason:
+`globalIgnores` ([`eslint.config.mjs:30-57`](eslint.config.mjs#L30-L57)) — each entry with an inline reason:
 
 | Ignored | Reason given |
 | --- | --- |
@@ -160,20 +160,20 @@ fails a *test*, not just a lint run.
 
 ## Gate 3 — `tsc --noEmit`
 
-CI runs the **root** config (`ci.yml:130`), i.e. the one that includes `tests/`,
+CI runs the **root** config ([`ci.yml:130`](.github/workflows/ci.yml#L130)), i.e. the one that includes `tests/`,
 `eval/`, and `packages/@openmaic/*/src` and `test`. `next build` uses
 `tsconfig.build.json` instead when `NODE_ENV=production`, so the two disagree by
-design — see [`01-monorepo-layout.md`](./01-monorepo-layout.md).
+design — see [`01-monorepo-layout.md`](docs/16-development-view/01-monorepo-layout.md).
 
 Two package-scoped typechecks run separately because the root run does not cover
 their test trees the way the packages need:
 
-| Step | Command | Reason (`ci.yml:180-184`) |
+| Step | Command | Reason ([`ci.yml:180-184`](.github/workflows/ci.yml#L180-L184)) |
 | --- | --- | --- |
 | `TypeScript (generation)` | `pnpm --filter @openmaic/generation run typecheck` | chains `tsc -p tsconfig.test.json --noEmit` |
 | `TypeScript (storage, incl. tests)` | `pnpm --filter @openmaic/storage run typecheck` | the device-scope guard is written as `@ts-expect-error` probes in its tests, "and a probe nothing type-checks proves nothing" |
 
-`strict: true` is on (`tsconfig.json:7`), with `isolatedModules`,
+`strict: true` is on ([`tsconfig.json:7`](tsconfig.json#L7)), with `isolatedModules`,
 `moduleResolution: 'bundler'`, and `skipLibCheck: true`.
 
 ## Gate 4 — `check:i18n-keys`
@@ -207,7 +207,7 @@ a stale key behind.
 **Does not cover:** the TS-resident workbench copy that
 `lib/i18n/config.ts` deep-merges over the JSON locale trees under `workbench.*`.
 The gate reads only `lib/i18n/locales`. See
-[`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md).
+[`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md).
 
 ## Gate 5 — `check:node-engine`
 
@@ -236,7 +236,7 @@ increasing order of how often each has actually broken:
 ```mermaid
 flowchart TD
   W["walk docs/**/*.md"] --> R1
-  R1["Rule 1 — every relative Markdown link<br/>resolves to a file on disk<br/>(http/mailto/anchor-only skipped)"] --> R2
+  R1["Rule 1 — every Markdown link is spelled from the repo root<br/>(no leading /, no ./, no ../) and resolves to a file on disk<br/>(http/mailto/anchor-only skipped)"] --> R2
   R2["Rule 2 — every *.md in a directory that has an index.md<br/>is named somewhere in that index.md"] --> R2B
   R2B["Rule 2b — every file anywhere is the target<br/>of at least one link from another file.<br/>The evidence packs have no index.md, and 25 of<br/>their files were once reachable from nothing"] --> R3
   R3["Rule 3 — mermaid fence hygiene:<br/>every fence closed, diagram type in the allowed set,<br/>and the three syntax traps below"] --> OUT
@@ -287,7 +287,7 @@ would need a TypeScript program rather than a file walk.
 Gates 7, 8 and 9 — `check:package-versions`, the internal dependency-range check,
 and the packed tarball smoke test — are about what a *published* tarball declares
 rather than about the working tree. They have their own file:
-[`07b-version-and-release-gates.md`](./07b-version-and-release-gates.md).
+[`07b-version-and-release-gates.md`](docs/16-development-view/07b-version-and-release-gates.md).
 
 ## Open questions
 

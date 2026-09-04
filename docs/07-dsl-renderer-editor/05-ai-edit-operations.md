@@ -10,13 +10,13 @@ vocabulary, the validation ladder, and how concurrent human edits are handled.
 `lib/server/agent-runtime/{course-tools.ts,document-writes.ts,mutation-fence.ts}`,
 `lib/agent-runtime/stage-writer-tools.ts`, `lib/document-store/validators.ts`,
 `lib/edit/slide-edit-elements.ts`;
-evidence [../appendix/research/dsl-renderer-editor/03-flows.md](../appendix/research/dsl-renderer-editor/03-flows.md) Flow B,
-[../appendix/research/dsl-renderer-editor/05-failure-modes.md](../appendix/research/dsl-renderer-editor/05-failure-modes.md).
-Who runs the agent and how a session survives a restart: [../05-agent-runtime/index.md](../05-agent-runtime/index.md).
+evidence [../appendix/research/dsl-renderer-editor/03-flows.md](docs/appendix/research/dsl-renderer-editor/03-flows.md) Flow B,
+[../appendix/research/dsl-renderer-editor/05-failure-modes.md](docs/appendix/research/dsl-renderer-editor/05-failure-modes.md).
+Who runs the agent and how a session survives a restart: [../05-agent-runtime/index.md](docs/05-agent-runtime/index.md).
 
 ## 1. The operation vocabulary
 
-`patch_stage` (`dsl-tools.ts:772`) takes `{stageId, target, intent, ops[]}` where `target` must resolve
+`patch_stage` ([`dsl-tools.ts:772`](lib/server/agent-runtime/dsl-tools.ts#L772)) takes `{stageId, target, intent, ops[]}` where `target` must resolve
 to `/scenes/<order|sceneId>` (`:784`). Five op kinds reach the scene:
 
 | Tool-level op | Path constraint | Routed to |
@@ -37,13 +37,13 @@ export type SlideEditOp =
   | { op: 'delete_element'; elementId: string };
 ```
 
-Why this union is separate from the browser editor's, stated at `apply.ts:122-126`: "Server course-agent
+Why this union is separate from the browser editor's, stated at [`apply.ts:122-126`](lib/server/agent-runtime/course-edit/apply.ts#L122-L126): "Server course-agent
 surface only. The classroom/browser editor uses the lower-level `SlideEditOperation` union in
 `lib/edit/slide-ops.ts` directly; keep that UI contract independent from which sugar ops the agent
-exposes." That is the L2 layer named in [./04-editor-prosemirror.md](./04-editor-prosemirror.md) §1.
+exposes." That is the L2 layer named in [./04-editor-prosemirror.md](docs/07-dsl-renderer-editor/04-editor-prosemirror.md) §1.
 
 Scene metadata (title, order) and stage/page-list operations are deliberately **not** here — the tool
-description routes them to `edit_deck` (`dsl-tools.ts:775`, error messages at `:594`, `:620`).
+description routes them to `edit_deck` ([`dsl-tools.ts:775`](lib/server/agent-runtime/dsl-tools.ts#L775), error messages at [`:594`](lib/server/agent-runtime/dsl-tools.ts#L594), [`:620`](lib/server/agent-runtime/dsl-tools.ts#L620)).
 
 ## 2. One `patch_stage` call, end to end
 
@@ -95,7 +95,7 @@ sequenceDiagram
 ```
 
 **The whole batch is atomic against the store.** Ops are applied to an in-memory
-`structuredClone` of the scene (`dsl-tools.ts:791`); any single failure returns before `putScene` is
+`structuredClone` of the scene ([`dsl-tools.ts:791`](lib/server/agent-runtime/dsl-tools.ts#L791)); any single failure returns before `putScene` is
 ever called, naming the 1-based op index (`:797`). The tool description states the contract: "Any
 failed op or resulting validation error rejects the whole batch" (`:775`).
 
@@ -103,7 +103,7 @@ failed op or resulting validation error rejects the whole batch" (`:775`).
 
 ### 3.1 Identity is not patchable
 
-`elementIdentityIssue` (`apply.ts:361`) runs after the pointer edit and before the schema check. It
+`elementIdentityIssue` ([`apply.ts:361`](lib/server/agent-runtime/course-edit/apply.ts#L361)) runs after the pointer edit and before the schema check. It
 rejects four things:
 
 | Condition | Message |
@@ -114,12 +114,12 @@ rejects four things:
 | an element's `type` changed | `patch cannot change type for element <id>` (`:371`) |
 
 Note that this is the **only** place in the whole subsystem that enforces element-id uniqueness. The
-DSL's `validateScene` does not (see [./02-dsl-invariants.md](./02-dsl-invariants.md) §1).
+DSL's `validateScene` does not (see [./02-dsl-invariants.md](docs/07-dsl-renderer-editor/02-dsl-invariants.md) §1).
 
 ### 3.2 The closed TypeBox mirror
 
-`validateSlideCanvas(next.canvas)` (`apply.ts:407` → `element-schema.ts:689`) checks the **whole
-canvas**, not just the patched subtree. The module header states the design (`element-schema.ts:1-16`):
+`validateSlideCanvas(next.canvas)` ([`apply.ts:407`](lib/server/agent-runtime/course-edit/apply.ts#L407) → [`element-schema.ts:689`](lib/server/agent-runtime/course-edit/element-schema.ts#L689)) checks the **whole
+canvas**, not just the patched subtree. The module header states the design ([`element-schema.ts:1-16`](lib/server/agent-runtime/course-edit/element-schema.ts#L1-L16)):
 
 - a patch is a partial element JSON — every field optional, `additionalProperties` closed at every
   level, so an unknown or out-of-contract field fails loud rather than landing in a document;
@@ -128,7 +128,7 @@ canvas**, not just the patched subtree. The module header states the design (`el
 - patch schemas omit `id` and `type` because identity is not patchable; the insertion schema adds the
   discriminating `type`, still omits `id`, and restores every DSL-required field.
 
-Three exported validators (`element-schema.ts:673`, `:681`, `:689`):
+Three exported validators ([`element-schema.ts:673`](lib/server/agent-runtime/course-edit/element-schema.ts#L673), [`:681`](lib/server/agent-runtime/course-edit/element-schema.ts#L681), [`:689`](lib/server/agent-runtime/course-edit/element-schema.ts#L689)):
 
 ```ts
 export function validateElementPatch(type: string, patch: Record<string, unknown>): string[];
@@ -143,12 +143,12 @@ itself, including the `turningMode`, `sectionTag`, `type` and `script` fields
 
 This is the mechanism the 0.2.0→0.3.0 DSL migration exists to serve: a legacy `line` element carrying
 a stray `rotate` fails this schema, so one dirty element made every edit to its scene fail
-(`packages/@openmaic/dsl/src/version.ts:196-201`).
+([`packages/@openmaic/dsl/src/version.ts:196-201`](packages/@openmaic/dsl/src/version.ts#L196-L201)).
 
 ### 3.3 The DSL structural validators
 
-`validationError(next)` (`dsl-tools.ts:827`) delegates to `validateAppScene`
-(`lib/document-store/validators.ts:27`), which for slide and quiz scenes delegates to the DSL's
+`validationError(next)` ([`dsl-tools.ts:827`](lib/server/agent-runtime/dsl-tools.ts#L827)) delegates to `validateAppScene`
+([`lib/document-store/validators.ts:27`](lib/document-store/validators.ts#L27)), which for slide and quiz scenes delegates to the DSL's
 `validateScene`. That catches scene-level and action-level problems the canvas schema cannot see —
 notably a malformed `Action` in `scene.actions`.
 
@@ -171,7 +171,7 @@ flowchart TD
 ### 3.4 Read-placeholder rejection, in four places plus a fifth
 
 `read_stage` serves a **bounded projection**: large inline media bytes are replaced by a placeholder
-before serialization (`dsl-tools.ts:736-745`), because historical imported pages carry tens of MB of
+before serialization ([`dsl-tools.ts:736-745`](lib/server/agent-runtime/dsl-tools.ts#L736-L745)), because historical imported pages carry tens of MB of
 inline data URLs and materializing them would block the event loop on a string the budget then throws
 away.
 
@@ -179,19 +179,19 @@ A model that copies that placeholder back into a write would corrupt the documen
 
 | Site | Line | Checks |
 | --- | --- | --- |
-| `applyJsonPointerEdit` | `apply.ts:237` | a `set` value |
-| `applyJsonPointerPatch` | `apply.ts:392` | a slide-canvas `set` value |
-| `applyStrReplace` anchor | `apply.ts:327` | `oldText` — with a distinct message: the anchor "does not exist in the stored value — choose an anchor outside omitted regions" |
-| `applyStrReplace` replacement | `apply.ts:332` | `newText` |
-| **final state** | `dsl-tools.ts:819-826` | the serialized scene, after the last op |
+| `applyJsonPointerEdit` | [`apply.ts:237`](lib/server/agent-runtime/course-edit/apply.ts#L237) | a `set` value |
+| `applyJsonPointerPatch` | [`apply.ts:392`](lib/server/agent-runtime/course-edit/apply.ts#L392) | a slide-canvas `set` value |
+| `applyStrReplace` anchor | [`apply.ts:327`](lib/server/agent-runtime/course-edit/apply.ts#L327) | `oldText` — with a distinct message: the anchor "does not exist in the stored value — choose an anchor outside omitted regions" |
+| `applyStrReplace` replacement | [`apply.ts:332`](lib/server/agent-runtime/course-edit/apply.ts#L332) | `newText` |
+| **final state** | [`dsl-tools.ts:819-826`](lib/server/agent-runtime/dsl-tools.ts#L819-L826) | the serialized scene, after the last op |
 
-That fifth site is described as "the primary guard" (`dsl-tools.ts:818`) precisely because the per-op
+That fifth site is described as "the primary guard" ([`dsl-tools.ts:818`](lib/server/agent-runtime/dsl-tools.ts#L818)) precisely because the per-op
 checks inspect each payload **in isolation** — two `str_replace` calls each carrying only a fragment
 would assemble a complete placeholder and bypass all four.
 
 ### 3.5 `str_replace` refuses to guess
 
-`applyStrReplace` (`apply.ts:286`) counts non-overlapping exact matches and then:
+`applyStrReplace` ([`apply.ts:286`](lib/server/agent-runtime/course-edit/apply.ts#L286)) counts non-overlapping exact matches and then:
 
 | Outcome | Behaviour |
 | --- | --- |
@@ -208,7 +208,7 @@ rejects a non-canonical index (`'01'`, `'+1'`) as well as an out-of-bounds one.
 
 | Rule | Line |
 | --- | --- |
-| `element` must be an object | `apply.ts:431` |
+| `element` must be an object | [`apply.ts:431`](lib/server/agent-runtime/course-edit/apply.ts#L431) |
 | `element` must **not** include `id` — "the server assigns element identity" | `:432-436` |
 | `validateElementInput(element)` must pass | `:437` |
 | `afterId` XOR `index`, never both | `:439` |
@@ -221,7 +221,7 @@ rejects a non-canonical index (`'01'`, `'+1'`) as well as an out-of-bounds one.
 ### 3.7 One side effect, deliberately
 
 A `latex` element whose `latex` string changed gets its cached KaTeX `html` snapshot re-rendered, or
-deleted if rendering fails (`apply.ts:409-419` → `lib/edit/slide-edit-elements.ts:154`). This is the
+deleted if rendering fails ([`apply.ts:409-419`](lib/server/agent-runtime/course-edit/apply.ts#L409-L419) → [`lib/edit/slide-edit-elements.ts:154`](lib/edit/slide-edit-elements.ts#L154)). This is the
 only place in the agent write path that computes a derived field. It matters because the renderer
 prefers `html` over re-rendering (`PPTLatexElement.html`), so a stale snapshot would silently paint
 the old formula.
@@ -259,7 +259,7 @@ flowchart TD
 
 ### 4.1 Why sequential, in the authors' words
 
-`course-tools.ts:114-136` is worth reading in full. The summary: none of the writers takes a lock —
+[`course-tools.ts:114-136`](lib/server/agent-runtime/course-tools.ts#L114-L136) is worth reading in full. The summary: none of the writers takes a lock —
 each is `load whole document → apply one op in memory → write the whole scene back`. The agent
 routinely emits several of them for one page as **parallel** tool calls in a single turn, and they
 then all load the same snapshot and overwrite each other. "The damage is silent — the last writer
@@ -274,13 +274,13 @@ snapshot. The stated trade-off: "a lost write is not self-correcting, a slower t
 
 `STAGE_WRITER_TOOL_NAMES` is the single source of truth for three consumers — the server scheduler,
 the workbench write-ownership fold, and `rename_stage`'s separate sequential marking in the curriculum
-toolset (`stage-writer-tools.ts:3-18`). A consistency test pins the scheduler to the list (`:5-7`).
+toolset ([`stage-writer-tools.ts:3-18`](lib/agent-runtime/stage-writer-tools.ts#L3-L18)). A consistency test pins the scheduler to the list ([`:5-7`](lib/agent-runtime/stage-writer-tools.ts#L5-L7)).
 Arming ownership only for writers is load-bearing: ownership's side effect is dropping the user's own
 pending edits, so a `read_stage` must never take it (`:10-12`).
 
 ### 4.2 Human vs agent: the accepted window
 
-`putSceneBringingCurrent` (`document-writes.ts:32`) exists because `putScene` refuses to write into a
+`putSceneBringingCurrent` ([`document-writes.ts:32`](lib/server/agent-runtime/document-writes.ts#L32)) exists because `putScene` refuses to write into a
 document whose stored DSL stamp is stale: marking the whole document current off one scene write would
 strand its other scenes below the migrate-on-read line (`:6-13`). On `not-current` it reloads the
 already-migrated aggregate, splices the scene in, sorts by `order`, and saves the whole document — so
@@ -309,22 +309,22 @@ representative sample:
 
 | Trigger | Message |
 | --- | --- |
-| slide pointer not under `/canvas/` after stripping `/content` | `slide patch path must start with /canvas/ after removing the scene /content prefix` (`apply.ts:381`) |
+| slide pointer not under `/canvas/` after stripping `/content` | `slide patch path must start with /canvas/ after removing the scene /content prefix` ([`apply.ts:381`](lib/server/agent-runtime/course-edit/apply.ts#L381)) |
 | `set` with no value | `patch set needs value (use action:"remove" to delete an optional field)` (`:386`) |
 | bad `~0`/`~1` escape | `bad JSON pointer escape in path "..."` (`:154`) |
 | path crosses a non-container | `patch path crosses a non-container at "..."` (`:188`) |
 | out-of-contract canvas | `patch rejected: canvas/elements/3/rotate: ...` (`:408`) |
-| batch failed | `patch_stage rejected at op 2: ...` (`dsl-tools.ts:797`) |
+| batch failed | `patch_stage rejected at op 2: ...` ([`dsl-tools.ts:797`](lib/server/agent-runtime/dsl-tools.ts#L797)) |
 | structural failure after the last op | `patch_stage rejected after op N: resulting scene fails structure validation (...)` (`:830`) |
 | store failure | `patch_stage could not persist the scene: <message>` (`:841`) |
 
 On success the model gets back the intent echo, the op details (including `str_replace`'s occurrence
-count), and `sceneTree(next)` (`dsl-tools.ts:855-859`) — a compact projection so it can verify the
+count), and `sceneTree(next)` ([`dsl-tools.ts:855-859`](lib/server/agent-runtime/dsl-tools.ts#L855-L859)) — a compact projection so it can verify the
 result without a second `read_stage`.
 
 ## Open questions
 
-- The TypeBox schemas are a **hand-maintained** mirror: `element-schema.ts:15` says the field sets
+- The TypeBox schemas are a **hand-maintained** mirror: [`element-schema.ts:15`](lib/server/agent-runtime/course-edit/element-schema.ts#L15) says the field sets
   "mirror `@openmaic/dsl` `slides.ts` exactly", which is 694 lines duplicating a 995-line type file
   with no generated cross-check in that file. The DSL already emits `scene.schema.json` from the same
   types; nothing forces the TypeBox copy to track it. Adding a DSL field means editing two files, and
@@ -335,4 +335,4 @@ result without a second `read_stage`.
   is strictly stricter than the human path on the same document.
 - Whether client-side write ownership can drop a human edit the user believes was saved. The ownership
   side effect is documented as "dropping the user's own pending edits"
-  (`stage-writer-tools.ts:10-12`) but the UX around that was not traced in this subsystem.
+  ([`stage-writer-tools.ts:10-12`](lib/agent-runtime/stage-writer-tools.ts#L10-L12)) but the UX around that was not traced in this subsystem.

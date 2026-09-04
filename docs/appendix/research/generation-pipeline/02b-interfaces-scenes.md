@@ -47,7 +47,7 @@ classDiagram
 
 ## Scene generation entry points
 
-`scene-generator.ts:227`, `:1117`, `:1608`:
+[`scene-generator.ts:227`](packages/@openmaic/generation/src/scene-generator.ts#L227), [`:1117`](packages/@openmaic/generation/src/scene-generator.ts#L1117), [`:1608`](packages/@openmaic/generation/src/scene-generator.ts#L1608):
 
 ```ts
 export async function generateSceneContent(
@@ -85,7 +85,7 @@ export async function generateSceneActions(
 ): Promise<Action[]>
 ```
 
-`scene-generator.ts:75`, `:77`, `:121` — the failure contract and the actions
+[`scene-generator.ts:75`](packages/@openmaic/generation/src/scene-generator.ts#L75), [`:77`](packages/@openmaic/generation/src/scene-generator.ts#L77), [`:121`](packages/@openmaic/generation/src/scene-generator.ts#L121) — the failure contract and the actions
 options:
 
 ```ts
@@ -104,7 +104,7 @@ export interface SceneActionsOptions {
 }
 ```
 
-`SceneContentOptions` (`scene-generator.ts:81`) is 39 lines of heavily commented
+`SceneContentOptions` ([`scene-generator.ts:81`](packages/@openmaic/generation/src/scene-generator.ts#L81)) is 39 lines of heavily commented
 fields; its keys, in declaration order:
 
 | Field | Type | Consumed by |
@@ -126,12 +126,12 @@ fields; its keys, in declaration order:
 | `logger` | `GenerationLogger` | all |
 
 Note `generateSlideContent` itself takes **13 positional parameters** rather than
-this options object (`scene-generator.ts:602-615`); it is module-private and
+this options object ([`scene-generator.ts:602-615`](packages/@openmaic/generation/src/scene-generator.ts#L602-L615)); it is module-private and
 `generateSceneContent` unpacks the options into it at `:284`.
 
 ## Content unions and assembly
 
-`scene-types.ts:17`–`:60`:
+[`scene-types.ts:17`](packages/@openmaic/generation/src/scene-types.ts#L17)–`:60`:
 
 ```ts
 export interface GeneratedSlideContent {
@@ -177,7 +177,7 @@ export type CompleteScene = Scene<Action, CompleteSceneContent> & { outlineId: s
 export type WidgetConfig = WidgetConfigBase;
 ```
 
-`scene-builder.ts:12`, `:22`:
+[`scene-builder.ts:12`](packages/@openmaic/generation/src/scene-builder.ts#L12), [`:22`](packages/@openmaic/generation/src/scene-builder.ts#L22):
 
 ```ts
 export interface BuildCompleteSceneOptions {
@@ -204,7 +204,7 @@ export function buildCompleteScene(
 
 The four branches are guarded by **both** `outline.type` and a content shape
 check (`'elements' in content`, `'questions' in content`, `'html' in content`,
-`'projectV2' in content`); any mismatch returns `null` (`scene-builder.ts:114`).
+`'projectV2' in content`); any mismatch returns `null` ([`scene-builder.ts:114`](packages/@openmaic/generation/src/scene-builder.ts#L114)).
 The slide branch is the only one that synthesises structure: `viewportSize: 1000`,
 `viewportRatio: 0.5625`, and a hard-coded default `SlideTheme` (`:37`).
 
@@ -244,7 +244,7 @@ export function postProcessInteractiveHtml(html: string): string
 
 ## Retry contract
 
-`generation-retry.ts:1`, `:9`, `:177`:
+[`generation-retry.ts:1`](packages/@openmaic/generation/src/generation-retry.ts#L1), [`:9`](packages/@openmaic/generation/src/generation-retry.ts#L9), [`:177`](packages/@openmaic/generation/src/generation-retry.ts#L177):
 
 ```ts
 export interface GenerationRetryEvent {
@@ -303,7 +303,7 @@ three parallel loaders) live in `02e-interfaces-prompt-system.md`.
 
 ## Logger seam
 
-`logger.ts:2`:
+[`logger.ts:2`](packages/@openmaic/generation/src/logger.ts#L2):
 
 ```ts
 export interface GenerationLogger {
@@ -314,6 +314,6 @@ export interface GenerationLogger {
 }
 ```
 
-Default is `noopGenerationLogger` (`logger.ts:10`) — the package is silent unless
+Default is `noopGenerationLogger` ([`logger.ts:10`](packages/@openmaic/generation/src/logger.ts#L10)) — the package is silent unless
 a host injects a logger. The app routes and `classroom-generation.ts` pass
 `createLogger(...)` instances.

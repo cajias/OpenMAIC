@@ -5,7 +5,7 @@ line; elisions inside a quoted block are marked `// …`.
 
 ## 1. The action union
 
-`packages/@openmaic/dsl/src/action.ts:22`, `:235`, `:258`
+[`packages/@openmaic/dsl/src/action.ts:22`](packages/@openmaic/dsl/src/action.ts#L22), [`:235`](packages/@openmaic/dsl/src/action.ts#L235), [`:258`](packages/@openmaic/dsl/src/action.ts#L258)
 
 ```ts
 export interface ActionBase {
@@ -28,7 +28,7 @@ export type ActionType = Action['type'];
 The union is spelled one member per line in the source; wrapped here for width. 21 members, matching
 the 21-entry `ACTION_TYPES` tuple.
 
-`packages/@openmaic/dsl/src/action.ts:47`, `:180`, `:333`
+[`packages/@openmaic/dsl/src/action.ts:47`](packages/@openmaic/dsl/src/action.ts#L47), [`:180`](packages/@openmaic/dsl/src/action.ts#L180), [`:333`](packages/@openmaic/dsl/src/action.ts#L333)
 
 ```ts
 export interface SpeechAction extends ActionBase {
@@ -51,10 +51,10 @@ export interface WbEditCodeAction extends ActionBase {
 }
 ```
 
-`PercentageGeometry` (`action.ts:333`) also lives in this module despite not being an action: `x/y/w/h`
+`PercentageGeometry` ([`action.ts:333`](packages/@openmaic/dsl/src/action.ts#L333)) also lives in this module despite not being an action: `x/y/w/h`
 plus `centerX/centerY`, all 0–100, used by the spotlight and laser overlays for responsive positioning.
 
-Scheduling classification (`action.ts:261`, `:264`, `:267`, `:290`, `:323`):
+Scheduling classification ([`action.ts:261`](packages/@openmaic/dsl/src/action.ts#L261), `:264`, `:267`, `:290`, `:323`):
 
 ```ts
 export const FIRE_AND_FORGET_ACTIONS: ActionType[] = ['spotlight', 'laser'];
@@ -115,7 +115,7 @@ Five of the 21 variants are shown; the other 16 follow the same `extends ActionB
 
 ## 2. Validation
 
-`packages/@openmaic/dsl/src/validate.ts:26`
+[`packages/@openmaic/dsl/src/validate.ts:26`](packages/@openmaic/dsl/src/validate.ts#L26)
 
 ```ts
 export interface ValidationIssue {
@@ -139,8 +139,8 @@ export function validateRuntimeSession(doc: unknown): ValidationResult     // :3
 export function validateRuntimeRecord(doc: unknown): ValidationResult      // :435
 ```
 
-Type guards exported from the contract (`guards.ts:38`–`:79`, `stage.ts:40`, `:295`, `:307`,
-`interactive.ts:29`, `:60`, `runtime.ts:79`):
+Type guards exported from the contract ([`guards.ts:38`](packages/@openmaic/dsl/src/guards.ts#L38)–[`:79`](packages/@openmaic/dsl/src/guards.ts#L79), [`stage.ts:40`](packages/@openmaic/dsl/src/stage.ts#L40), `:295`, `:307`,
+[`interactive.ts:29`](packages/@openmaic/dsl/src/interactive.ts#L29), `:60`, [`runtime.ts:79`](packages/@openmaic/dsl/src/runtime.ts#L79)):
 
 ```ts
 export function isPPTElementType(value: unknown): value is PPTElementType
@@ -155,7 +155,7 @@ export function isRuntimeSessionStatus(value: unknown): value is RuntimeSessionS
 
 ## 3. Normalization
 
-`packages/@openmaic/dsl/src/normalize.ts:79`, `:601`, `:616`, `:632`, `:656`, `:687`, `:560`, `:245`
+[`packages/@openmaic/dsl/src/normalize.ts:79`](packages/@openmaic/dsl/src/normalize.ts#L79), [`:601`](packages/@openmaic/dsl/src/normalize.ts#L601), [`:616`](packages/@openmaic/dsl/src/normalize.ts#L616), [`:632`](packages/@openmaic/dsl/src/normalize.ts#L632), [`:656`](packages/@openmaic/dsl/src/normalize.ts#L656), [`:687`](packages/@openmaic/dsl/src/normalize.ts#L687), [`:560`](packages/@openmaic/dsl/src/normalize.ts#L560), [`:245`](packages/@openmaic/dsl/src/normalize.ts#L245)
 
 ```ts
 export const ELEMENT_DEFAULTS = {
@@ -186,7 +186,7 @@ export function normalizePBLProject(project: unknown): PBLProject;
 
 ## 4. Versioning
 
-`packages/@openmaic/dsl/src/version.ts:61`, `:76`, `:85`, `:91`, `:108`, `:153`, `:276`, `:291`, `:314`
+[`packages/@openmaic/dsl/src/version.ts:61`](packages/@openmaic/dsl/src/version.ts#L61), [`:76`](packages/@openmaic/dsl/src/version.ts#L76), [`:85`](packages/@openmaic/dsl/src/version.ts#L85), [`:91`](packages/@openmaic/dsl/src/version.ts#L91), [`:108`](packages/@openmaic/dsl/src/version.ts#L108), [`:153`](packages/@openmaic/dsl/src/version.ts#L153), [`:276`](packages/@openmaic/dsl/src/version.ts#L276), [`:291`](packages/@openmaic/dsl/src/version.ts#L291), [`:314`](packages/@openmaic/dsl/src/version.ts#L314)
 
 ```ts
 export const DSL_VERSION = '0.3.0' as const;
@@ -206,7 +206,7 @@ export const INITIAL_RUNTIME_DSL_VERSION = '0.1.0' as const;
 export const RUNTIME_DSL_MIGRATIONS: readonly DslMigration[] = [];
 ```
 
-`packages/@openmaic/dsl/src/version.ts:235`
+[`packages/@openmaic/dsl/src/version.ts:235`](packages/@openmaic/dsl/src/version.ts#L235)
 
 ```ts
 export const DSL_MIGRATIONS: readonly DslMigration[] = [
@@ -216,8 +216,8 @@ export const DSL_MIGRATIONS: readonly DslMigration[] = [
 ];
 ```
 
-Runner / reader / predicate surface (`version.ts:330`, `:407`, `:423`, `:507`, `:532`, `:640`, `:670`),
-plus the two envelope views (`:115`, `:138`) and the legacy cleanup (`legacy-line-geometry.ts:64`):
+Runner / reader / predicate surface ([`version.ts:330`](packages/@openmaic/dsl/src/version.ts#L330), [`:407`](packages/@openmaic/dsl/src/version.ts#L407), [`:423`](packages/@openmaic/dsl/src/version.ts#L423), [`:507`](packages/@openmaic/dsl/src/version.ts#L507), [`:532`](packages/@openmaic/dsl/src/version.ts#L532), [`:640`](packages/@openmaic/dsl/src/version.ts#L640), [`:670`](packages/@openmaic/dsl/src/version.ts#L670)),
+plus the two envelope views (`:115`, `:138`) and the legacy cleanup ([`legacy-line-geometry.ts:64`](packages/@openmaic/dsl/src/legacy-line-geometry.ts#L64)):
 
 ```ts
 export function isWellFormedDslVersion(v: string): boolean
@@ -236,7 +236,7 @@ export function stripLegacyLineGeometry(doc: unknown): unknown
 
 ## 5. Runtime layer
 
-`packages/@openmaic/dsl/src/runtime.ts:58`, `:61`, `:79`
+[`packages/@openmaic/dsl/src/runtime.ts:58`](packages/@openmaic/dsl/src/runtime.ts#L58), [`:61`](packages/@openmaic/dsl/src/runtime.ts#L61), [`:79`](packages/@openmaic/dsl/src/runtime.ts#L79)
 
 ```ts
 export type RuntimeSessionStatus = 'active' | 'completed' | 'archived';
@@ -255,7 +255,7 @@ must additionally be **non-empty** (`checkFields`, `:145`); optional anchors sta
 
 ## 6. Asset seam
 
-`packages/@openmaic/dsl/src/storage.ts:41`, `:49`, `:61`, `:86`
+[`packages/@openmaic/dsl/src/storage.ts:41`](packages/@openmaic/dsl/src/storage.ts#L41), [`:49`](packages/@openmaic/dsl/src/storage.ts#L49), [`:61`](packages/@openmaic/dsl/src/storage.ts#L61), [`:86`](packages/@openmaic/dsl/src/storage.ts#L86)
 
 ```ts
 export type AssetRef = string;
@@ -278,7 +278,7 @@ export interface StorageProvider {
 }
 ```
 
-`packages/@openmaic/dsl/src/slide-media-slots.ts:4`, `:21`, `:29`
+[`packages/@openmaic/dsl/src/slide-media-slots.ts:4`](packages/@openmaic/dsl/src/slide-media-slots.ts#L4), [`:21`](packages/@openmaic/dsl/src/slide-media-slots.ts#L21), [`:29`](packages/@openmaic/dsl/src/slide-media-slots.ts#L29)
 
 ```ts
 export type SlideMediaSlotKind =
@@ -297,7 +297,7 @@ export function* slideMediaSlotDescriptors(
 ): Generator<SlideMediaSlotDescriptor>;
 ```
 
-`packages/@openmaic/dsl/src/asset-manifest.ts:56`, `:62`, `:80`, `:119`
+[`packages/@openmaic/dsl/src/asset-manifest.ts:56`](packages/@openmaic/dsl/src/asset-manifest.ts#L56), [`:62`](packages/@openmaic/dsl/src/asset-manifest.ts#L62), [`:80`](packages/@openmaic/dsl/src/asset-manifest.ts#L80), [`:119`](packages/@openmaic/dsl/src/asset-manifest.ts#L119)
 
 ```ts
 export interface AssetManifestEntry extends AssetManifestMetadata {
@@ -343,7 +343,7 @@ flowchart LR
 
 Owner keys are structural positions (`scene:3:element:7`, `scene:3:speech:2`,
 `stage-whiteboard:1:background`), not user-controlled ids, so documents with repeated ids still account
-correctly (`asset-manifest.ts:150`). A video element repeating one ref in both `src` and `mediaRef`
-counts as **one** owner; its poster counts separately (`asset-manifest.ts:70`, `:157`). A
+correctly ([`asset-manifest.ts:150`](packages/@openmaic/dsl/src/asset-manifest.ts#L150)). A video element repeating one ref in both `src` and `mediaRef`
+counts as **one** owner; its poster counts separately ([`asset-manifest.ts:70`](packages/@openmaic/dsl/src/asset-manifest.ts#L70), `:157`). A
 `videoManifest`-only ref is enumerated but has no provable owner, so it correctly cannot qualify for
-in-place byte replacement (`asset-manifest.ts:184`).
+in-place byte replacement ([`asset-manifest.ts:184`](packages/@openmaic/dsl/src/asset-manifest.ts#L184)).

@@ -46,14 +46,14 @@ export function useI18n()     // throws 'useI18n must be used within I18nProvide
 
 `locale` is read straight off i18next (`i18n.language || defaultLocale`, line 32),
 so the context holds no state of its own. The private matcher that resolves a
-browser language code, `lib/hooks/use-i18n.tsx:11`:
+browser language code, [`lib/hooks/use-i18n.tsx:11`](lib/hooks/use-i18n.tsx#L11):
 
 ```ts
 /** Match a browser language code (e.g. 'en', 'zh-TW') to a supported locale */
 function resolveLocale(lang: string): Locale
 ```
 
-`components/access-code-guard.tsx:7`
+[`components/access-code-guard.tsx:7`](components/access-code-guard.tsx#L7)
 
 ```ts
 export function AccessCodeGuard({ children }: { children: ReactNode })
@@ -98,7 +98,7 @@ export { Toaster };
 `useTheme` comes from `next-themes`, not from `lib/hooks/use-theme`.
 
 The health channel `StorageHealthNotice` subscribes to,
-`lib/store/persist-health` (consumed at `components/storage-health-notice.tsx:21`):
+`lib/store/persist-health` (consumed at [`components/storage-health-notice.tsx:21`](components/storage-health-notice.tsx#L21)):
 
 ```ts
 subscribeToPersistHealth(({ name, status }) => void): () => void
@@ -181,11 +181,11 @@ Two timing constants: `SETTLE_TIMEOUT_MS = 600` (line 47) and
 idempotent — "it reads a clock, it does not consume a token" — so a StrictMode
 double render cannot get two answers (docstring lines 89-91).
 
-Callers: `app/page.tsx:161` (enter, `/` → `/workspace`) and
-`components/workbench/workspace/WorkspaceShell.tsx:648` (exit, `/workspace` → `/`).
+Callers: [`app/page.tsx:161`](app/page.tsx#L161) (enter, `/` → `/workspace`) and
+[`components/workbench/workspace/WorkspaceShell.tsx:648`](components/workbench/workspace/WorkspaceShell.tsx#L648) (exit, `/workspace` → `/`).
 The CSS that reads `data-pro-swap` is `components/workbench/pro-swap.css`,
-imported by `components/workbench/ProBadge.tsx:16`. The morph anchors are DOM
-attributes set on the home page: `data-pro-morph="lockup"` (`app/page.tsx:834`),
+imported by [`components/workbench/ProBadge.tsx:16`](components/workbench/ProBadge.tsx#L16). The morph anchors are DOM
+attributes set on the home page: `data-pro-morph="lockup"` ([`app/page.tsx:834`](app/page.tsx#L834)),
 `"badge"` (line 851), `"composer"` (line 876).
 
 ```mermaid

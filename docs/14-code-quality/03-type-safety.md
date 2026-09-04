@@ -7,7 +7,7 @@ source and no gate counts it.
 
 **Sources:** `tsconfig.json`, `tsconfig.build.json`, `next.config.ts`, the six
 `@openmaic` package `tsconfig.json` files, `render-service/tsconfig.json`;
-[`../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md`](../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md).
+[`../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md).
 
 ## Strictness settings
 
@@ -42,7 +42,7 @@ their absence is conventional rather than a lapse. It does mean every `array[i]`
 
 ### The dev/production config split
 
-`next.config.ts:13`:
+[`next.config.ts:13`](next.config.ts#L13):
 
 ```ts
 tsconfigPath: process.env.NODE_ENV === 'production' ? 'tsconfig.build.json' : 'tsconfig.json',
@@ -58,7 +58,7 @@ comment alone.
 
 Both configs exclude `e2e` and `render-service`. `e2e/` (24 files, 2 698 lines) has **no
 `tsconfig.json` of its own** and no workflow runs `tsc` over it — see
-[05-test-strategy.md](./05-test-strategy.md).
+[05-test-strategy.md](docs/14-code-quality/05-test-strategy.md).
 
 ```mermaid
 flowchart TD
@@ -103,15 +103,15 @@ silently under-counts (62 instead of 338).
 | Escape | Count | Per 1 000 source lines | Notes |
 | --- | --- | --- | --- |
 | `as any` | **31** | 0.10 | Across 16 files |
-| explicit `: any` annotation | **13** | 0.04 | Across 6 files, all in `lib/`. The raw regex returns 23; 10 of those are the English word "any" in doc comments (e.g. `packages/@openmaic/dsl/src/runtime.ts:228` *"any value EXCEPT"*, `packages/@openmaic/importer/src/serializer/mathSerializer.ts:267` *"Catch-all: any Mathematical Alphanumeric Symbol"*) |
-| `@ts-ignore` | **0** | 0 | The single repo-wide hit is a code sample inside `packages/@openmaic/importer/SKILL.md` |
+| explicit `: any` annotation | **13** | 0.04 | Across 6 files, all in `lib/`. The raw regex returns 23; 10 of those are the English word "any" in doc comments (e.g. [`packages/@openmaic/dsl/src/runtime.ts:228`](packages/@openmaic/dsl/src/runtime.ts#L228) *"any value EXCEPT"*, [`packages/@openmaic/importer/src/serializer/mathSerializer.ts:267`](packages/@openmaic/importer/src/serializer/mathSerializer.ts#L267) *"Catch-all: any Mathematical Alphanumeric Symbol"*) |
+| `@ts-ignore` | **0** | 0 | The single repo-wide hit is a code sample inside [`packages/@openmaic/importer/SKILL.md`](packages/@openmaic/importer/SKILL.md) |
 | `@ts-expect-error` | **29** repo-wide | — | **6 are in shipping source**, not tests — see below |
 | `as unknown as` | **128** in `*/src` + `app` + `components`, 305 counting package `test/` trees | 0.43 (src only) | 71 source files. **The real escape hatch, and nothing counts it.** |
 | non-null `!` (regex heuristic) | 338 | 1.14 | Order of magnitude only; regex `[]A-Za-z0-9_)]!(\.|\)|,|;|\[| )` minus `!=`. 499 counting package `test/` trees |
 | `: unknown` annotation | 790 | 2.65 | The narrowing discipline that makes the low `any` count real. 913 counting package `test/` trees |
 
 Source denominator for the per-1 000 figures: **297 767** lines across the 1 382
-`*/src` files (see [02-size-and-shape.md](./02-size-and-shape.md)). Ratios that use the
+`*/src` files (see [02-size-and-shape.md](docs/14-code-quality/02-size-and-shape.md)). Ratios that use the
 whole-`packages/@openmaic` denominator (333 699) are ~11 % lower.
 
 ### The `@ts-expect-error` correction
@@ -125,12 +125,12 @@ grep -rn --include='*.ts' --include='*.tsx' -e '@ts-expect-error' \
 
 | Site | Reason |
 | --- | --- |
-| `components/slide-renderer/components/element/ShapeElement/BaseShapeElement.tsx:108` | CSS custom property on a `style` object |
-| `components/slide-renderer/components/element/ShapeElement/index.tsx:194` | same |
-| `components/slide-renderer/components/element/TextElement/BaseTextElement.tsx:48` | same |
-| `components/slide-renderer/components/element/TextElement/index.tsx:197` | same |
-| `packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx:132` | same |
-| `packages/@openmaic/importer/src/serializer/mathSerializer.ts:19` | *"omml2mathml has no type declarations"* |
+| [`components/slide-renderer/components/element/ShapeElement/BaseShapeElement.tsx:108`](components/slide-renderer/components/element/ShapeElement/BaseShapeElement.tsx#L108) | CSS custom property on a `style` object |
+| [`components/slide-renderer/components/element/ShapeElement/index.tsx:194`](components/slide-renderer/components/element/ShapeElement/index.tsx#L194) | same |
+| [`components/slide-renderer/components/element/TextElement/BaseTextElement.tsx:48`](components/slide-renderer/components/element/TextElement/BaseTextElement.tsx#L48) | same |
+| [`components/slide-renderer/components/element/TextElement/index.tsx:197`](components/slide-renderer/components/element/TextElement/index.tsx#L197) | same |
+| [`packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx:132`](packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx#L132) | same |
+| [`packages/@openmaic/importer/src/serializer/mathSerializer.ts:19`](packages/@openmaic/importer/src/serializer/mathSerializer.ts#L19) | *"omml2mathml has no type declarations"* |
 
 All six are benign and self-documenting — CSS custom properties genuinely are not in
 `React.CSSProperties`, and an untyped dependency genuinely needs a suppression. The
@@ -139,7 +139,7 @@ has *zero* compiler suppressions in shipping code. It has six, all justified.
 
 The remaining 23 are in test files, and several are deliberate **negative type
 assertions**: `packages/@openmaic/storage/test/http-kv-store.test.ts` alone has 9,
-probing that a networked store cannot be handed the device scope. `ci.yml:181-184`
+probing that a networked store cannot be handed the device scope. [`ci.yml:181-184`](.github/workflows/ci.yml#L181-L184)
 records why storage gets a second `tsc -p tsconfig.test.json` run — *"a probe nothing
 type-checks proves nothing"*.
 
@@ -192,7 +192,7 @@ and then cast past the DSL's `PPTElement` union with an inline suppression.
 This is the highest-leverage type-safety fix in the repository: the DSL already exports
 the element union and `normalizeElement` (`packages/@openmaic/dsl/src/normalize.ts`), so
 constructing through the DSL's own builders would remove all nine casts and all nine
-suppressions at once. See [12-remediation-backlog.md](./12-remediation-backlog.md).
+suppressions at once. See [12-remediation-backlog.md](docs/14-code-quality/12-remediation-backlog.md).
 
 ### The `as unknown as` blind spot
 
@@ -217,14 +217,14 @@ five times the headline figure.
 
 Two of those sites are load-bearing rather than cosmetic: all three folder routes reach
 `DocumentFolderStore` through `as unknown as`
-(`app/api/folders/route.ts:57,101`, `app/api/folders/[id]/route.ts:66,110`,
-`app/api/folders/members/route.ts:54`) even though the underlying factory already
+([`app/api/folders/route.ts:57,101`](app/api/folders/route.ts#L57), `app/api/folders/[id]/route.ts:66,110`,
+[`app/api/folders/members/route.ts:54`](app/api/folders/members/route.ts#L54)) even though the underlying factory already
 returns `DocumentStore & DocumentFolderStore` — the accessor's declared return type is
 what narrows the capability away. And
-`components/edit/surfaces/slide/slide-edit-session.ts:164-166` casts between the two
+[`components/edit/surfaces/slide/slide-edit-session.ts:164-166`](components/edit/surfaces/slide/slide-edit-session.ts#L164-L166) casts between the two
 editor history types through what its own comment (`:160-162`) calls a "compatibility
 bridge", to be kept "until its React surface moves into `@openmaic/editor`"
-([09-architectural-consistency.md](./09-architectural-consistency.md)).
+([09-architectural-consistency.md](docs/14-code-quality/09-architectural-consistency.md)).
 
 ## The genuinely good numbers
 
@@ -242,7 +242,7 @@ done
 
 ## Open questions
 
-- Whether `lib/api/stage-api-types.ts:79,81` (`setState: (partial: any) => void`,
+- Whether [`lib/api/stage-api-types.ts:79,81`](lib/api/stage-api-types.ts#L79) (`setState: (partial: any) => void`,
   `subscribe: (listener: (state: any, prevState: any) => void)`) can be typed at all.
   It is describing a zustand store shape to an in-process agent toolkit, and zustand's
   own `StoreApi` generics may not survive the boundary. No comment records an attempt.

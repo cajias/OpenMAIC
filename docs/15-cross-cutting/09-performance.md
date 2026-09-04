@@ -4,17 +4,17 @@ Where the time and money actually go, what caching exists, why streaming is the
 main latency strategy rather than caching, and the client-side pressure points.
 Numbers here are the code's own constants and budgets, not measurements — nothing
 in this repository measures latency (see
-[`08-observability.md`](./08-observability.md)).
+[`08-observability.md`](docs/15-cross-cutting/08-observability.md)).
 
 **Sources:** `export const maxDuration` across 24 route files,
-`lib/choreography/timing.ts`, `lib/buffer/stream-buffer.ts:208`,
-`app/api/generate/scene-outlines-stream/route.ts:45-486`,
-`lib/server/provider-config.ts:1103-1116`, `lib/hooks/use-scene-generator.ts:689`,
-`lib/media/proxy-media-cache.ts:200-280`, `lib/store/video-render.ts`,
+`lib/choreography/timing.ts`, [`lib/buffer/stream-buffer.ts:208`](lib/buffer/stream-buffer.ts#L208),
+[`app/api/generate/scene-outlines-stream/route.ts:45-486`](app/api/generate/scene-outlines-stream/route.ts#L45-L486),
+[`lib/server/provider-config.ts:1103-1116`](lib/server/provider-config.ts#L1103-L1116), [`lib/hooks/use-scene-generator.ts:689`](lib/hooks/use-scene-generator.ts#L689),
+[`lib/media/proxy-media-cache.ts:200-280`](lib/media/proxy-media-cache.ts#L200-L280), `lib/store/video-render.ts`,
 `render-service/src/config.ts`,
-[`../appendix/research/media-audio-video/03b-flows-video-export.md`](../appendix/research/media-audio-video/03b-flows-video-export.md),
-[`../appendix/research/generation-pipeline/`](../appendix/research/generation-pipeline/00-overview.md),
-[`../appendix/research/classroom-runtime/03a-flows-playback.md`](../appendix/research/classroom-runtime/03a-flows-playback.md).
+[`../appendix/research/media-audio-video/03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md),
+[`../appendix/research/generation-pipeline/`](docs/appendix/research/generation-pipeline/00-overview.md),
+[`../appendix/research/classroom-runtime/03a-flows-playback.md`](docs/appendix/research/classroom-runtime/03a-flows-playback.md).
 
 ## Cost centres
 
@@ -25,7 +25,7 @@ in this repository measures latency (see
 | Scene actions LLM call | 1 call per scene | N scenes | `maxDuration = 60` |
 | TTS | 1 call per speech line | many per scene | `TTS_REQUEST_TIMEOUT_MS`, default 30 s |
 | Image generation | 1 call per image | per scene | `maxDuration = 300` |
-| Video generation | 1 call + polling | per scene | `maxDuration = 300`, `MAX_VIDEO_WAIT_MS = 5 min` (`timing.ts:34`) |
+| Video generation | 1 call + polling | per scene | `maxDuration = 300`, `MAX_VIDEO_WAIT_MS = 5 min` ([`timing.ts:34`](lib/choreography/timing.ts#L34)) |
 | Document extraction | 1 parse, possibly remote | per upload | 50 MiB cap; MinerU/AliDocMind round trips |
 | PPTX export | pure client CPU | per export | none |
 | MP4 render | a whole Chromium + FFmpeg pass | per export | `RENDER_JOB_DEADLINE_MS` 45 min, `RENDER_MAX_CONCURRENCY` fixed by profile |
@@ -58,11 +58,11 @@ The design decision that dominates perceived latency is **not** caching, it is
 that the first scene is playable before the rest exist. Two mechanisms carry it:
 the SSE outline stream with an incremental parser, and the client's
 `generateRemaining` fan-out loop that runs behind playback
-(`lib/hooks/use-scene-generator.ts:627`).
+([`lib/hooks/use-scene-generator.ts:627`](lib/hooks/use-scene-generator.ts#L627)).
 
 `PARALLEL_SCENE_CONCURRENCY` is deliberately server-side and default-off: "many
 deployments use API keys with low per-key concurrency quotas, where a bursty
-default would surface as 429s" (`lib/server/provider-config.ts:1108-1110`). It is
+default would surface as 429s" ([`lib/server/provider-config.ts:1108-1110`](lib/server/provider-config.ts#L1108-L1110)). It is
 `parseInt`-ed and clamped to `[0,10]`, and it parallelises **content only** —
 actions and TTS remain serial.
 
@@ -113,7 +113,7 @@ flowchart TD
 There is no memoisation of an LLM call by prompt hash anywhere. Every retry, every
 regeneration and every re-run of the same scene is a fresh paid call. That is
 consistent with the product (courses are one-shot artefacts) but it means the
-retry ladders in [`10-resilience.md`](./10-resilience.md) are also cost ladders.
+retry ladders in [`10-resilience.md`](docs/15-cross-cutting/10-resilience.md) are also cost ladders.
 
 ## Latency budget of one playback frame
 
@@ -143,7 +143,7 @@ sequenceDiagram
 
 Those literals live in `lib/choreography/timing.ts` precisely so the video
 exporter dwells identically — the module is machine-enforced pure by a dedicated
-eslint block (`eslint.config.mjs:255-323`), which is what stops the app engine and
+eslint block ([`eslint.config.mjs:255-323`](eslint.config.mjs#L255-L323)), which is what stops the app engine and
 the exporter from drifting.
 
 The stream buffer's 30 ms/char pacing is a *deliberate* latency floor: a 300-char
@@ -172,7 +172,7 @@ the browser.
 Deliberate bundle mitigations that do exist:
 
 - `serverExternalPackages` keeps `@earendil-works/pi-*`, `@openmaic/generation`
-  and the two AWS SDK optional peers out of the bundle (`next.config.ts:23-34`).
+  and the two AWS SDK optional peers out of the bundle ([`next.config.ts:23-34`](next.config.ts#L23-L34)).
 - The importer is loaded from a **static URL** (`/vendor/maic-importer/index.js`)
   with a runtime `HEAD` probe, because `pdfjs-dist`'s dynamic `require()` breaks
   Turbopack. Two guard scripts keep it from 404-ing silently:
@@ -186,7 +186,7 @@ Deliberate bundle mitigations that do exist:
 - Fonts: the UI font comes from `@fontsource`'s stylesheet rather than `next/font`
   because only the stylesheet carries per-subset `unicode-range`; pointing
   `next/font` at one subset made Cyrillic and Vietnamese fall back mid-word
-  (`app/layout.tsx:16-29`).
+  ([`app/layout.tsx:16-29`](app/layout.tsx#L16-L29)).
 
 ## Video export
 
@@ -202,10 +202,10 @@ the render service.
 | upload | streamed, unparsed | `MAX_UPLOAD_BYTES` 300 MiB, `SUBMIT_TIMEOUT_MS` 300 s |
 | unzip | render service | 5 declared-size guards |
 | capture + encode | render service | `RENDER_JOB_DEADLINE_MS` 45 min; concurrency 1 in both Compose profiles |
-| poll + download | browser | ETA extrapolated from elapsed time and a smoothed recent-speed sample, suppressed below a floor percent because it is "too noisy to show" (`lib/store/video-render.ts:37`) |
+| poll + download | browser | ETA extrapolated from elapsed time and a smoothed recent-speed sample, suppressed below a floor percent because it is "too noisy to show" ([`lib/store/video-render.ts:37`](lib/store/video-render.ts#L37)) |
 
 Fonts ship *inside* the ZIP because the render container has zero outbound
-network — the isolation in [`01-trust-boundaries.md`](./01-trust-boundaries.md)
+network — the isolation in [`01-trust-boundaries.md`](docs/15-cross-cutting/01-trust-boundaries.md)
 buys correctness at the cost of a fatter archive.
 
 ## `maxDuration` distribution

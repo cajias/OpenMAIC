@@ -11,8 +11,8 @@ live in their own 15-line module.
 `tests/server/register-shutdown-signals.test.ts`,
 `lib/persistence/asset-collector-schedule.ts`, `next.config.ts`,
 `git show --stat 1b2d9332`. Evidence:
-[`../appendix/research/app-shell-and-routing/01-modules.md`](../appendix/research/app-shell-and-routing/01-modules.md),
-[`02a-interfaces-lifecycle-and-routing.md`](../appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md).
+[`../appendix/research/app-shell-and-routing/01-modules.md`](docs/appendix/research/app-shell-and-routing/01-modules.md),
+[`02a-interfaces-lifecycle-and-routing.md`](docs/appendix/research/app-shell-and-routing/02a-interfaces-lifecycle-and-routing.md).
 
 ## There is no OpenTelemetry
 
@@ -26,18 +26,18 @@ and no tracer, meter, or exporter anywhere in the repository.
 Next's `instrumentation.ts` convention is being used for its *timing* guarantee
 (called once per server instance, before the first request is served) and nothing
 else. Observability in OpenMAIC is `lib/logger.ts` — imported by 35 route files —
-and stdout. See [`../15-cross-cutting/index.md`](../15-cross-cutting/index.md).
+and stdout. See [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md).
 
 ## Why this file exists at all
 
-The docstring at `instrumentation.ts:1-12` states the rule directly: a route
+The docstring at [`instrumentation.ts:1-12`](instrumentation.ts#L1-L12) states the rule directly: a route
 module has no once-per-process guarantee — *"it can be instantiated more than once
 and gets no shutdown hook"* — so anything periodic started from one is really
 started per instantiation. `register()` is therefore the only sanctioned home for
 a timer. A second, independent guard exists inside
 `startAssetCollectorSchedule()`: the schedule is keyed on a
 `Symbol.for('openmaic.asset-collector.schedule')` slot on `globalThis`
-(`asset-collector-schedule.ts:75-95`) because dev-time module reloads retain
+([`asset-collector-schedule.ts:75-95`](lib/persistence/asset-collector-schedule.ts#L75-L95)) because dev-time module reloads retain
 `globalThis` even though `register()` runs once.
 
 The second constraint is also stated (lines 10-11): `register()` must return before
@@ -80,7 +80,7 @@ database that is not up yet degrades the deployment to "no durable agent runtime
 rather than failing boot. Steps 2 and 3 are deliberately outside it.
 
 `startAssetCollectorSchedule()` returns `AssetCollectorSchedule | undefined`
-(`asset-collector-schedule.ts:88-90`) — `undefined` when `DATABASE_URL` is empty or
+([`asset-collector-schedule.ts:88-90`](lib/persistence/asset-collector-schedule.ts#L88-L90)) — `undefined` when `DATABASE_URL` is empty or
 `ASSET_COLLECTION_ENABLED` is `0`/`false`. That is why the drain uses
 `assetSchedule?.stop()`.
 
@@ -88,7 +88,7 @@ rather than failing boot. Steps 2 and 3 are deliberately outside it.
 
 All eight imports inside `register()` are `await import(...)`, and the two
 runner handle types are referenced as `import('…').Type` type-positions
-(`instrumentation.ts:31-34`) so they never produce a value import (the third
+([`instrumentation.ts:31-34`](instrumentation.ts#L31-L34)) so they never produce a value import (the third
 shutdown handle, `stopAgentEventNotifyBus`, is a plain function type — line 35). The reason,
 stated at lines 18 and 26-27: **the Edge bundle must never pull in `pg` or the
 `fs`/`js-yaml`-backed provider config.** The `NEXT_RUNTIME` guard at line 16
@@ -109,9 +109,9 @@ The docstring (lines 4-11) gives the exact reason, and it is a toolchain reason,
 not a runtime one: Turbopack's static Edge-runtime scan flags a top-level
 `process.once` reference in the Edge-analysed module graph as an unsupported
 Node.js API, and **cannot prove** the `NEXT_RUNTIME !== 'nodejs'` guard in
-`instrumentation.ts:16` makes it unreachable — so it emitted a false-positive
+[`instrumentation.ts:16`](instrumentation.ts#L16) makes it unreachable — so it emitted a false-positive
 warning on every compile. Moving the call behind a dynamic import at
-`instrumentation.ts:100` removes the reference from the analysed graph entirely.
+[`instrumentation.ts:100`](instrumentation.ts#L100) removes the reference from the analysed graph entirely.
 
 ```mermaid
 flowchart LR
@@ -135,7 +135,7 @@ one listener per signal (lines 14-22), a single invocation on repeat emit
 (line 39) — which is what `process.once` rather than `process.on` buys.
 
 Two independent once-guards exist. `process.once` makes the *listener*
-self-removing; the memoised `shutdownPromise ??=` at `instrumentation.ts:59` makes
+self-removing; the memoised `shutdownPromise ??=` at [`instrumentation.ts:59`](instrumentation.ts#L59) makes
 the *drain* idempotent even if both signals arrive.
 
 ## Shutdown
@@ -204,11 +204,11 @@ flowchart TD
 The notify bus is the load-bearing coupling: it is a single `LISTEN` connection
 shared by the runner and every open SSE route through an in-process fanout
 registry, so the number of streams does not scale the number of database
-connections (comment at `instrumentation.ts:39-41`). Detail in
-[`../05-agent-runtime/index.md`](../05-agent-runtime/index.md) and
-[`../11-data-flows/index.md`](../11-data-flows/index.md).
+connections (comment at [`instrumentation.ts:39-41`](instrumentation.ts#L39-L41)). Detail in
+[`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md) and
+[`../11-data-flows/index.md`](docs/11-data-flows/index.md).
 
-`next.config.ts:5-11` matters here too: `outputFileTracingIncludes` pulls
+[`next.config.ts:5-11`](next.config.ts#L5-L11) matters here too: `outputFileTracingIncludes` pulls
 `lib/server/agent-runtime/import-pptx-worker.mjs` and `skills/**` into the
 standalone output, because nothing statically imports them and the tracer would
 otherwise omit them.

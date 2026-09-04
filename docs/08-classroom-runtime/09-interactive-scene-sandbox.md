@@ -11,7 +11,7 @@ exact, and the controls that are **absent** are named as such.
 `lib/interactive/logical-viewport.ts`, `components/stage.tsx`, `next.config.ts`,
 `packages/@openmaic/dsl/src/interactive.ts`,
 `lib/video-export-app/prepare-interactive-html.ts`,
-[`../appendix/research/classroom-runtime/01c-modules-interactive-sandbox.md`](../appendix/research/classroom-runtime/01c-modules-interactive-sandbox.md).
+[`../appendix/research/classroom-runtime/01c-modules-interactive-sandbox.md`](docs/appendix/research/classroom-runtime/01c-modules-interactive-sandbox.md).
 
 ## The trust boundary
 
@@ -75,9 +75,9 @@ return <div ref={slotRef} className="w-full h-full" aria-hidden />;
    return.
 
 The real `<iframe>` elements live in `InteractiveIframeHost`, mounted **once at the
-`Stage` root** (`components/stage.tsx:385`) — above the mode-swap subtree — and
+`Stage` root** ([`components/stage.tsx:385`](components/stage.tsx#L385)) — above the mode-swap subtree — and
 portalled to `document.fullscreenElement ?? document.body`
-(`InteractiveIframeHost.tsx:99`).
+([`InteractiveIframeHost.tsx:99`](components/scene-renderers/InteractiveIframeHost.tsx#L99)).
 
 ```mermaid
 flowchart TD
@@ -99,14 +99,14 @@ flowchart TD
 ```
 
 Why the split exists: `CanvasArea` unmounts the scene subtree whenever the
-whiteboard opens (`components/canvas/canvas-area.tsx:130`), and `Stage` cross-fades
+whiteboard opens ([`components/canvas/canvas-area.tsx:130`](components/canvas/canvas-area.tsx#L130)), and `Stage` cross-fades
 between edit and playback chrome. Either would drop and re-parse the document. The
 host sits above both, so visibility is driven by ownership — gone means hidden,
 never unmounted.
 
 ## The keep-alive pool
 
-`IFRAME_POOL_CAP = 3` (`lib/store/interactive-iframe-pool.ts:21`), LRU by a
+`IFRAME_POOL_CAP = 3` ([`lib/store/interactive-iframe-pool.ts:21`](lib/store/interactive-iframe-pool.ts#L21)), LRU by a
 monotonic `tick`, with the active scene never evictable — "The active scene is
 never evicted (its iframe is on screen)" (`evictLru`, `:75-96`; the exclusion is
 the `id !== activeSceneId` filter at `:86`).
@@ -116,7 +116,7 @@ the `id !== activeSceneId` filter at `:86`).
 | `mount(sceneId, {srcDoc, src})` | Same content already loaded → refresh recency only, **keeping the existing string reference** so the host never re-sets `srcDoc` and the iframe never reloads (`:107-114`). String `===` is by value, so an equal-but-new `srcDoc` hits this fast path. Different content → rebuild the entry, then `evictLru` |
 | `setRect(sceneId, rect, clip)` | Deep-compares all eight numbers and returns `{}` unchanged when they match (`:135-148`) — this is what stops the rAF loop from re-rendering every frame |
 | `claim` / `release` | Ownership by placeholder `useId()`. `release` no-ops unless `owner` still matches (`:165`), so a stale unmount during the chrome cross-fade cannot hide a live iframe |
-| `evict` / `reset` | `reset` runs when the host unmounts, e.g. on classroom switch, so a new classroom does not briefly render the previous one's iframes (`InteractiveIframeHost.tsx:114`) |
+| `evict` / `reset` | `reset` runs when the host unmounts, e.g. on classroom switch, so a new classroom does not briefly render the previous one's iframes ([`InteractiveIframeHost.tsx:114`](components/scene-renderers/InteractiveIframeHost.tsx#L114)) |
 
 A content change is the **only** intended reload path (`:115-116`).
 
@@ -127,7 +127,7 @@ The page is authored against a fixed logical viewport: `GENUI_LOGICAL_WIDTH = 12
 `fitGenUiViewport(slot)` contain-fits and centres it, returning `{box, scale}`.
 The host renders the iframe at **full logical size** and applies
 `transform: scale(...)` with `transformOrigin: 'top left'`
-(`InteractiveIframeHost.tsx:262-271`), and clips the wrapper to
+([`InteractiveIframeHost.tsx:262-271`](components/scene-renderers/InteractiveIframeHost.tsx#L262-L271)), and clips the wrapper to
 `intersectClientBoxes(viewport.box, clip)` (`:236`) so an `overflow: hidden`
 ancestor still clips a `position: fixed` iframe.
 
@@ -142,7 +142,7 @@ positive intersection width and height, and positive `rect` width and height
 sandbox="allow-scripts allow-forms allow-popups"
 ```
 
-`InteractiveIframeHost.tsx:281`. Nothing else.
+[`InteractiveIframeHost.tsx:281`](components/scene-renderers/InteractiveIframeHost.tsx#L281). Nothing else.
 
 | Token | Granted? | Consequence |
 | --- | --- | --- |
@@ -165,7 +165,7 @@ gain `allow-same-origin`.**
 
 ## CSP: what exists, and what does not
 
-The only app-level CSP is emitted by `next.config.ts:38-56`:
+The only app-level CSP is emitted by [`next.config.ts:38-56`](next.config.ts#L38-L56):
 
 ```ts
 const extraAncestors = process.env.ALLOWED_FRAME_ANCESTORS?.trim();
@@ -196,7 +196,7 @@ Absent controls, named explicitly:
 
 The video exporter is the counter-example and the proof that the asymmetry is
 visible in the codebase. `staticCaptureInjection()`
-(`lib/video-export-app/prepare-interactive-html.ts:35`) injects a `<meta>` CSP into
+([`lib/video-export-app/prepare-interactive-html.ts:35`](lib/video-export-app/prepare-interactive-html.ts#L35)) injects a `<meta>` CSP into
 the same HTML:
 
 ```
@@ -221,7 +221,7 @@ flowchart LR
 
 ## Injected shims
 
-`patchHtmlForIframe(html)` (`lib/utils/iframe.ts:288`) builds one injection string
+`patchHtmlForIframe(html)` ([`lib/utils/iframe.ts:288`](lib/utils/iframe.ts#L288)) builds one injection string
 and hands it to `injectIntoDocumentHead`. The order is fixed at `:303-304`:
 
 ```ts
@@ -269,14 +269,14 @@ flowchart TD
   G3 -->|yes| APPLY["useElementRefsStore.toggle(makeInteractiveElementRef(stageId, sceneId, {selector, outerHTML, text}, t))"]
 ```
 
-`handleInteractivePickerMessage` is exported (`InteractiveIframeHost.tsx:36`)
+`handleInteractivePickerMessage` is exported ([`InteractiveIframeHost.tsx:36`](components/scene-renderers/InteractiveIframeHost.tsx#L36))
 specifically so this chain is unit-testable, and
 `tests/scene-renderers/interactive-iframe-picker.test.ts` exercises it.
 
 What is **not** checked, and cannot be: `event.origin`. A null-origin sandboxed
 frame reports `origin: "null"`, which is exactly why `event.source` identity is the
 gate. Outbound messages likewise use `targetOrigin: '*'`
-(`InteractiveIframeHost.tsx:177`) — unavoidable for a null origin, and the comment
+([`InteractiveIframeHost.tsx:177`](components/scene-renderers/InteractiveIframeHost.tsx#L177)) — unavoidable for a null origin, and the comment
 at `:152-154` says so.
 
 The listener is re-subscribed per document version (`entry.srcDoc` is in the effect
@@ -289,7 +289,7 @@ scene's captured errors (`:229-231`) so the set reflects the current page.
 
 `ActionEngine`'s four `widget_*` verbs post into the frame:
 `HIGHLIGHT_ELEMENT`, `SET_WIDGET_STATE`, `ANNOTATE_ELEMENT`, `REVEAL_ELEMENT`
-(`lib/action/engine.ts:872-901`), each followed by a `WIDGET_MS` (300 ms) dwell.
+([`lib/action/engine.ts:872-901`](lib/action/engine.ts#L872-L901)), each followed by a `WIDGET_MS` (300 ms) dwell.
 The send function is resolved **lazily per send**:
 
 ```ts
@@ -302,16 +302,16 @@ The comment at `:741-746` explains why: the keep-alive host registers its
 `postMessage` callback a commit *after* the engine is built, so resolving eagerly
 would capture `null` on a scene's first visit and silently drop every widget
 action. `sendWidgetMessage` logs a warning when no callback is set
-(`lib/action/engine.ts:867`).
+([`lib/action/engine.ts:867`](lib/action/engine.ts#L867)).
 
 ## Residual exposure — facts, not speculation
 
 1. **`entry.src` has no allowlist.** When a scene carries no inline `html`,
-   `InteractiveContent.url` (`packages/@openmaic/dsl/src/interactive.ts:53`) is
+   `InteractiveContent.url` ([`packages/@openmaic/dsl/src/interactive.ts:53`](packages/@openmaic/dsl/src/interactive.ts#L53)) is
    loaded into the same sandboxed iframe via `src`
-   (`InteractiveIframeHost.tsx:278`, `interactive-renderer.tsx:45`). No code in the
+   ([`InteractiveIframeHost.tsx:278`](components/scene-renderers/InteractiveIframeHost.tsx#L278), [`interactive-renderer.tsx:45`](components/scene-renderers/interactive-renderer.tsx#L45)). No code in the
    render path validates or restricts that URL. The DSL validator requires only
-   that at least one of `html` or `url` is a string (`interactive.ts:64`).
+   that at least one of `html` or `url` is a string ([`interactive.ts:64`](packages/@openmaic/dsl/src/interactive.ts#L64)).
 2. **Unrestricted egress on the live path.** No `connect-src` and no `script-src`
    means the page can `fetch` any origin and load remote scripts. It cannot read
    app cookies or storage, so this is a data-exfiltration and third-party-code
@@ -322,7 +322,7 @@ action. `sendWidgetMessage` logs a warning when no callback is set
    pointed at `about:blank`, so its timers, animations and network activity
    continue while the learner is on another scene.
 4. **The error shim's own listener does not check `event.source`**
-   (`lib/utils/iframe.ts:73`), so any frame that can reach it may trigger a buffer
+   ([`lib/utils/iframe.ts:73`](lib/utils/iframe.ts#L73)), so any frame that can reach it may trigger a buffer
    replay. Impact is bounded: the replay only re-posts to `window.parent`, and the
    parent dedupes.
 5. **No sanitisation, by design.** `patchHtmlForIframe` does not parse or filter
@@ -332,7 +332,7 @@ action. `sendWidgetMessage` logs a warning when no callback is set
 
 - Whether `InteractiveContent.url` is *supposed* to be allowlisted is a policy
   question with no answer in code. The DSL documents `url` as "a `src` fallback
-  used only when `html` is absent" (`interactive.ts:45-46`) and says nothing about
+  used only when `html` is absent" ([`interactive.ts:45-46`](packages/@openmaic/dsl/src/interactive.ts#L45-L46)) and says nothing about
   origin.
 - Whether the live classroom is *meant* to have no document CSP is likewise
   unrecorded. The exporter deliberately injects `default-src 'none'; connect-src
@@ -342,9 +342,9 @@ action. `sendWidgetMessage` logs a warning when no callback is set
 
 ## Next
 
-- [`./07-utterance-to-output.md`](./07-utterance-to-output.md) — the `widget_*`
+- [`./07-utterance-to-output.md`](docs/08-classroom-runtime/07-utterance-to-output.md) — the `widget_*`
   verbs as playback actions.
-- [`../15-cross-cutting/index.md`](../15-cross-cutting/index.md) — the app's other
+- [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md) — the app's other
   security boundaries.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — the
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — the
   export-path CSP and the static-capture harness.

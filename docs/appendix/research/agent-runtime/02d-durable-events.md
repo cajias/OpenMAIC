@@ -32,10 +32,10 @@ flowchart TD
 
 The split is the reason `media_ready` exists as its own lifecycle name: the job
 that emits it legitimately runs after `finishSession`, when the lease is gone,
-so it cannot use the run channel (`lifecycle.ts:122-132`, `runner.ts:1311-1319`).
+so it cannot use the run channel ([`lifecycle.ts:122-132`](lib/agent-runtime/lifecycle.ts#L122-L132), `runner.ts:1311-1319`).
 
 
-`lib/agent-runtime/lifecycle.ts:37` — the `HOST_AGENT_LIFECYCLE` keys and wire
+[`lib/agent-runtime/lifecycle.ts:37`](lib/agent-runtime/lifecycle.ts#L37) — the `HOST_AGENT_LIFECYCLE` keys and wire
 names, which are the browser's subscription list:
 
 | Key | Wire name | Written by |
@@ -82,15 +82,15 @@ export type HostAgentLifecycleEventType =           // lifecycle.ts:136
 
 A native `EventSource` routes a named frame **only** to a listener registered
 for that exact type, so the browser has to enumerate every name it wants
-(`lib/workbench/use-workbench-session.ts:63-72`). Two constants there make that
+([`lib/workbench/use-workbench-session.ts:63-72`](lib/workbench/use-workbench-session.ts#L63-L72)). Two constants there make that
 explicit:
 
-- `LEGACY_WORKBENCH_EVENT_TYPES` (`use-workbench-session.ts:84`) — names still
+- `LEGACY_WORKBENCH_EVENT_TYPES` ([`use-workbench-session.ts:84`](lib/workbench/use-workbench-session.ts#L84)) — names still
   present in historical logs that must keep being subscribed to. `stage_link`'s
   predecessor `course_link` is the documented member
-  (`lib/agent-runtime/lifecycle.ts:95-100`): emitters only ever write
+  ([`lib/agent-runtime/lifecycle.ts:95-100`](lib/agent-runtime/lifecycle.ts#L95-L100)): emitters only ever write
   `stage_link`, the fold matches both with identical semantics.
-- `WORKBENCH_EVENT_TYPES` (`use-workbench-session.ts:92`) — the union actually
+- `WORKBENCH_EVENT_TYPES` ([`use-workbench-session.ts:92`](lib/workbench/use-workbench-session.ts#L92)) — the union actually
   passed to `source.addEventListener` (`:243`) and removed on teardown (`:262`).
   Its lifecycle half is **derived** from `HOST_AGENT_LIFECYCLE` rather than
   retyped, so adding a host lifecycle name automatically subscribes the browser;
@@ -99,7 +99,7 @@ explicit:
 
 An old frontend that does not know a new type ignores it — the fold's default
 case — and loses only the affordance, which is the compatibility rule
-`lifecycle.ts:84-86` states for `user_question`.
+[`lifecycle.ts:84-86`](lib/agent-runtime/lifecycle.ts#L84-L86) states for `user_question`.
 
 ## Durable storage shape
 

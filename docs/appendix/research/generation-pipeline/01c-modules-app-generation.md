@@ -140,21 +140,21 @@ a generic comment (`:96`) rather than erroring.
 
 Generates teacher/assistant/student personas plus voice design for the classroom;
 `maxDuration = 120`. Consumed by the preview page's `agent-generation` step
-(`page.tsx:841`), which then writes them into the agent registry
-(`applyGeneratedAgentsToRegistry`, `page.tsx:875`).
+([`page.tsx:841`](app/generation-preview/page.tsx#L841)), which then writes them into the agent registry
+(`applyGeneratedAgentsToRegistry`, [`page.tsx:875`](app/generation-preview/page.tsx#L875)).
 
 ## Stage document routes
 
 All of `/api/stages*` and `/api/stage-meta/*` are owner-scoped and gated on
 `isAgentRuntimeConfigured()` — off, or on without `DATABASE_URL`, answers a plain
-404 (`app/api/stages/route.ts:36`).
+404 ([`app/api/stages/route.ts:36`](app/api/stages/route.ts#L36)).
 
 | Route | Behaviour worth knowing |
 | --- | --- |
 | `POST /api/stages` (`:50`) | mints `stage-<base64url(9 bytes)>`, saves a shell document with `outline = { outlines: [], requirement: name, generationComplete: false }` |
-| `GET/PATCH/PUT/DELETE /api/stages/[id]` | `PUT` is existence-gated so it cannot resurrect a deleted course, and the server always overwrites `stage.updatedAt` (`route.ts:170`); a `DocumentVersionError` becomes a 400 telling the client to reload (`:50`) |
+| `GET/PATCH/PUT/DELETE /api/stages/[id]` | `PUT` is existence-gated so it cannot resurrect a deleted course, and the server always overwrites `stage.updatedAt` ([`route.ts:170`](app/api/stages/[id]/route.ts#L170)); a `DocumentVersionError` becomes a 400 telling the client to reload (`:50`) |
 | `GET /api/stages/[id]/manifest` | `{rev, scenes:[{id,order,rev}]}` from DB triggers |
-| `GET /api/stages/[id]/scenes?ids=` | narrow re-fetch, deduped, `\0`/lone-surrogate ids dropped, capped at `MAX_BATCH_SCENE_IDS = 200` (`scenes/route.ts:33`) |
+| `GET /api/stages/[id]/scenes?ids=` | narrow re-fetch, deduped, `\0`/lone-surrogate ids dropped, capped at `MAX_BATCH_SCENE_IDS = 200` ([`scenes/route.ts:33`](app/api/stages/[id]/scenes/route.ts#L33)) |
 | `GET /api/stages/[id]/freshness` | polling SSE pushing the current rev; pure optimisation, a dead stream only costs latency |
 | `POST /api/stages/[id]/generation-complete` | narrow monotonic UPDATE so a stale load-time repair cannot clobber newer content (`:41`) |
 | `POST /api/stages/[id]/publish` / `unpublish` / `GET status` | publish refuses anonymous owners (`login_required`); `status` is unauthenticated and returns only the public flag |

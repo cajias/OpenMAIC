@@ -8,12 +8,12 @@ load-bearing when you reason about the rest of this topic.
 
 **Sources:** `middleware.ts`, `lib/server/access-token.ts`,
 `app/api/access-code/verify/route.ts`, `app/api/access-code/status/route.ts`,
-`components/access-code-guard.tsx`, `components/access-code-modal.tsx:34`,
-`.env.example:522-525`; evidence
-[../appendix/research/persistence-storage-state/03-flows.md](../appendix/research/persistence-storage-state/03-flows.md)
+`components/access-code-guard.tsx`, [`components/access-code-modal.tsx:34`](components/access-code-modal.tsx#L34),
+[`.env.example:522-525`](.env.example#L522-L525); evidence
+[../appendix/research/persistence-storage-state/03-flows.md](docs/appendix/research/persistence-storage-state/03-flows.md)
 (Flow 5),
-[../appendix/research/api-surface/](../appendix/research/api-surface/),
-[../appendix/research/quality-testing-ci-deps/](../appendix/research/quality-testing-ci-deps/).
+[../appendix/research/api-surface/00-overview.md](docs/appendix/research/api-surface/00-overview.md),
+[../appendix/research/quality-testing-ci-deps/00-overview.md](docs/appendix/research/quality-testing-ci-deps/00-overview.md).
 
 ## The surface
 
@@ -21,20 +21,20 @@ Exactly four files implement it, plus two routes:
 
 | Piece | File | Role |
 | --- | --- | --- |
-| The gate | `middleware.ts:46-86` | runs on every matched request; 404s `/workbench*`, then enforces the cookie |
-| Edge verifier | `middleware.ts:18-44` | hand-rolled HMAC-SHA256 over `crypto.subtle`, because `node:crypto` is unavailable on the Edge runtime |
-| Node token helpers | `lib/server/access-token.ts:4,11` | `createAccessToken` / `verifyAccessToken`, used by the two routes |
+| The gate | [`middleware.ts:46-86`](middleware.ts#L46-L86) | runs on every matched request; 404s `/workbench*`, then enforces the cookie |
+| Edge verifier | [`middleware.ts:18-44`](middleware.ts#L18-L44) | hand-rolled HMAC-SHA256 over `crypto.subtle`, because `node:crypto` is unavailable on the Edge runtime |
+| Node token helpers | [`lib/server/access-token.ts:4,11`](lib/server/access-token.ts#L4) | `createAccessToken` / `verifyAccessToken`, used by the two routes |
 | Issuance | `app/api/access-code/verify/route.ts` | `POST`; compares the submitted code, mints the cookie |
 | Introspection | `app/api/access-code/status/route.ts` | `GET`; `{ enabled, authenticated }` |
 | Client gate | `components/access-code-guard.tsx` | mounted in the root layout; renders the modal when `enabled && !authenticated` |
 
-`.env.example:522-525` documents the whole feature in three lines: "Set a password
+[`.env.example:522-525`](.env.example#L522-L525) documents the whole feature in three lines: "Set a password
 to restrict site access. When set, users must enter this code before using the
 app. Leave empty or remove to disable access control."
 
 ## The token
 
-`createAccessToken(accessCode)` (`lib/server/access-token.ts:4-8`) is:
+`createAccessToken(accessCode)` ([`lib/server/access-token.ts:4-8`](lib/server/access-token.ts#L4-L8)) is:
 
 ```
 timestamp = Date.now().toString()
@@ -49,7 +49,7 @@ can mint a valid token themselves without ever calling the endpoint.
 
 Verification exists twice, in two runtimes, with different comparison primitives:
 
-| | Edge (`middleware.ts:18-44`) | Node (`access-token.ts:11-25`) |
+| | Edge ([`middleware.ts:18-44`](middleware.ts#L18-L44)) | Node ([`access-token.ts:11-25`](lib/server/access-token.ts#L11-L25)) |
 | --- | --- | --- |
 | HMAC | `crypto.subtle.importKey` + `sign`, hex-encoded by hand | `createHmac('sha256', accessCode)` |
 | Compare | length check, then an XOR-accumulate loop over `charCodeAt`; the comment says "not truly constant-time in JS, but sufficient here" (`:37`) | `timingSafeEqual` over the two hex-decoded `Buffer`s |
@@ -83,10 +83,10 @@ Order matters twice here:
    workbench answers 404 whether or not the visitor is authenticated. Its
    correctness note is in the source: Edge middleware "cannot reliably inspect
    server-only deployment variables", so it enforces the public flag and defers the
-   runtime/database half to Node (`middleware.ts:49-55`).
+   runtime/database half to Node ([`middleware.ts:49-55`](middleware.ts#L49-L55)).
 2. Unauthenticated **page** requests are let through deliberately, so the client
-   can render a modal rather than a bare 401 (`middleware.ts:84-85`). Only
-   `/api/*` is hard-blocked. That is also why [04-settings-server-sync.md](./04-settings-server-sync.md)
+   can render a modal rather than a bare 401 ([`middleware.ts:84-85`](middleware.ts#L84-L85)). Only
+   `/api/*` is hard-blocked. That is also why [04-settings-server-sync.md](docs/10-persistence-and-state/04-settings-server-sync.md)
    needs a second `fetchServerProviders()` call after the modal succeeds.
 
 The allowlist is two entries: `/api/access-code/*` (so the visitor can
@@ -133,18 +133,18 @@ sequenceDiagram
 
 `POST /api/access-code/verify` with `ACCESS_CODE` unset answers
 `{ valid: true }` **unconditionally and sets no cookie**
-(`verify/route.ts:7-10`). A client cannot distinguish "correct code" from "no gate
+([`verify/route.ts:7-10`](app/api/access-code/verify/route.ts#L7-L10)). A client cannot distinguish "correct code" from "no gate
 configured" from the response body alone — it has to read `status`.
 
 `AccessCodeGuard` fails closed on its own error path: if `GET
 /api/access-code/status` throws, it sets `{ enabled: true, authenticated: false }`
-because that is "safer than silently disabling" (`access-code-guard.tsx:29-31`).
+because that is "safer than silently disabling" ([`access-code-guard.tsx:29-31`](components/access-code-guard.tsx#L29-L31)).
 
 ## What it authorises, and its bounds
 
 | Property | Value |
 | --- | --- |
-| Scope | every path matched by `matcher: ['/((?!_next/static\|_next/image\|favicon.ico\|logos/).*)']` (`middleware.ts:88-90`) — all of `/api/*` hard, all pages soft |
+| Scope | every path matched by `matcher: ['/((?!_next/static\|_next/image\|favicon.ico\|logos/).*)']` ([`middleware.ts:88-90`](middleware.ts#L88-L90)) — all of `/api/*` hard, all pages soft |
 | Cookie | `openmaic_access`, HttpOnly, SameSite=Lax, `Path=/` |
 | Client-side lifetime | `maxAge = 60 * 60 * 24 * 7` seconds (7 days) |
 | Server-side lifetime | **none** — no code path compares the signed timestamp to now |
@@ -158,18 +158,18 @@ because that is "safer than silently disabling" (`access-code-guard.tsx:29-31`).
 1. **Not authentication.** It carries no principal. Two people who know the same
    code are indistinguishable to every downstream route. Owner identity is a
    *separate*, unrelated mechanism: the `anonymous_id` UUIDv4 cookie resolved by
-   `resolveRequestOwnerId` (`lib/server/agent-runtime/owner.ts:52-64`), which
+   `resolveRequestOwnerId` ([`lib/server/agent-runtime/owner.ts:52-64`](lib/server/agent-runtime/owner.ts#L52-L64)), which
    prefixes `anon:` and whose `authenticatedOwnerId` parameter no call site
    supplies. Its own comment says a future auth integration "must thread
    `authenticatedOwnerId` through those call sites".
 2. **Not authorization.** Passing the gate grants the same access as every other
    visitor. Per-document ownership is enforced separately and lower down, by the
    `stage_meta` row fence in `OwnerBoundDocumentStore`
-   ([02-data-model.md](./02-data-model.md)) — which fences on the *anonymous cookie
+   ([02-data-model.md](docs/10-persistence-and-state/02-data-model.md)) — which fences on the *anonymous cookie
    owner*, not on the access code.
 3. **Not the persistence auth.** Server-mode persistence uses
    `PERSISTENCE_DEV_TOKEN` plus a client-supplied `x-learner-key`, and
-   `lib/persistence/server-auth.ts:1-13` states plainly that this "provides no
+   [`lib/persistence/server-auth.ts:1-13`](lib/persistence/server-auth.ts#L1-L13) states plainly that this "provides no
    confidentiality and no user isolation — anyone who can load the page can read and
    write EVERY learner partition and all documents by supplying an arbitrary
    x-learner-key", and is "suitable only for localhost or trusted-network,
@@ -187,11 +187,11 @@ public app. It does not make the app multi-user.
 ## Cross-references
 
 - The middleware's other job, and the full request edge:
-  [../03-app-and-api/index.md](../03-app-and-api/index.md)
-- Per-route auth (and its absence): [../12-api-reference/index.md](../12-api-reference/index.md)
+  [../03-app-and-api/index.md](docs/03-app-and-api/index.md)
+- Per-route auth (and its absence): [../12-api-reference/index.md](docs/12-api-reference/index.md)
 - The three unrelated identities this repo mints:
-  [08-data-lifecycle.md](./08-data-lifecycle.md)
-- Cross-cutting security posture: [../15-cross-cutting/index.md](../15-cross-cutting/index.md)
+  [08-data-lifecycle.md](docs/10-persistence-and-state/08-data-lifecycle.md)
+- Cross-cutting security posture: [../15-cross-cutting/index.md](docs/15-cross-cutting/index.md)
 
 ## Open questions
 

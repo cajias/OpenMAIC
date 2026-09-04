@@ -1,6 +1,6 @@
 # PBL v2: Wire Protocol, Runtime Ledger, and Legacy Reachability
 
-The second half of PBL v2, split from [`./08-pbl-v2.md`](./08-pbl-v2.md) for
+The second half of PBL v2, split from [`./08-pbl-v2.md`](docs/08-classroom-runtime/08-pbl-v2.md) for
 length. That page covers the instructor agent and the task engine; this one covers
 how state crosses the wire, how learner progress is stored and reconstructed, and
 exactly how reachable the legacy v1 project shape is.
@@ -10,8 +10,8 @@ exactly how reachable the legacy v1 project shape is.
 `lib/pbl/v2/runtime/{drain,fold,hydration,learner-state,document-persistence}.ts`,
 `lib/pbl/legacy/read.ts`, `components/scene-renderers/pbl-renderer.tsx`,
 `lib/pbl/v2/types.ts`,
-[`../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md`](../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md),
-[`../appendix/research/classroom-runtime/02b-interfaces-pbl-and-scenes.md`](../appendix/research/classroom-runtime/02b-interfaces-pbl-and-scenes.md).
+[`../appendix/research/classroom-runtime/01b-modules-pbl-interactive.md`](docs/appendix/research/classroom-runtime/01b-modules-pbl-interactive.md),
+[`../appendix/research/classroom-runtime/02b-interfaces-pbl-and-scenes.md`](docs/appendix/research/classroom-runtime/02b-interfaces-pbl-and-scenes.md).
 
 ## The wire protocol is stateless
 
@@ -23,7 +23,7 @@ describing what changed. Six patch kinds: `message`, `advance`, `engagement_even
 The `advance` patch carries three `shouldEvaluate*` booleans — the server telling
 the client *what to do next declaratively*, because the server "doesn't know the
 client's stream state" and running the evaluator inline with the instructor would
-interleave two LLM token streams into the same draft (`sse.ts:88-93`).
+interleave two LLM token streams into the same draft ([`sse.ts:88-93`](lib/pbl/v2/api/sse.ts#L88-L93)).
 
 `createSSEResponse` adds a 15 s `: keepalive` comment and
 `X-Accel-Buffering: no` so a proxy cannot idle the stream out, and its catch still
@@ -110,10 +110,10 @@ Properties stated in the code:
 - Two independent watermarks, one per outbox, so a partial drain of one does not
   re-emit the other.
 - `PBL_DRAIN_TIMEOUT_MS = 10_000` and `PBL_DRAIN_CHAIN_HARD_CAP_MS = 20_000`
-  (`drain.ts:29-31`), with `PBL_HYDRATION_DRAIN_BARRIER_TIMEOUT_MS` aliased to the
+  ([`drain.ts:29-31`](lib/pbl/v2/runtime/drain.ts#L29-L31)), with `PBL_HYDRATION_DRAIN_BARRIER_TIMEOUT_MS` aliased to the
   hard cap (`:31`) and a timeout error naming the budget (`:408`).
 - A watermark pointing at an event that has already rolled out of a ring is handled
-  rather than fatal (`drain.ts:7`).
+  rather than fatal ([`drain.ts:7`](lib/pbl/v2/runtime/drain.ts#L7)).
 - `hydratePBLProject` reports `source`, `diagnostics`, `diff` and `selfHealed`, so
   divergence between ledger and document is observable rather than silently
   resolved.
@@ -125,7 +125,7 @@ Properties stated in the code:
 
 **Read-only, yes. Runnable, no. Persistable, no.**
 
-`resolvePBLContent(content)` (`lib/pbl/legacy/read.ts:206`) is the single arbiter
+`resolvePBLContent(content)` ([`lib/pbl/legacy/read.ts:206`](lib/pbl/legacy/read.ts#L206)) is the single arbiter
 and returns one of three kinds:
 
 ```ts
@@ -161,7 +161,7 @@ stateDiagram-v2
 - `legacy` when a non-empty `projectConfig` has `issueboard.issues.length > 0`
   (`:213-220`).
 - `empty` otherwise → `PBLRenderer` renders `t('pbl.emptyProject')`
-  (`pbl-renderer.tsx:69-73`).
+  ([`pbl-renderer.tsx:69-73`](components/scene-renderers/pbl-renderer.tsx#L69-L73)).
 
 A `legacy` result is **immediately upgraded** in the renderer:
 
@@ -173,14 +173,14 @@ return null;
 // components/scene-renderers/pbl-renderer.tsx:44-49
 ```
 
-`upgradeLegacyPBLConfigToProjectV2` (`legacy/read.ts:84`) synthesises: one
+`upgradeLegacyPBLConfigToProjectV2` ([`legacy/read.ts:84`](lib/pbl/legacy/read.ts#L84)) synthesises: one
 `instructor` compatibility role, one milestone per legacy issue ordered by
 `issue.index` (`:93`), exactly one microtask per milestone, notes lifted into a
 reference document, and the legacy chat replayed into the instructor thread. So
 there is **no legacy runtime** — only a read-time projection into the v2 shape,
 after which every v2 code path applies unchanged.
 
-The module header is explicit about the direction (`legacy/read.ts:5`): *"Writers
+The module header is explicit about the direction ([`legacy/read.ts:5`](lib/pbl/legacy/read.ts#L5)): *"Writers
 must never import it to create or project legacy shapes."*
 
 ### The asymmetry that loses progress
@@ -203,17 +203,17 @@ retains it is a separate question (the drain path is keyed by
 `(stageId, sceneId, learnerKey)` and does not consult `resolvePBLContent`); that
 end-to-end path was not traced.
 
-Production importers of `lib/pbl/legacy/read.ts` are: `pbl-renderer.tsx:9`,
-`lib/pbl/v2/runtime/hydration.ts:9`, `lib/pbl/v2/runtime/document-persistence.ts:2`,
-`app/api/generate/scene-actions/route.ts:28`,
-`lib/server/agent-runtime/generation-content.ts:8`, and
-`lib/document-store/validators.ts:10` (`isEmptyLegacyPBLConfig`), plus one
-type-only import (`lib/types/stage.ts:20`).
+Production importers of `lib/pbl/legacy/read.ts` are: [`pbl-renderer.tsx:9`](components/scene-renderers/pbl-renderer.tsx#L9),
+[`lib/pbl/v2/runtime/hydration.ts:9`](lib/pbl/v2/runtime/hydration.ts#L9), [`lib/pbl/v2/runtime/document-persistence.ts:2`](lib/pbl/v2/runtime/document-persistence.ts#L2),
+[`app/api/generate/scene-actions/route.ts:28`](app/api/generate/scene-actions/route.ts#L28),
+[`lib/server/agent-runtime/generation-content.ts:8`](lib/server/agent-runtime/generation-content.ts#L8), and
+[`lib/document-store/validators.ts:10`](lib/document-store/validators.ts#L10) (`isEmptyLegacyPBLConfig`), plus one
+type-only import ([`lib/types/stage.ts:20`](lib/types/stage.ts#L20)).
 
 ## Adaptive proficiency, and who sees it
 
 `PBLProficiencyAssessment` is an EWMA on `[-1, +1]` whose tier bounds are
-**asymmetric** (`packages/@openmaic/generation/src/pbl/operations/kernel/proficiency.ts:73-83`):
+**asymmetric** ([`packages/@openmaic/generation/src/pbl/operations/kernel/proficiency.ts:73-83`](packages/@openmaic/generation/src/pbl/operations/kernel/proficiency.ts#L73-L83)):
 a learner crosses the *outer* boundary to ENTER a tier and only the *inner*
 boundary to LEAVE it, and that pair is the hysteresis. Enter-advanced is `0.50`,
 not `0.33` — the comment at `:74-78` records that the original hysteresis design
@@ -228,22 +228,22 @@ level, quiz accuracy) and seven dynamic; signal history is bounded to the most
 recent 50.
 
 The learner never sees the tier. The only surface named in code is a dev badge
-behind `PBL_V2_DEV_PROFICIENCY_BADGE` (`lib/pbl/v2/api/sse.ts:122`).
+behind `PBL_V2_DEV_PROFICIENCY_BADGE` ([`lib/pbl/v2/api/sse.ts:122`](lib/pbl/v2/api/sse.ts#L122)).
 
 ## Failure surface
 
 | Failure | Detection | Result |
 | --- | --- | --- |
-| No active microtask | `instructor.ts:1308` | SSE `error NO_ACTIVE_MICROTASK` + `done`; the client surfaces the message |
+| No active microtask | [`instructor.ts:1308`](lib/pbl/v2/agents/instructor.ts#L1308) | SSE `error NO_ACTIVE_MICROTASK` + `done`; the client surfaces the message |
 | Model unresolvable | `resolveModelFromRequest` throws | `400 INVALID_REQUEST` before any stream opens |
 | LLM stream emits an `error` part | `instructor.ts` `fullStream` loop | `error LLM_ERROR` yielded, the generator **keeps running** |
 | Generator throws anywhere | `createSSEResponse` catch | `STREAM_ERROR` + `done` are still written to the wire |
 | Client disconnects | `req.signal` → `onAbort` → `safeClose()` | heartbeat cleared, listener removed, server stops burning compute |
-| Instructor produced nothing | `shouldReportEmptyOutput` (`instructor.ts:435`) | `error EMPTY_LLM_OUTPUT`; tolerated **only** by `submission.tsx`'s inline reader on a post-evaluation reaction turn |
+| Instructor produced nothing | `shouldReportEmptyOutput` ([`instructor.ts:435`](lib/pbl/v2/agents/instructor.ts#L435)) | `error EMPTY_LLM_OUTPUT`; tolerated **only** by `submission.tsx`'s inline reader on a post-evaluation reaction turn |
 | Any error on an eval stream | never tolerated | the chain aborts and the error is surfaced |
 | Two openers fire in one effect flush | the synchronous `runningRef` lock | the second call is rejected |
-| `task/update` with no pending completion | `400 'No pending task completion to confirm.'` (`task/update/route.ts:83`) | the Done button stays available |
-| `advanceMicrotask` on a terminal microtask | `{ok:false, error:'already_terminal'}` (`progress.ts:484`) | the route returns 400 |
+| `task/update` with no pending completion | `400 'No pending task completion to confirm.'` ([`task/update/route.ts:83`](app/api/pbl/v2/task/update/route.ts#L83)) | the Done button stays available |
+| `advanceMicrotask` on a terminal microtask | `{ok:false, error:'already_terminal'}` ([`progress.ts:484`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L484)) | the route returns 400 |
 | `enter_scenario` / `complete_act` on a non-scenario project | explicit `400 'Not a scenario project.'` | ordinary projects can never be affected |
 | `task/update` fetch non-2xx | `if (!res.ok) return;` in `workspace.tsx` | **silent** — the button re-enables in `finally` and the learner gets no message |
 | Runtime record missing its required attachment | recorded as a `PBLFoldGap` | the fold continues; the gap is observable in diagnostics |
@@ -267,8 +267,8 @@ behind `PBL_V2_DEV_PROFICIENCY_BADGE` (`lib/pbl/v2/api/sse.ts:122`).
 
 ## Next
 
-- [`./08-pbl-v2.md`](./08-pbl-v2.md) — the instructor agent and the task engine.
-- [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md) —
+- [`./08-pbl-v2.md`](docs/08-classroom-runtime/08-pbl-v2.md) — the instructor agent and the task engine.
+- [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md) —
   the `RuntimeStore` this ledger lives in.
-- [`../12-api-reference/index.md`](../12-api-reference/index.md) — the
+- [`../12-api-reference/index.md`](docs/12-api-reference/index.md) — the
   `/api/pbl/v2/*` endpoints.

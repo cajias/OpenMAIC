@@ -7,9 +7,9 @@ partial-failure matrix per layer.
 **Sources:** `lib/utils/concurrency.ts`, `lib/hooks/use-scene-generator.ts`,
 `packages/@openmaic/generation/src/generation-retry.ts`,
 `app/api/generate/{scene-content,scene-actions,scene-outlines-stream}/route.ts`,
-`lib/server/classroom-generation.ts`, `lib/server/provider-config.ts:1112`;
-evidence: [`05-failure-modes.md`](../appendix/research/generation-pipeline/05-failure-modes.md),
-[`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
+`lib/server/classroom-generation.ts`, [`lib/server/provider-config.ts:1112`](lib/server/provider-config.ts#L1112);
+evidence: [`05-failure-modes.md`](docs/appendix/research/generation-pipeline/05-failure-modes.md),
+[`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
 
 ## Fan-out is opt-in and server-configured
 
@@ -30,14 +30,14 @@ keys with low per-key concurrency quotas, where a bursty default would surface a
 
 Default `0` means the browser keeps the original strictly-serial loop. The value is clamped
 **three times** — in `getParallelSceneConcurrency`, again in the settings store
-(`lib/store/settings.ts:1913`), and a third time in the loop itself
-(`use-scene-generator.ts:689-695`) with the comment "re-clamp here so a stale/garbage store
+([`lib/store/settings.ts:1913`](lib/store/settings.ts#L1913)), and a third time in the loop itself
+([`use-scene-generator.ts:689-695`](lib/hooks/use-scene-generator.ts#L689-L695)) with the comment "re-clamp here so a stale/garbage store
 value can never spawn an unbounded fetch fan-out". Parallelism activates only when
 `parallelConcurrency > 1 && pending.length > 1` (`:696`).
 
 ## The no-barrier primitive
 
-`lazyBoundedMap` (`lib/utils/concurrency.ts:47`) returns one promise per item
+`lazyBoundedMap` ([`lib/utils/concurrency.ts:47`](lib/utils/concurrency.ts#L47)) returns one promise per item
 **immediately, in input order**, without awaiting them. Each item acquires a slot on a FIFO
 counting semaphore before `fn` runs.
 
@@ -94,7 +94,7 @@ flowchart TD
   a1 -.-> note2
 ```
 
-The asymmetry is documented in place (`use-scene-generator.ts:698-706`): content has no
+The asymmetry is documented in place ([`use-scene-generator.ts:698-706`](lib/hooks/use-scene-generator.ts#L698-L706)): content has no
 cross-scene dependency so running it ahead is safe, while "actions + TTS stay strictly
 serial to preserve `previousSpeeches` threading and the pause-on-failure UX". Consuming the
 content promises inside the serial loop also means the **first scene still paints after
@@ -163,7 +163,7 @@ stateDiagram-v2
 ```
 
 Defaults are 5 retries, 1000 ms base, 16 000 ms cap
-(`generation-retry.ts:21-23`). The delay is clamped to the cap **twice** (`:172-174`):
+([`generation-retry.ts:21-23`](packages/@openmaic/generation/src/generation-retry.ts#L21-L23)). The delay is clamped to the cap **twice** ([`:172-174`](packages/@openmaic/generation/src/generation-retry.ts#L172-L174)):
 
 ```ts
 const exponentialDelay = Math.min(maxDelayMs, baseDelayMs * 2 ** Math.max(0, attempt - 1));
@@ -191,7 +191,7 @@ tests can be deterministic.
 
 The status-code walk through `cause`/`lastError`/`errors[]` is what lets a provider 429
 buried inside the AI SDK's `RetryError` be classified correctly. On the browser side,
-`createHttpError` (`use-scene-generator.ts:110`) attaches `errorCode` and `statusCode` from
+`createHttpError` ([`use-scene-generator.ts:110`](lib/hooks/use-scene-generator.ts#L110)) attaches `errorCode` and `statusCode` from
 the route's error envelope onto the thrown `Error` precisely so this classifier can see the
 HTTP status of a failure that happened two hops away.
 
@@ -204,4 +204,4 @@ the browser, in Node route handlers, and under Vitest.
 This section outgrew the file-size ceiling and was split. Partial-failure semantics in both
 drivers, the traced twenty-scene failure, abort propagation, epoch guarding, TTS fan-out, the
 full partial-failure matrix, and the open questions are in
-[`./07b-partial-failure-and-cancellation.md`](./07b-partial-failure-and-cancellation.md).
+[`./07b-partial-failure-and-cancellation.md`](docs/06-generation-pipeline/07b-partial-failure-and-cancellation.md).

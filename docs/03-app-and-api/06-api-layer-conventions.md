@@ -6,7 +6,7 @@ skeleton, seven shared helpers with measured adoption, four competing error
 envelopes, and zero schema validation. This file states the convention and names
 every deviation.
 
-The endpoint-by-endpoint reference is [`../12-api-reference/index.md`](../12-api-reference/index.md).
+The endpoint-by-endpoint reference is [`../12-api-reference/index.md`](docs/12-api-reference/index.md).
 
 **Sources:** `lib/server/api-response.ts`,
 `lib/server/agent-runtime/{with-owner,owner,route-response}.ts`,
@@ -15,9 +15,9 @@ The endpoint-by-endpoint reference is [`../12-api-reference/index.md`](../12-api
 `app/api/stages/[id]/status/route.ts`, `app/api/folders/route.ts`,
 `app/api/access-code/verify/route.ts`; adoption counts from `git grep -ln … --
 'app/api'`. Evidence:
-[`../appendix/research/api-surface/01a-modules-shared-helpers.md`](../appendix/research/api-surface/01a-modules-shared-helpers.md),
-[`02a`](../appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
-[`02b`](../appendix/research/api-surface/02b-interfaces-egress-body-sse.md).
+[`../appendix/research/api-surface/01a-modules-shared-helpers.md`](docs/appendix/research/api-surface/01a-modules-shared-helpers.md),
+[`02a`](docs/appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
+[`02b`](docs/appendix/research/api-surface/02b-interfaces-egress-body-sse.md).
 
 ## Helper adoption, measured
 
@@ -86,7 +86,7 @@ Five properties this skeleton encodes, each verifiable at
 4. **`await params`** — Next 16 dynamic params are a promise
    (`type Params = { params: Promise<{ id: string }> }`, line 33).
 5. **Every response carries the owner headers**, including the catch-all 500
-   (`with-owner.ts:20-23`). The comment there gives the reason: a 500 that dropped
+   ([`with-owner.ts:20-23`](lib/server/agent-runtime/with-owner.ts#L20-L23)). The comment there gives the reason: a 500 that dropped
    the minted cookie would silently make the client's retry a *different* anonymous
    owner.
 
@@ -136,17 +136,17 @@ every owner id in a running deployment begins with `anon:`, so
 Note the one place identity is resolved *outside* a route: the single Server
 Action, `lib/workbench/workspace-actions.ts`, re-reads the same cookie with the
 same UUID-v4 guard because it has no `Request` to pass
-([`./03-server-client-components.md`](./03-server-client-components.md)).
+([`./03-server-client-components.md`](docs/03-app-and-api/03-server-client-components.md)).
 
 ## Validation conventions
 
-**`zod` is a declared dependency (`package.json:165`, `^4.3.5`) and is imported by
+**`zod` is a declared dependency ([`package.json:165`](package.json#L165), `^4.3.5`) and is imported by
 zero route files.** `git grep -ln zod -- 'app/api'` returns nothing; six modules
 under `lib/` and `packages/` use it (notably
-`lib/video-export/ir.ts:373`, where `VideoTimelineSchema` is the authored
+[`lib/video-export/ir.ts:373`](lib/video-export/ir.ts#L373), where `VideoTimelineSchema` is the authored
 contract). Every HTTP request body in the app is validated by hand.
 
-The house pattern, from `app/api/stages/[id]/route.ts:118-144`:
+The house pattern, from [`app/api/stages/[id]/route.ts:118-144`](app/api/stages/[id]/route.ts#L118-L144):
 
 | Step | Technique |
 | --- | --- |
@@ -160,7 +160,7 @@ The house pattern, from `app/api/stages/[id]/route.ts:118-144`:
 This is consistent, readable, and untyped at the boundary: a body that passes the
 hand-checks is then `as`-cast to the declared interface, so any field the handler
 did not explicitly check is trusted. The deeper defence is that the *store*
-re-validates: the comment at `app/api/stages/[id]/route.ts:166-167` notes the full
+re-validates: the comment at [`app/api/stages/[id]/route.ts:166-167`](app/api/stages/[id]/route.ts#L166-L167) notes the full
 payload is validated inside `@openmaic/storage` before anything is persisted, and
 those failures map to 400 via `mapSaveError` (lines 46-62).
 
@@ -178,15 +178,15 @@ flowchart TD
 ```
 
 Two of the three JSON shapes are documented as deliberate ports of a reference
-implementation: `app/api/folders/route.ts:46` (*"The reference's error envelope:
-`{ error: { code, message } }`"*) and `app/api/stages/[id]/status/route.ts:9`
+implementation: [`app/api/folders/route.ts:46`](app/api/folders/route.ts#L46) (*"The reference's error envelope:
+`{ error: { code, message } }`"*) and [`app/api/stages/[id]/status/route.ts:9`](app/api/stages/[id]/status/route.ts#L9)
 (*"Convention: snake_case error codes"*). The plain-text 404 is the deliberate
 no-existence-oracle posture stated at
-`lib/server/agent-runtime/route-response.ts:36-40`. The net effect is still that a
+[`lib/server/agent-runtime/route-response.ts:36-40`](lib/server/agent-runtime/route-response.ts#L36-L40). The net effect is still that a
 generic client cannot branch on one error shape.
 
 `apiSuccess<T extends Record<string, unknown>>(data, status = 200)` spreads `data`
-next to `success: true` (`api-response.ts:69`), so there is no `data` wrapper and
+next to `success: true` ([`api-response.ts:69`](lib/server/api-response.ts#L69)), so there is no `data` wrapper and
 a payload field named `success` or `error` collides with the envelope by design.
 
 ## Streaming conventions
@@ -197,17 +197,17 @@ are SSE, split across two mechanisms:
 
 | Mechanism | Routes | Frame format | Named events | Heartbeat |
 | --- | --- | --- | --- | --- |
-| `createSSEResponse` (`lib/pbl/v2/api/sse.ts:211`) | `pbl/v2/{instructor,open-task,evaluate,simulator}` | `event: <type>` + `data: <json>` (`sse.ts:187`) | 7 typed `PBLSSEEvent` kinds | `: keepalive` / 15 s default (`sse.ts:192,215`) |
+| `createSSEResponse` ([`lib/pbl/v2/api/sse.ts:211`](lib/pbl/v2/api/sse.ts#L211)) | `pbl/v2/{instructor,open-task,evaluate,simulator}` | `event: <type>` + `data: <json>` ([`sse.ts:187`](lib/pbl/v2/api/sse.ts#L187)) | 7 typed `PBLSSEEvent` kinds | `: keepalive` / 15 s default (`sse.ts:192,215`) |
 | hand-rolled stream — `TransformStream` for `chat` and `chat/pi`, `ReadableStream` for `generate/scene-outlines-stream` | `chat`, `chat/pi`, `generate/scene-outlines-stream` | `data: <json>` only | none — the discriminator is inside the JSON | `:heartbeat` / 15 s |
 | hand-rolled `ReadableStream` | `agent/sessions/[id]/events`, `agent/owner-events`, `stages/[id]/freshness` | `id:` + `event:` + `data:` | `caught_up`, `resync_required`, `owner_moved`, `stage_freshness` | `: ping` / 25 s |
 
 Only the last group is consumable by a native `EventSource` with typed listeners
 and `Last-Event-ID` replay. `createSSEResponse` also sets
-`X-Accel-Buffering: no`; the heartbeat comment at `sse.ts:190-191` names the
+`X-Accel-Buffering: no`; the heartbeat comment at [`sse.ts:190-191`](lib/pbl/v2/api/sse.ts#L190-L191) names the
 reason — Vercel and nginx drop idle connections around 30-60 s.
 
-`PBLSSEEvent` (`sse.ts:168-178`) is the **only** formally typed streaming contract
-in the surface. Generator semantics are documented at `sse.ts:202-209`: an `error`
+`PBLSSEEvent` ([`sse.ts:168-178`](lib/pbl/v2/api/sse.ts#L168-L178)) is the **only** formally typed streaming contract
+in the surface. Generator semantics are documented at [`sse.ts:202-209`](lib/pbl/v2/api/sse.ts#L202-L209): an `error`
 event does not stop the generator, a final `done` event is mandatory, and a throw
 emits `error` + `done` before closing.
 
@@ -233,9 +233,9 @@ passes the single deployment-wide access-code gate — or by anyone at all when
 
 **There is no rate limiting anywhere.** `git grep -ni "rate.limit" -- app/api`
 matches exactly three lines, and all three are *propagation* of an upstream 429
-(`app/api/generate/tts/route.ts:168` returns `apiError('RATE_LIMITED', 429, …)`;
-`app/api/verify-model/route.ts:65` maps a provider message;
-`app/api/export-video/render/route.ts:92` maps a 429 from the render service onto
+([`app/api/generate/tts/route.ts:168`](app/api/generate/tts/route.ts#L168) returns `apiError('RATE_LIMITED', 429, …)`;
+[`app/api/verify-model/route.ts:65`](app/api/verify-model/route.ts#L65) maps a provider message;
+[`app/api/export-video/render/route.ts:92`](app/api/export-video/render/route.ts#L92) maps a 429 from the render service onto
 `'RATE_LIMITED'`). No counter, bucket, or store exists. The LLM-spending endpoints and `POST /api/access-code/verify` are
 equally unthrottled.
 
@@ -246,10 +246,10 @@ equally unthrottled.
 | No shared envelope | `folders/**`, `persistence/[...path]` | `{ error: { code, message } }` — a deliberate reference port |
 | No shared envelope | `stages/[id]/{status,publish,unpublish,generation-complete}`, `stage-meta/[stageId]` | `{ error: 'snake_case' }` — deliberate, documented |
 | Owner resolved directly, not via `withRequestOwnerId` | `agent/owner-events`, `agent/sessions/[id]/events`, `stages/[id]/freshness` | they build streaming responses, so the wrapper's return type does not fit |
-| Bare `fetch` instead of `proxyFetch` | `proxy-media`, every `verify-*` | `proxyFetch` is what reads `https_proxy`/`no_proxy` (`proxy-fetch.ts:30-45`); its 14 callers are `export-video/**` (3 routes), `lib/server/render-service.ts`, `lib/server/agent-runtime/scene-preview.ts` and the nine `lib/web-search/*` providers |
+| Bare `fetch` instead of `proxyFetch` | `proxy-media`, every `verify-*` | `proxyFetch` is what reads `https_proxy`/`no_proxy` ([`proxy-fetch.ts:30-45`](lib/server/proxy-fetch.ts#L30-L45)); its 14 callers are `export-video/**` (3 routes), `lib/server/render-service.ts`, `lib/server/agent-runtime/scene-preview.ts` and the nine `lib/web-search/*` providers |
 | SSRF strictness differs between siblings | `proxy-media` re-validates every redirect hop; others validate once | `validateUrlForSSRF` resolves DNS itself and `fetch` resolves again — a check-then-fetch gap |
-| Global SSRF off-switch | all 16 `validateUrlForSSRF` callers | `ALLOW_LOCAL_NETWORKS=true` short-circuits `validateUrlForSSRF` to `null` (`ssrf-guard.ts:265-268`) for every one at once — the 13 route files plus `agent-runtime/generate-image.ts`, `agent-runtime/generate-video.ts` and `resolve-model.ts` |
-| SSRF on a client base URL is production-only | `resolve-model.ts:105-110` | a deliberate dev affordance |
+| Global SSRF off-switch | all 16 `validateUrlForSSRF` callers | `ALLOW_LOCAL_NETWORKS=true` short-circuits `validateUrlForSSRF` to `null` ([`ssrf-guard.ts:265-268`](lib/server/ssrf-guard.ts#L265-L268)) for every one at once — the 13 route files plus `agent-runtime/generate-image.ts`, `agent-runtime/generate-video.ts` and `resolve-model.ts` |
+| SSRF on a client base URL is production-only | [`resolve-model.ts:105-110`](lib/server/resolve-model.ts#L105-L110) | a deliberate dev affordance |
 | Error inside a 200 | `generate/scene-outlines-stream` | exhausted retries emit `{ type: 'error' }` inside an already-open 200 stream |
 | Unconditional success | `access-code/verify` | returns `apiSuccess({ valid: true })` when `ACCESS_CODE` is unset (line 8-10) |
 | Not the HTTP surface at all | `lib/api/*` | despite the directory name, an in-process stage-store toolkit for agents; imported by no route file |
@@ -259,7 +259,7 @@ equally unthrottled.
 86 handlers by method, counted over the 69 route files: **31 GET, 44 POST, 2 PUT,
 4 PATCH, 5 DELETE**. 81 are `export async function <METHOD>`; the remaining 5 are
 `export const <METHOD> = (request) => handlePersistenceRequest(request)` at
-`app/api/persistence/[...path]/route.ts:325-329`, the only route that mounts a
+[`app/api/persistence/[...path]/route.ts:325-329`](app/api/persistence/[...path]/route.ts#L325-L329), the only route that mounts a
 foreign handler contract. No route exports `HEAD` or `OPTIONS`.
 
 | Declaration | Count | Notes |

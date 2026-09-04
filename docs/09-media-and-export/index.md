@@ -11,11 +11,11 @@ separate container encodes to MP4.
 Five cooperating layers plus one isolated container:
 
 1. **TTS / ASR** — one provider-neutral adapter (`generateTTS`,
-   `lib/audio/tts-providers.ts:207`) fanning out to ten TTS and six ASR
+   [`lib/audio/tts-providers.ts:207`](lib/audio/tts-providers.ts#L207)) fanning out to ten TTS and six ASR
    providers, each with its own wire format, under a combined
    cancel-plus-timeout signal.
 2. **The narration/timing contract** — `measureAudioDuration`
-   (`lib/audio/audio-duration.ts:210`) parses WAV/MP3 headers with no DOM, and
+   ([`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210)) parses WAV/MP3 headers with no DOM, and
    the resulting `duration` is stored on the audio record at synthesis time.
    That is what lets the export compiler's dependency-injection surface be
    *synchronous*.
@@ -37,12 +37,12 @@ A staff engineer who needs to change synthesis, playback timing, whiteboard
 semantics, media provider wiring, or the video pipeline without breaking the
 invariant that live playback and the exported video dwell identically.
 
-Read [`../08-classroom-runtime/index.md`](../08-classroom-runtime/index.md)
+Read [`../08-classroom-runtime/index.md`](docs/08-classroom-runtime/index.md)
 first if you do not yet know what a `Scene`, an `Action` or the `PlaybackEngine`
 is — this topic assumes that vocabulary. Read
-[`../04-ai-provider-layer/index.md`](../04-ai-provider-layer/index.md) for how
+[`../04-ai-provider-layer/index.md`](docs/04-ai-provider-layer/index.md) for how
 provider credentials and model pins resolve in general; this topic documents only
-the media-specific parts of that mechanism. The set root is `../README.md`.
+the media-specific parts of that mechanism. The set root is [`../README.md`](docs/README.md).
 
 ## Sources
 
@@ -61,16 +61,16 @@ Everything here was verified against the working tree at `c2c9553a` (branch
 | Video export | `lib/video-export/**` (29 files), `lib/video-export-app/**` (12 files), `lib/store/video-render.ts`, `app/api/export-video/**` |
 | Render service | `render-service/**` (17 src files), `render-service/Dockerfile`, `render-service/docker-entrypoint.sh`, `docker-compose.yml` |
 | Build-time assets | `scripts/generate-video-export-{katex,noto-cjk,noto-script-fonts}.mjs`, `public/vendor/video-export/fonts/` |
-| Boundaries | `eslint.config.mjs:254-533` |
+| Boundaries | [`eslint.config.mjs:254-533`](eslint.config.mjs#L254-L533) |
 
 Evidence packs (verbatim signatures and traced flows, written before this topic):
 
-- [`../appendix/research/media-audio-video/00-overview.md`](../appendix/research/media-audio-video/00-overview.md)
-- [`../appendix/research/media-audio-video/01a-modules-audio-media.md`](../appendix/research/media-audio-video/01a-modules-audio-media.md)
-- [`../appendix/research/media-audio-video/01b-modules-video-whiteboard.md`](../appendix/research/media-audio-video/01b-modules-video-whiteboard.md)
-- [`../appendix/research/media-audio-video/02a-interfaces-tts-asr.md`](../appendix/research/media-audio-video/02a-interfaces-tts-asr.md) … `02g-interfaces-render-service.md`
-- [`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md), [`03b-flows-video-export.md`](../appendix/research/media-audio-video/03b-flows-video-export.md)
-- [`../appendix/research/media-audio-video/04-dependencies-and-config.md`](../appendix/research/media-audio-video/04-dependencies-and-config.md), [`05-failure-modes.md`](../appendix/research/media-audio-video/05-failure-modes.md), [`06-quality-and-metrics.md`](../appendix/research/media-audio-video/06-quality-and-metrics.md), [`07-open-questions.md`](../appendix/research/media-audio-video/07-open-questions.md)
+- [`../appendix/research/media-audio-video/00-overview.md`](docs/appendix/research/media-audio-video/00-overview.md)
+- [`../appendix/research/media-audio-video/01a-modules-audio-media.md`](docs/appendix/research/media-audio-video/01a-modules-audio-media.md)
+- [`../appendix/research/media-audio-video/01b-modules-video-whiteboard.md`](docs/appendix/research/media-audio-video/01b-modules-video-whiteboard.md)
+- [`../appendix/research/media-audio-video/02a-interfaces-tts-asr.md`](docs/appendix/research/media-audio-video/02a-interfaces-tts-asr.md) … [`02g-interfaces-render-service.md`](docs/appendix/research/media-audio-video/02g-interfaces-render-service.md)
+- [`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md), [`03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md)
+- [`../appendix/research/media-audio-video/04-dependencies-and-config.md`](docs/appendix/research/media-audio-video/04-dependencies-and-config.md), [`05-failure-modes.md`](docs/appendix/research/media-audio-video/05-failure-modes.md), [`06-quality-and-metrics.md`](docs/appendix/research/media-audio-video/06-quality-and-metrics.md), [`07-open-questions.md`](docs/appendix/research/media-audio-video/07-open-questions.md)
 
 ## Topic overview
 
@@ -126,17 +126,17 @@ flowchart TD
 
 | File | Contents |
 | --- | --- |
-| [`01-tts-adapters.md`](./01-tts-adapters.md) | The `generateTTS` adapter, all ten providers and their wire formats, voice/model pinning including the classroom pins, caching, and the audio format contract. |
-| [`02-audio-pipeline.md`](./02-audio-pipeline.md) | Synthesis → storage → delivery → playback, and how narration dwell aligns with the shared choreography clock. |
-| [`03-whiteboard.md`](./03-whiteboard.md) | The two whiteboard write paths, the five-operation log and its fold, how an agent emits a drawing command, and the replay/projection runtime. |
-| [`04-image-generation.md`](./04-image-generation.md) | Eight image providers, six video providers, ComfyUI workflow discovery and patching, and the asset-storage path from provider response to durable bytes. |
-| [`05-transcription-and-search.md`](./05-transcription-and-search.md) | ASR providers and web-search backends, plus the SSRF/egress controls on `proxy-media`, `web-search` and their siblings. |
-| [`06-video-export-pipeline.md`](./06-video-export-pipeline.md) | The `VideoTimeline` IR, the synchronous DI boundary, and the nine pure compiler passes one at a time. |
-| [`06b-video-export-emitter.md`](./06b-video-export-emitter.md) | The Hyperframes emitter, one export end to end, and the degradation catalogue. Split out of `06` at the 350-line ceiling. |
-| [`07-render-service.md`](./07-render-service.md) | The standalone MP4 renderer: why it is separate, its HTTP contract, admission ordering, and the handover from the app. |
-| [`07b-render-service-lifecycle.md`](./07b-render-service-lifecycle.md) | Job lifecycle, resource profiles, fail-closed startup and egress lockdown, and `/preview`. Split out of `07`. |
-| [`08-asset-generation-scripts.md`](./08-asset-generation-scripts.md) | The three `gen:video-export-*` scripts: what they emit, when to re-run them, and what breaks if they go stale. |
-| [`09-execution-constraints.md`](./09-execution-constraints.md) | Which code runs in the browser, in Node, or in the render container — and the legacy export paths this subsystem still carries. |
+| [`01-tts-adapters.md`](docs/09-media-and-export/01-tts-adapters.md) | The `generateTTS` adapter, all ten providers and their wire formats, voice/model pinning including the classroom pins, caching, and the audio format contract. |
+| [`02-audio-pipeline.md`](docs/09-media-and-export/02-audio-pipeline.md) | Synthesis → storage → delivery → playback, and how narration dwell aligns with the shared choreography clock. |
+| [`03-whiteboard.md`](docs/09-media-and-export/03-whiteboard.md) | The two whiteboard write paths, the five-operation log and its fold, how an agent emits a drawing command, and the replay/projection runtime. |
+| [`04-image-generation.md`](docs/09-media-and-export/04-image-generation.md) | Eight image providers, six video providers, ComfyUI workflow discovery and patching, and the asset-storage path from provider response to durable bytes. |
+| [`05-transcription-and-search.md`](docs/09-media-and-export/05-transcription-and-search.md) | ASR providers and web-search backends, plus the SSRF/egress controls on `proxy-media`, `web-search` and their siblings. |
+| [`06-video-export-pipeline.md`](docs/09-media-and-export/06-video-export-pipeline.md) | The `VideoTimeline` IR, the synchronous DI boundary, and the nine pure compiler passes one at a time. |
+| [`06b-video-export-emitter.md`](docs/09-media-and-export/06b-video-export-emitter.md) | The Hyperframes emitter, one export end to end, and the degradation catalogue. Split out of `06` at the 350-line ceiling. |
+| [`07-render-service.md`](docs/09-media-and-export/07-render-service.md) | The standalone MP4 renderer: why it is separate, its HTTP contract, admission ordering, and the handover from the app. |
+| [`07b-render-service-lifecycle.md`](docs/09-media-and-export/07b-render-service-lifecycle.md) | Job lifecycle, resource profiles, fail-closed startup and egress lockdown, and `/preview`. Split out of `07`. |
+| [`08-asset-generation-scripts.md`](docs/09-media-and-export/08-asset-generation-scripts.md) | The three `gen:video-export-*` scripts: what they emit, when to re-run them, and what breaks if they go stale. |
+| [`09-execution-constraints.md`](docs/09-media-and-export/09-execution-constraints.md) | Which code runs in the browser, in Node, or in the render container — and the legacy export paths this subsystem still carries. |
 
 ## Reading order
 

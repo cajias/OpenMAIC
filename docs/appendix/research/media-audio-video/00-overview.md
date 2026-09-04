@@ -12,19 +12,19 @@ Everything below is grounded in the tree at `c2c9553a` (branch `main`).
 The subsystem owns four things the rest of the app treats as black boxes:
 
 1. **Turning text into audio bytes and a duration.** A provider-neutral TTS
-   adapter (`lib/audio/tts-providers.ts:207` `generateTTS`) plus a
-   dependency-free container parser (`lib/audio/audio-duration.ts:210`
+   adapter ([`lib/audio/tts-providers.ts:207`](lib/audio/tts-providers.ts#L207) `generateTTS`) plus a
+   dependency-free container parser ([`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210)
    `measureAudioDuration`) so a narration clip's dwell is known without decoding
    audio at render time.
 2. **Turning classroom data into a deterministic, self-contained video project.**
-   A pure compiler (`lib/video-export/compile.ts:152` `compileVideoTimeline`)
+   A pure compiler ([`lib/video-export/compile.ts:152`](lib/video-export/compile.ts#L152) `compileVideoTimeline`)
    produces the `VideoTimeline` IR; a pure emitter
-   (`lib/video-export/emit-hyperframes/index.ts:1229` `emitHyperframes`) turns it
+   ([`lib/video-export/emit-hyperframes/index.ts:1229`](lib/video-export/emit-hyperframes/index.ts#L1229) `emitHyperframes`) turns it
    into one `index.html` driven by a single paused GSAP timeline.
 3. **Reaching third-party media/search APIs safely.** Every outbound
-   user-influenced URL goes through `lib/server/ssrf-guard.ts:253`
+   user-influenced URL goes through [`lib/server/ssrf-guard.ts:253`](lib/server/ssrf-guard.ts#L253)
    `validateUrlForSSRF`, and the render container blocks its own egress at the
-   kernel (`render-service/docker-entrypoint.sh:34` `lockdown`).
+   kernel ([`render-service/docker-entrypoint.sh:34`](render-service/docker-entrypoint.sh#L34) `lockdown`).
 4. **Keeping the app runtime and the exporter numerically identical.** The
    shared spec in `lib/choreography/` (timing constants, the no-audio speech
    estimate, the index→time expansion) is imported by both the live playback
@@ -167,12 +167,12 @@ flowchart LR
   Q -.->|"blocked by iptables<br/>OUTPUT DROP"| S
 ```
 
-- `eslint.config.mjs:348-492` forbids `@/…` literals, `react`/`react-dom`/`gsap`/
+- [`eslint.config.mjs:348-492`](eslint.config.mjs#L348-L492) forbids `@/…` literals, `react`/`react-dom`/`gsap`/
   `motion` imports, `import()` and `require()` anywhere under
   `lib/video-export/**`, with a *depth-specific* relative-import allowlist
   (root files may only reach `../choreography`; `passes/` and `legacy/` may only
   reach `../../choreography`).
-- `render-service/docker-entrypoint.sh:51-67` fails **closed**: if the egress
+- [`render-service/docker-entrypoint.sh:51-67`](render-service/docker-entrypoint.sh#L51-L67) fails **closed**: if the egress
   lockdown is requested (default `RENDER_EGRESS_LOCKDOWN=true`) and iptables
   cannot be installed, the process exits non-zero rather than serving a
   `/health: ok` that would advertise an unisolated renderer.
@@ -185,21 +185,21 @@ well as its manifest.
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | This file — charter, scope map, inventory. |
-| [`01a-modules-audio-media.md`](./01a-modules-audio-media.md) | Module-by-module: `lib/audio`, `lib/media`, `lib/web-search`, the API routes. |
-| [`01b-modules-video-whiteboard.md`](./01b-modules-video-whiteboard.md) | Module-by-module: `lib/whiteboard`, `lib/video-export`, `lib/video-export-app`, `render-service`. |
-| [`02a-interfaces-tts-asr.md`](./02a-interfaces-tts-asr.md) | Verbatim TTS/ASR signatures, error classes, voice/model coupling. |
-| [`02b-interfaces-media.md`](./02b-interfaces-media.md) | Image/video generation, ComfyUI discovery, polled tasks, proxy cache, web search, SSRF guard. |
-| [`02c-interfaces-whiteboard.md`](./02c-interfaces-whiteboard.md) | The five whiteboard operations, record envelope, error codes, fold + service. |
-| [`02d-interfaces-choreography-ir.md`](./02d-interfaces-choreography-ir.md) | Timing spec, `resolveActionTimeline`, compiler DI boundary, `VideoTimeline` IR. |
-| [`02e-interfaces-passes-emitter.md`](./02e-interfaces-passes-emitter.md) | Pass signatures, subtitle serializers, Hyperframes emitter, generated font modules. |
-| [`02f-interfaces-export-app.md`](./02f-interfaces-export-app.md) | Export options, DI implementations, byte collection, packaging, render store. |
-| [`02g-interfaces-render-service.md`](./02g-interfaces-render-service.md) | Render-service HTTP contract, job types, executor seam, coordinator, resource profiles. |
-| [`03a-flows-audio-media.md`](./03a-flows-audio-media.md) | Traced flows: TTS synthesis→storage, ComfyUI image→asset, web search. |
-| [`03b-flows-video-export.md`](./03b-flows-video-export.md) | Traced flows: export ZIP build, render-service MP4 handover, whiteboard append→projection. |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | External deps, env vars, config resolution flowchart. |
-| [`05-failure-modes.md`](./05-failure-modes.md) | Error taxonomy, degradation paths, state machines. |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | Strengths, fragilities, every measured number with its command. |
-| [`07-open-questions.md`](./07-open-questions.md) | What could not be determined from the code. |
+| [`01a-modules-audio-media.md`](docs/appendix/research/media-audio-video/01a-modules-audio-media.md) | Module-by-module: `lib/audio`, `lib/media`, `lib/web-search`, the API routes. |
+| [`01b-modules-video-whiteboard.md`](docs/appendix/research/media-audio-video/01b-modules-video-whiteboard.md) | Module-by-module: `lib/whiteboard`, `lib/video-export`, `lib/video-export-app`, `render-service`. |
+| [`02a-interfaces-tts-asr.md`](docs/appendix/research/media-audio-video/02a-interfaces-tts-asr.md) | Verbatim TTS/ASR signatures, error classes, voice/model coupling. |
+| [`02b-interfaces-media.md`](docs/appendix/research/media-audio-video/02b-interfaces-media.md) | Image/video generation, ComfyUI discovery, polled tasks, proxy cache, web search, SSRF guard. |
+| [`02c-interfaces-whiteboard.md`](docs/appendix/research/media-audio-video/02c-interfaces-whiteboard.md) | The five whiteboard operations, record envelope, error codes, fold + service. |
+| [`02d-interfaces-choreography-ir.md`](docs/appendix/research/media-audio-video/02d-interfaces-choreography-ir.md) | Timing spec, `resolveActionTimeline`, compiler DI boundary, `VideoTimeline` IR. |
+| [`02e-interfaces-passes-emitter.md`](docs/appendix/research/media-audio-video/02e-interfaces-passes-emitter.md) | Pass signatures, subtitle serializers, Hyperframes emitter, generated font modules. |
+| [`02f-interfaces-export-app.md`](docs/appendix/research/media-audio-video/02f-interfaces-export-app.md) | Export options, DI implementations, byte collection, packaging, render store. |
+| [`02g-interfaces-render-service.md`](docs/appendix/research/media-audio-video/02g-interfaces-render-service.md) | Render-service HTTP contract, job types, executor seam, coordinator, resource profiles. |
+| [`03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md) | Traced flows: TTS synthesis→storage, ComfyUI image→asset, web search. |
+| [`03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md) | Traced flows: export ZIP build, render-service MP4 handover, whiteboard append→projection. |
+| [`04-dependencies-and-config.md`](docs/appendix/research/media-audio-video/04-dependencies-and-config.md) | External deps, env vars, config resolution flowchart. |
+| [`05-failure-modes.md`](docs/appendix/research/media-audio-video/05-failure-modes.md) | Error taxonomy, degradation paths, state machines. |
+| [`06-quality-and-metrics.md`](docs/appendix/research/media-audio-video/06-quality-and-metrics.md) | Strengths, fragilities, every measured number with its command. |
+| [`07-open-questions.md`](docs/appendix/research/media-audio-video/07-open-questions.md) | What could not be determined from the code. |
 
 No deliverable section is omitted: every one has real material here. The
 interfaces section is split seven ways because the verbatim signatures alone run

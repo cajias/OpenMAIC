@@ -6,11 +6,11 @@ conflict strategy is reset-then-apply per capability section, and which never
 touches a user-entered credential. This file is that protocol, its two callers,
 and the one ordering bug it has already had to work around.
 
-**Sources:** `lib/store/settings.ts:1461-1979` (`fetchServerProviders`),
+**Sources:** [`lib/store/settings.ts:1461-1979`](lib/store/settings.ts#L1461-L1979) (`fetchServerProviders`),
 `app/api/server-providers/route.ts`, `lib/server/provider-config.ts`,
-`components/server-providers-init.tsx`, `components/access-code-guard.tsx:45-54`,
-`lib/store/settings-validation.ts`, `lib/types/settings.ts:39`; evidence
-[../appendix/research/persistence-storage-state/04-dependencies-and-config.md](../appendix/research/persistence-storage-state/04-dependencies-and-config.md).
+`components/server-providers-init.tsx`, [`components/access-code-guard.tsx:45-54`](components/access-code-guard.tsx#L45-L54),
+`lib/store/settings-validation.ts`, [`lib/types/settings.ts:39`](lib/types/settings.ts#L39); evidence
+[../appendix/research/persistence-storage-state/04-dependencies-and-config.md](docs/appendix/research/persistence-storage-state/04-dependencies-and-config.md).
 
 ## What "sync" means here
 
@@ -24,11 +24,11 @@ and the one ordering bug it has already had to work around.
 
 The comment at the top of the handler states the disclosure rule: managed
 providers expose "only their allowed model list (LLM/image) and presence (the
-'managed' flag) — never a base URL" (`settings.ts:1465-1468`).
+'managed' flag) — never a base URL" ([`settings.ts:1465-1468`](lib/store/settings.ts#L1465-L1468)).
 
 ## The endpoint
 
-`GET /api/server-providers` (`app/api/server-providers/route.ts:16`) is a pure
+`GET /api/server-providers` ([`app/api/server-providers/route.ts:16`](app/api/server-providers/route.ts#L16)) is a pure
 projection of seven `lib/server/provider-config` getters plus one number:
 
 ```
@@ -45,7 +45,7 @@ apiSuccess({
 ```
 
 Note the asymmetry, which the client's inline response type mirrors exactly
-(`settings.ts:1469-1478`): only LLM, image and video carry `models`; only TTS,
+([`settings.ts:1469-1478`](lib/store/settings.ts#L1469-L1478)): only LLM, image and video carry `models`; only TTS,
 ASR, image, video and web search carry `disabled`; PDF carries neither, so its
 presence in the record *is* the signal. On a throw the route answers
 `apiError('INTERNAL_ERROR', 500, …)`.
@@ -54,14 +54,14 @@ presence in the record *is* the signal. On a throw the route answers
 
 | Caller | When | Why it exists |
 | --- | --- | --- |
-| `ServerProvidersInit` (`components/server-providers-init.tsx:13-15`) | one `useEffect` on mount of the root layout; renders `null` | the normal path |
-| `AccessCodeGuard`'s `onSuccess` (`components/access-code-guard.tsx:53`) | after the access-code modal succeeds | the fix for a real ordering bug, quoted below |
+| `ServerProvidersInit` ([`components/server-providers-init.tsx:13-15`](components/server-providers-init.tsx#L13-L15)) | one `useEffect` on mount of the root layout; renders `null` | the normal path |
+| `AccessCodeGuard`'s `onSuccess` ([`components/access-code-guard.tsx:53`](components/access-code-guard.tsx#L53)) | after the access-code modal succeeds | the fix for a real ordering bug, quoted below |
 
 The second caller's comment is the whole story: "`ServerProvidersInit` runs on
 mount, which on an `ACCESS_CODE`-gated deployment is before any access cookie
 exists: the middleware answers 401 and the store silently keeps its blank
 defaults. Nothing re-fetches afterwards, so every server-configured provider
-reads as unconfigured until a manual reload." (`access-code-guard.tsx:47-52`).
+reads as unconfigured until a manual reload." ([`access-code-guard.tsx:47-52`](components/access-code-guard.tsx#L47-L52)).
 That is the failure mode a silent-on-error pull produces, and the remedy is one
 extra call at the moment the request becomes authorised.
 
@@ -94,8 +94,9 @@ sequenceDiagram
 ```
 
 The reset-then-apply pass is written out once per capability, seven times, with
-the same shape (`settings.ts:1483-1493` for LLM, `:1535-1555` TTS,
-`:1558-1578` ASR, then PDF, image, video, web search). What each section resets
+the same shape ([`settings.ts:1483-1493`](lib/store/settings.ts#L1483-L1493) for LLM,
+[`:1535-1555`](lib/store/settings.ts#L1535-L1555) TTS,
+[`:1558-1578`](lib/store/settings.ts#L1558-L1578) ASR, then PDF, image, video, web search). What each section resets
 differs:
 
 | Section | Reset fields | Applied fields |
@@ -107,12 +108,12 @@ differs:
 
 A `disabled` entry is deliberately **not** treated as managed:
 `isServerConfigured: !info.disabled` means a force-off provider reads as
-neither configured nor selectable, "server precedence" (`settings.ts:1536-1538`).
+neither configured nor selectable, "server precedence" ([`settings.ts:1536-1538`](lib/store/settings.ts#L1536-L1538)).
 
 The LLM model merge is the only one that reconciles per item rather than
 wholesale: for each id in the server's allow-list it prefers the built-in
 metadata for `name` and capabilities and the local entry for everything else
-(`settings.ts:1498-1528`), so a locally added custom model that the server also
+([`settings.ts:1498-1528`](lib/store/settings.ts#L1498-L1528)), so a locally added custom model that the server also
 allows keeps its local configuration and gains the canonical name.
 
 ## Conflicts, and the one that is not handled
@@ -161,7 +162,7 @@ Conflict resolution, stated precisely:
    atomically in the same `set`, and force `imageGenerationEnabled` /
    `videoGenerationEnabled` off when no usable provider remains.
 4. **First-run auto-configuration.** Gated on `!state.autoConfigApplied`
-   (`settings.ts:1820`): PDF `unpdf` → `mineru-cloud` or `mineru` if the server
+   ([`settings.ts:1820`](lib/store/settings.ts#L1820)): PDF `unpdf` → `mineru-cloud` or `mineru` if the server
    has one; TTS/ASR/image/video → the first non-disabled server provider when the
    current selection is not server-configured; TTS, image and video generation
    auto-*enabled* when such a provider exists. The `set` always writes
@@ -171,7 +172,7 @@ Conflict resolution, stated precisely:
    `resolveSelectedModel` already resolve provider and model atomically.
 5. **Failure.** `if (!res.ok) return` and a `catch` that logs
    `Failed to fetch server providers` at warn level — "server providers are
-   optional" (`settings.ts:1976-1979`). Nothing is retried. Case (1) above means a
+   optional" ([`settings.ts:1976-1979`](lib/store/settings.ts#L1976-L1979)). Nothing is retried. Case (1) above means a
    failed sync leaves the *previous* sync's flags in the persisted blob, since the
    reset only happens on a successful response.
 
@@ -183,9 +184,9 @@ Conflict resolution, stated precisely:
 ## Why this is not cross-device sync
 
 The store's own header calls the provider configuration "the thing a second device
-should not have to be told again" (`settings.ts:1-8`), and the KV `account` scope
+should not have to be told again" ([`settings.ts:1-8`](lib/store/settings.ts#L1-L8)), and the KV `account` scope
 exists for exactly that. But no HTTP KV backend is wired
-([01-storage-abstraction.md](./01-storage-abstraction.md)), so the blob never
+([01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)), so the blob never
 leaves `localStorage`. What crosses machines today is only the *server's* half:
 any browser hitting the same deployment learns the same capability set. The user's
 own keys and selections do not travel.
@@ -193,11 +194,11 @@ own keys and selections do not travel.
 ## Cross-references
 
 - The provider registry and `lib/server/provider-config` model pinning:
-  [../04-ai-provider-layer/index.md](../04-ai-provider-layer/index.md)
+  [../04-ai-provider-layer/index.md](docs/04-ai-provider-layer/index.md)
 - The gate that produces the 401 in the conflict diagram:
-  [06-access-codes.md](./06-access-codes.md)
-- Where the persisted blob lands: [03-client-state-stores.md](./03-client-state-stores.md)
-- Endpoint reference: [../12-api-reference/index.md](../12-api-reference/index.md)
+  [06-access-codes.md](docs/10-persistence-and-state/06-access-codes.md)
+- Where the persisted blob lands: [03-client-state-stores.md](docs/10-persistence-and-state/03-client-state-stores.md)
+- Endpoint reference: [../12-api-reference/index.md](docs/12-api-reference/index.md)
 
 ## Open questions
 

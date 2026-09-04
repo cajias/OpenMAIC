@@ -3,20 +3,20 @@
 The serialized slide contract lives in `packages/@openmaic/dsl` — 16 source files, 4 847 lines, zero
 runtime dependencies. This section is the inventory: what nodes exist, what each requires, how they nest,
 and the smallest document a schema-validating consumer will accept. Invariants, validation and
-versioning are in [./02-dsl-invariants.md](./02-dsl-invariants.md).
+versioning are in [./02-dsl-invariants.md](docs/07-dsl-renderer-editor/02-dsl-invariants.md).
 
 **Sources:** `packages/@openmaic/dsl/src/{index,slides,stage,action,interactive,schema-roots}.ts`,
 `packages/@openmaic/dsl/{scripts/gen-schema.mjs,test/schema.test.ts}`,
 `lib/server/agent-runtime/course-edit/apply.ts`; evidence
-[../appendix/research/dsl-renderer-editor/01a-modules.md](../appendix/research/dsl-renderer-editor/01a-modules.md)
-and [../appendix/research/dsl-renderer-editor/02a-interfaces.md](../appendix/research/dsl-renderer-editor/02a-interfaces.md).
+[../appendix/research/dsl-renderer-editor/01a-modules.md](docs/appendix/research/dsl-renderer-editor/01a-modules.md)
+and [../appendix/research/dsl-renderer-editor/02a-interfaces.md](docs/appendix/research/dsl-renderer-editor/02a-interfaces.md).
 
 ## 1. The barrel and its deliberate omission
 
-`src/index.ts:25-37` re-exports thirteen modules flat. `schema-roots.ts` is **not** among them: it exists
+[`src/index.ts:25-37`](packages/@openmaic/dsl/src/index.ts#L25-L37) re-exports thirteen modules flat. `schema-roots.ts` is **not** among them: it exists
 only to hand the JSON-Schema generator a concrete, non-generic root, and re-exporting it would publish a
-type nothing should program against (`src/schema-roots.ts:8`). The barrel docstring states the charter
-(`src/index.ts:11-13`): "ONLY the spec … It must never gain a runtime dependency on React, pptx,
+type nothing should program against ([`src/schema-roots.ts:8`](packages/@openmaic/dsl/src/schema-roots.ts#L8)). The barrel docstring states the charter
+([`src/index.ts:11-13`](packages/@openmaic/dsl/src/index.ts#L11-L13)): "ONLY the spec … It must never gain a runtime dependency on React, pptx,
 echarts, etc."
 
 ## 2. The document tree
@@ -58,14 +58,14 @@ flowchart TD
   WBS --> EL
 ```
 
-The two whiteboard slots are not the same type: `Stage.whiteboard?` is `Whiteboard[]` (`stage.ts:151`),
-the narrowed alias, while `SceneCore.whiteboards?` is a full `Slide[]` (`stage.ts:238`) — a scene
+The two whiteboard slots are not the same type: `Stage.whiteboard?` is `Whiteboard[]` ([`stage.ts:151`](packages/@openmaic/dsl/src/stage.ts#L151)),
+the narrowed alias, while `SceneCore.whiteboards?` is a full `Slide[]` ([`stage.ts:238`](packages/@openmaic/dsl/src/stage.ts#L238)) — a scene
 whiteboard may therefore carry `theme`, `turningMode`, `sectionTag` and `type`.
 
 `Stage` does not embed its scenes. A `Scene` carries `stageId` as a back-reference for integrity
-checks (`stage.ts:230`), and the two are stored as separate aggregates — which is why the version
+checks ([`stage.ts:230`](packages/@openmaic/dsl/src/stage.ts#L230)), and the two are stored as separate aggregates — which is why the version
 ladder is written to run over "a `Stage` aggregate, a single Scene row, or a bundle of them"
-(`version.ts:17-21`).
+([`version.ts:17-21`](packages/@openmaic/dsl/src/version.ts#L17-L21)).
 
 ## 3. Element model
 
@@ -74,7 +74,7 @@ Two **regular** (not `const`) enums open `slides.ts`: `ShapePathFormulasKeys` (`
 `isolatedModules`, under which importing an ambient `const enum` across a package boundary is TS2748,
 so a regular enum is used to get both a value and a type.
 
-`PPTBaseElement` (`slides.ts:156`) is `id / left / top / width / height / rotate` plus optional
+`PPTBaseElement` ([`slides.ts:156`](packages/@openmaic/dsl/src/slides.ts#L156)) is `id / left / top / width / height / rotate` plus optional
 `lock / groupId / link / name`. Nine variants extend it directly; `PPTLineElement` (`:480`) is the
 exception — `extends Omit<PPTBaseElement, 'height' | 'rotate'>`.
 
@@ -185,9 +185,9 @@ dashed arrow marks the `Omit`.
 | `PPTCodeElement` | `:811` | `language`, `lines: CodeLine[]` | lines carry stable ids `L1`, `L2`… (`:791`) so the `wb_edit_code` action can address them |
 
 The line-element `width` overload is documented only in the renderer:
-`packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx:119` passes
+[`packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx:119`](packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx#L119) passes
 `strokeWidth={elementInfo.width}` and `:33` derives the dash array from it, while
-`PPTBaseElement.width` is annotated "元素宽度" (element width) at `slides.ts:146` and the line variant
+`PPTBaseElement.width` is annotated "元素宽度" (element width) at [`slides.ts:146`](packages/@openmaic/dsl/src/slides.ts#L146) and the line variant
 inherits it uncommented. **Inferred:** setting `width` on a line to resize it changes its thickness.
 
 ### 3.2 `Slide`
@@ -212,16 +212,16 @@ export interface Slide {
 
 `viewportSize` is the canvas width in the slide's own coordinate space and `viewportRatio` is
 height/width. Three conventions coexist in-tree, so a mixed-`viewportSize` deck is expressible:
-app-authored slides use `1000` (`lib/server/agent-runtime/course-edit/apply.ts:505`
+app-authored slides use `1000` ([`lib/server/agent-runtime/course-edit/apply.ts:505`](lib/server/agent-runtime/course-edit/apply.ts#L505)
 `emptySlideContent`), the renderer's fit hook defaults to `1000`
-(`packages/@openmaic/renderer/src/hooks/useViewportSize.ts:38`), and the importer emits the deck's real
+([`packages/@openmaic/renderer/src/hooks/useViewportSize.ts:38`](packages/@openmaic/renderer/src/hooks/useViewportSize.ts#L38)), and the importer emits the deck's real
 pixel width — `1280` for a 16:9 deck, with `FALLBACK_VIEWPORT_SIZE = 1280`
-(`packages/@openmaic/importer/src/import-pipeline/index.ts:34`). `SlideData` (`slides.ts:982`) is
+([`packages/@openmaic/importer/src/import-pipeline/index.ts:34`](packages/@openmaic/importer/src/import-pipeline/index.ts#L34)). `SlideData` ([`slides.ts:982`](packages/@openmaic/dsl/src/slides.ts#L982)) is
 `@deprecated`, retained only for persisted legacy payloads.
 
 ## 4. Scene content kinds
 
-`SceneType = 'slide' | 'quiz' | 'interactive' | 'pbl'` (`stage.ts:22`). The scene-level `type` is
+`SceneType = 'slide' | 'quiz' | 'interactive' | 'pbl'` ([`stage.ts:22`](packages/@openmaic/dsl/src/stage.ts#L22)). The scene-level `type` is
 **bound** to its content by a distributive conditional:
 
 ```ts
@@ -236,24 +236,24 @@ export type Scene<
 
 So the default `Scene` is `({type:'slide'; content:SlideContent} | {type:'quiz'; content:QuizContent})
 & SceneCore` — the two fields cannot disagree at the type level, and `validateScene` re-checks the same
-binding at runtime (`validate.ts:266-287`).
+binding at runtime ([`validate.ts:266-287`](packages/@openmaic/dsl/src/validate.ts#L266-L287)).
 
 | Content kind | Declared at | Payload |
 | --- | --- | --- |
-| `SlideContent` | `stage.ts:184` | `{ type:'slide'; schemaVersion?: number; canvas: Slide }` |
-| `QuizContent` | `stage.ts:211` | `{ type:'quiz'; questions: QuizQuestion[] }` — `QuizQuestion` (`:196`) is `single`/`multiple`/`short_answer` |
-| `InteractiveContent<TWidgetConfig>` | `interactive.ts:51` | `{ type:'interactive'; url?; html?; widgetType?; widgetConfig? }` — generic extension point; the contract names only `WidgetConfigBase.type` (`:37`) |
+| `SlideContent` | [`stage.ts:184`](packages/@openmaic/dsl/src/stage.ts#L184) | `{ type:'slide'; schemaVersion?: number; canvas: Slide }` |
+| `QuizContent` | [`stage.ts:211`](packages/@openmaic/dsl/src/stage.ts#L211) | `{ type:'quiz'; questions: QuizQuestion[] }` — `QuizQuestion` (`:196`) is `single`/`multiple`/`short_answer` |
+| `InteractiveContent<TWidgetConfig>` | [`interactive.ts:51`](packages/@openmaic/dsl/src/interactive.ts#L51) | `{ type:'interactive'; url?; html?; widgetType?; widgetConfig? }` — generic extension point; the contract names only `WidgetConfigBase.type` (`:37`) |
 | `PBLContent` | `pbl.ts` | project-based-learning project; four of its definitions are re-opened in the generated schema |
 
 `InteractiveContent` requires at least one of `html` or `url` at the *validator* level
-(`interactive.ts:64`), a disjunction the interface and the generated schema deliberately do not express
-(`interactive.ts:47-49`); `url` is optional because producers historically wrote `url: ''`.
-`WidgetType` has 6 members (`interactive.ts:4`): `simulation`, `diagram`, `code`, `game`,
+([`interactive.ts:64`](packages/@openmaic/dsl/src/interactive.ts#L64)), a disjunction the interface and the generated schema deliberately do not express
+([`interactive.ts:47-49`](packages/@openmaic/dsl/src/interactive.ts#L47-L49)); `url` is optional because producers historically wrote `url: ''`.
+`WidgetType` has 6 members ([`interactive.ts:4`](packages/@openmaic/dsl/src/interactive.ts#L4)): `simulation`, `diagram`, `code`, `game`,
 `visualization3d`, `procedural-skill`.
 
 ## 5. The action vocabulary
 
-`Action` (`action.ts:235`) is 21 variants over `ActionBase = { id; title?; description? }` (`:22`).
+`Action` ([`action.ts:235`](packages/@openmaic/dsl/src/action.ts#L235)) is 21 variants over `ActionBase = { id; title?; description? }` (`:22`).
 Scheduling class is data, not a type-level distinction:
 
 | Constant | Line | Members |
@@ -275,7 +275,7 @@ on `PPTCodeElement`. `PercentageGeometry` (`:333`) also lives here despite not b
 ## 6. Minimal real example, annotated
 
 The smallest scene the generated `scene.schema.json` accepts, verbatim from
-`packages/@openmaic/dsl/test/schema.test.ts:99`:
+[`packages/@openmaic/dsl/test/schema.test.ts:99`](packages/@openmaic/dsl/test/schema.test.ts#L99):
 
 ```ts
 const slideScene = {
@@ -299,7 +299,7 @@ const slideScene = {
 
 Note what is absent and still valid: no `actions`, no `whiteboards`, no `dslVersion` stamp, no
 `schemaVersion`. The version stamp is an envelope field the store adds, not a document requirement
-(`version.ts:17-21`). The smallest valid action, from the same file (`test/schema.test.ts:90`), is
+([`version.ts:17-21`](packages/@openmaic/dsl/src/version.ts#L17-L21)). The smallest valid action, from the same file ([`test/schema.test.ts:90`](packages/@openmaic/dsl/test/schema.test.ts#L90)), is
 `{ id: 'a', type: 'spotlight', elementId: 'e' }`; dropping `elementId` makes the schema reject it
 (`:93`).
 
@@ -331,13 +331,13 @@ zero runtime deps) over the tsconfig program and emits three files into `dist/sc
 | Root type | Artifact |
 | --- | --- |
 | `Stage` | `stage.schema.json` |
-| `SerializedScene` (`schema-roots.ts:23`) | `scene.schema.json` |
+| `SerializedScene` ([`schema-roots.ts:23`](packages/@openmaic/dsl/src/schema-roots.ts#L23)) | `scene.schema.json` |
 | `Action` | `action.schema.json` |
 
 Two pinned generator decisions: `jsDoc: 'extended'` (`:40`) because the contract now depends on `@default`
 tags reaching the schema, and four PBL definitions re-opened to `additionalProperties: true` after
 generation (`:24`, `:49-51`) because historical stored PBL documents carry app-owned runtime fields.
-Everything else is `additionalProperties: false`, and `stage.ts:102-110` spells out the consequence:
+Everything else is `additionalProperties: false`, and [`stage.ts:102-110`](packages/@openmaic/dsl/src/stage.ts#L102-L110) spells out the consequence:
 an additive field is **non-breaking** for this codebase's structural validators but **breaking** for a
 cross-language consumer validating against a pinned older schema artifact. A `DSL_VERSION` bump would
 not help them — an old schema rejects the new document either way.
@@ -345,12 +345,12 @@ not help them — an old schema rejects the new document either way.
 ## Open questions
 
 - Is `PPTLineElement.width` intentionally the stroke width? Only the renderer says so
-  (`BaseLineElement.tsx:119`, `:33`), and `getElementRange` also treats a line's extent as
-  `left + max(start[0], end[0])` (`packages/@openmaic/renderer/src/utils/element.ts:48`) — so `width`
+  ([`BaseLineElement.tsx:119`](packages/@openmaic/renderer/src/elements/line/BaseLineElement.tsx#L119), `:33`), and `getElementRange` also treats a line's extent as
+  `left + max(start[0], end[0])` ([`packages/@openmaic/renderer/src/utils/element.ts:48`](packages/@openmaic/renderer/src/utils/element.ts#L48)) — so `width`
   genuinely is not the box width for a line. The type needs either a comment or a rename.
 - Why is `PPTAudioElement.src` a plain `string` while the image and video `src` are `AssetRef`
-  (`slides.ts:780` vs `:341`, `:744`)? `AssetRef` *is* `string`, so this is documentation-only today,
+  ([`slides.ts:780`](packages/@openmaic/dsl/src/slides.ts#L780) vs [`:341`](packages/@openmaic/dsl/src/slides.ts#L341), [`:744`](packages/@openmaic/dsl/src/slides.ts#L744))? `AssetRef` *is* `string`, so this is documentation-only today,
   but `slideMediaSlotDescriptors` does classify `audio-src` as a media slot.
-- Is `SlideData` (`slides.ts:982`) still written by anything? No writer was found in this subsystem.
+- Is `SlideData` ([`slides.ts:982`](packages/@openmaic/dsl/src/slides.ts#L982)) still written by anything? No writer was found in this subsystem.
 - The generated artifacts could not be inspected (`dsl/dist` is absent here), so every schema claim above
   is read from `gen-schema.mjs`, `schema-roots.ts` and `test/schema.test.ts`, not an emitted `.json`.

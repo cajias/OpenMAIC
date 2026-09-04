@@ -9,26 +9,26 @@ deliberately slows content down.
 **Sources:** `lib/buffer/stream-buffer.ts`, `lib/classroom/load-classroom.ts`,
 `lib/utils/audio-player.ts`, `lib/media/resolve-audio-bytes.ts`,
 `lib/hooks/use-discussion-tts.ts`, `components/chat/use-chat-sessions.ts`,
-[`../appendix/research/classroom-runtime/01a-modules-playback.md`](../appendix/research/classroom-runtime/01a-modules-playback.md),
-[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](../appendix/research/media-audio-video/03a-flows-audio-media.md).
+[`../appendix/research/classroom-runtime/01a-modules-playback.md`](docs/appendix/research/classroom-runtime/01a-modules-playback.md),
+[`../appendix/research/media-audio-video/03a-flows-audio-media.md`](docs/appendix/research/media-audio-video/03a-flows-audio-media.md).
 
 ## What is prefetched, and what is not
 
 | Asset class | Prefetched? | Mechanism | Evidence |
 | --- | --- | --- | --- |
-| Slide / whiteboard **images and videos** | Yes, in two tiers | Opening scene eager, everything else in idle slices of 4 | `lib/classroom/load-classroom.ts:335`, `:460`, `:526` |
-| **Narration audio** for a `speech` action | **No** | Resolved lazily inside `AudioPlayer.play()`, per line, with no cache and no lookahead | `lib/utils/audio-player.ts:99`, `lib/media/resolve-audio-bytes.ts:15` |
-| **Live TTS audio** for a discussion segment | **No** | One-at-a-time serial queue; the next item's `POST /api/generate/tts` starts only after the previous audio ends | `lib/hooks/use-discussion-tts.ts:207-216` |
-| **Whiteboard strokes** | Not applicable | There are no stroke assets. Whiteboard content is produced by executing `wb_*` actions against the whiteboard document; a seek replays them synchronously | `lib/action/engine.ts:485`, `lib/playback/engine.ts:197-203` |
-| The **editor chunk** | Yes, on demand | `preloadEditor()` before flipping to edit mode | `components/stage.tsx:174`, `:221` |
+| Slide / whiteboard **images and videos** | Yes, in two tiers | Opening scene eager, everything else in idle slices of 4 | [`lib/classroom/load-classroom.ts:335`](lib/classroom/load-classroom.ts#L335), [`:460`](lib/classroom/load-classroom.ts#L460), [`:526`](lib/classroom/load-classroom.ts#L526) |
+| **Narration audio** for a `speech` action | **No** | Resolved lazily inside `AudioPlayer.play()`, per line, with no cache and no lookahead | [`lib/utils/audio-player.ts:99`](lib/utils/audio-player.ts#L99), [`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15) |
+| **Live TTS audio** for a discussion segment | **No** | One-at-a-time serial queue; the next item's `POST /api/generate/tts` starts only after the previous audio ends | [`lib/hooks/use-discussion-tts.ts:207-216`](lib/hooks/use-discussion-tts.ts#L207-L216) |
+| **Whiteboard strokes** | Not applicable | There are no stroke assets. Whiteboard content is produced by executing `wb_*` actions against the whiteboard document; a seek replays them synchronously | [`lib/action/engine.ts:485`](lib/action/engine.ts#L485), [`lib/playback/engine.ts:197-203`](lib/playback/engine.ts#L197-L203) |
+| The **editor chunk** | Yes, on demand | `preloadEditor()` before flipping to edit mode | [`components/stage.tsx:174`](components/stage.tsx#L174), [`:221`](components/stage.tsx#L221) |
 
 The absence of narration prefetch is the single most consequential fact on this
 page. `PlaybackEngine` calls `audioPlayer.play(audioId, legacyUrl)` at the moment
-the line begins (`lib/playback/engine.ts:623`), and `play()` then does a dynamic
+the line begins ([`lib/playback/engine.ts:623`](lib/playback/engine.ts#L623)), and `play()` then does a dynamic
 `import('@/lib/media/resolve-audio-bytes')` followed by `withAssetUrl` +
-`fetch`, falling back to a Dexie `audioFiles.get` (`resolve-audio-bytes.ts:16-23`).
+`fetch`, falling back to a Dexie `audioFiles.get` ([`resolve-audio-bytes.ts:16-23`](lib/media/resolve-audio-bytes.ts#L16-L23)).
 Nothing memoises the result: replaying the same line re-fetches its bytes. A batch
-helper `resolveAudioBlobs` exists (`resolve-audio-bytes.ts:27`) but has **zero
+helper `resolveAudioBlobs` exists ([`resolve-audio-bytes.ts:27`](lib/media/resolve-audio-bytes.ts#L27)) but has **zero
 call sites** in `lib/`, `components/` or `app/` — the export and regeneration
 paths call the singular form.
 
@@ -62,7 +62,7 @@ flowchart TD
 Three details that matter operationally:
 
 - A **deferred record keeps `status: 'done'`** but carries no `objectUrl`
-  (`load-classroom.ts:427-434`). Media resolution treats a known task without
+  ([`load-classroom.ts:427-434`](lib/classroom/load-classroom.ts#L427-L434)). Media resolution treats a known task without
   bytes as *pending* and re-renders when hydration fills the URL in. This is what
   stops generation resume from re-running an already-generated asset.
 - The `status !== 'done'` check in the write guard is what catches an in-flight
@@ -79,7 +79,7 @@ user-visible error.
 
 ## `StreamBuffer` policy
 
-One `setInterval` (`stream-buffer.ts:302`), default `tickMs = 30`,
+One `setInterval` ([`stream-buffer.ts:302`](lib/buffer/stream-buffer.ts#L302)), default `tickMs = 30`,
 `charsPerTick = 1` — roughly 33 characters per second. Eight item kinds
 (`BufferItem`, `:84`). The stated invariants (`:12-15`) are:
 
@@ -113,14 +113,14 @@ makes `onSegmentSealed` fire with the *correct* `currentAgentId` (comment at
 A subtlety worth knowing: `sealText(messageId)` (`:251`) sets the flag but does
 **not** fire `onSegmentSealed`; only `sealLastText()` (`:471`) does. Lecture
 narration is pushed with `pushText` immediately followed by `sealText`
-(`use-chat-sessions.ts:2188-2189`), so a lecture line never reaches
+([`use-chat-sessions.ts:2188-2189`](components/chat/use-chat-sessions.ts#L2188-L2189)), so a lecture line never reaches
 `useDiscussionTTS` — pre-generated narration is not double-synthesised.
 
 ## The TTS hold protocol
 
 This is the mechanism that keeps a bubble's text on screen while its audio plays.
 The buffer asks a callback; the callback is `useDiscussionTTS.shouldHold`
-(`lib/hooks/use-discussion-tts.ts:469`):
+([`lib/hooks/use-discussion-tts.ts:469`](lib/hooks/use-discussion-tts.ts#L469)):
 
 ```ts
 const shouldHold = useCallback(() => ({
@@ -158,7 +158,7 @@ stateDiagram-v2
 **A truthy-object trap.** `shouldHoldAfterReveal` returns an *object*, and the
 first check treats any truthy result as "hold" (`:581-587`) without inspecting
 `.holding`. So a lecture buffer — which has the same callback wired
-(`use-chat-sessions.ts:1100`) and `postTextDelayTicks === 0` — always enters
+([`use-chat-sessions.ts:1100`](components/chat/use-chat-sessions.ts#L1100)) and `postTextDelayTicks === 0` — always enters
 `HoldingForTTS` for exactly one tick, then the hold branch reads `!result.holding`
 and releases (`:512-519`). Net effect: one extra 30 ms tick per lecture line.
 Harmless, but it means "holding" is entered even when nothing is playing.
@@ -206,11 +206,11 @@ sequenceDiagram
 ```
 
 The underrun state is benign and expected: `isComplete = fullyRevealed &&
-item.sealed` (`stream-buffer.ts:548`), so an unsealed fully-revealed item simply
+item.sealed` ([`stream-buffer.ts:548`](lib/buffer/stream-buffer.ts#L548)), so an unsealed fully-revealed item simply
 stops advancing and waits. **But** if the stream dies without a `sealText` or a
 `pushDone`, the bubble freezes on the partial line forever — there is no timeout
 in the buffer. Recovery depends on the transport layer aborting and
-`onLiveSessionError` firing (`PlaybackChromeRoot.tsx:1783`).
+`onLiveSessionError` firing ([`PlaybackChromeRoot.tsx:1783`](components/edit/PlaybackChromeRoot.tsx#L1783)).
 
 ### 2. TTS generation outruns by text reveal
 
@@ -218,7 +218,7 @@ Text reveals at 33 chars/s; `POST /api/generate/tts` takes a network round trip
 plus synthesis. For a short segment the text finishes first, and the hold protocol
 covers the gap — the buffer holds while `queueRef.current.length > 0` even before
 the first byte arrives. If synthesis *fails*, the catch branch still increments
-`segmentDone` (`use-discussion-tts.ts:331`), so the hold releases rather than
+`segmentDone` ([`use-discussion-tts.ts:331`](lib/hooks/use-discussion-tts.ts#L331)), so the hold releases rather than
 wedging.
 
 The queue is strictly serial: `processQueue` returns early when
@@ -231,13 +231,13 @@ lookahead synthesis, so back-to-back short segments each pay a full round trip.
 `waitUntilDrained()` **never settles while paused, by design** — the docstring
 says so (`:319-323`). The tick loop is a no-op when `_paused`, nothing advances,
 and drain never fires. Since the client agent loop awaits buffer drain between
-iterations (`lib/chat/agent-loop.ts:239`), a paused buffer pauses the whole
+iterations ([`lib/chat/agent-loop.ts:239`](lib/chat/agent-loop.ts#L239)), a paused buffer pauses the whole
 multi-agent round. This is intentional; `livePausedRef` is a *sticky* intent that
 newly created **discussion/QA** buffers inherit — the inherit is gated on
 `type !== 'lecture'`, so a lecture buffer never picks it up
-(`use-chat-sessions.ts:1112-1114`) — which is why
+([`use-chat-sessions.ts:1112-1114`](components/chat/use-chat-sessions.ts#L1112-L1114)) — which is why
 `onMessageSend` must call `resumeActiveLiveBuffer()` **before** `sendMessage`
-creates the next buffer (`PlaybackChromeRoot.tsx:1599-1602`).
+creates the next buffer ([`PlaybackChromeRoot.tsx:1599-1602`](components/edit/PlaybackChromeRoot.tsx#L1599-L1602)).
 
 ## Action back-pressure
 
@@ -253,7 +253,7 @@ resolved (`:729-736`, `:745-748`). A failing action therefore never blocks the
 queue permanently. `waitForCurrentAction()` (`:347`) exposes the same promise so a
 caller can await an in-flight presentation mutation — `initializeScene` uses the
 equivalent guarantee through `endActiveSession({source:'scene_switch'})` before
-touching shared whiteboard state (`PlaybackChromeRoot.tsx:668`).
+touching shared whiteboard state ([`PlaybackChromeRoot.tsx:668`](components/edit/PlaybackChromeRoot.tsx#L668)).
 
 ## Teardown surface
 
@@ -280,9 +280,9 @@ concurrent calls collapse into one.
 
 ## Next
 
-- [`./07-utterance-to-output.md`](./07-utterance-to-output.md) — the lecture rail,
+- [`./07-utterance-to-output.md`](docs/08-classroom-runtime/07-utterance-to-output.md) — the lecture rail,
   which does not use `StreamBuffer` for timing.
-- [`./06-turn-taking-and-interruption.md`](./06-turn-taking-and-interruption.md) —
+- [`./06-turn-taking-and-interruption.md`](docs/08-classroom-runtime/06-turn-taking-and-interruption.md) —
   the four pause semantics that all land on this buffer.
-- [`../09-media-and-export/index.md`](../09-media-and-export/index.md) — TTS
+- [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md) — TTS
   synthesis itself.

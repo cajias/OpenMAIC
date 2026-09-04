@@ -10,7 +10,7 @@ boundaries at install time and release time — with the gaps named.
 `.github/workflows/*.yml`, `scripts/*.mjs`. All counts in this file were measured
 by script over the working tree; the measuring expression is named where the
 number is load-bearing. Evidence:
-[quality-testing-ci-deps/04](../appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
+[quality-testing-ci-deps/04](docs/appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
 
 ## The install-time trust chain
 
@@ -42,20 +42,20 @@ Two properties of that chain are the whole story:
    builds two forked upstream packages before anything else. This is the reason
    the release pipeline confines install and build to a job that holds
    `contents: read`, no token and `persist-credentials: false`
-   (`publish-packages.yml:66`-`:71`, `:78`-`:81`).
+   ([`publish-packages.yml:66`](.github/workflows/publish-packages.yml#L66)-[`:71`](.github/workflows/publish-packages.yml#L71), [`:78`](.github/workflows/publish-packages.yml#L78)-[`:81`](.github/workflows/publish-packages.yml#L81)).
 
 ## Lockfile discipline
 
 | Property | Value | Where |
 | --- | --- | --- |
-| `lockfileVersion` | `'9.0'` | `pnpm-lock.yaml:1` |
+| `lockfileVersion` | `'9.0'` | [`pnpm-lock.yaml:1`](pnpm-lock.yaml#L1) |
 | Size | 28 086 lines / 957 564 bytes | `wc` |
 | Resolutions | 2 723, all with `sha512` integrity | `grep -c` |
 | Non-registry resolutions | 0 | `grep 'resolution: {tarball\|repo:\|directory'` |
-| `settings.autoInstallPeers` | `true` | `pnpm-lock.yaml:4` |
-| `settings.excludeLinksFromLockfile` | `false` | `pnpm-lock.yaml:5` |
-| Package manager | `pnpm@10.28.0+sha512.05df71d…` | `package.json:209`; `Dockerfile:22` activates the same version via corepack |
-| `--frozen-lockfile` | `ci.yml:91`, `:239`; `publish-packages.yml:117`; `docs-build.yml`; `Dockerfile:46` | i.e. everywhere an install happens except a developer's first `pnpm install` |
+| `settings.autoInstallPeers` | `true` | [`pnpm-lock.yaml:4`](pnpm-lock.yaml#L4) |
+| `settings.excludeLinksFromLockfile` | `false` | [`pnpm-lock.yaml:5`](pnpm-lock.yaml#L5) |
+| Package manager | `pnpm@10.28.0+sha512.05df71d…` | [`package.json:209`](package.json#L209); [`Dockerfile:22`](Dockerfile#L22) activates the same version via corepack |
+| `--frozen-lockfile` | [`ci.yml:91`](.github/workflows/ci.yml#L91), [`:239`](.github/workflows/ci.yml#L239); [`publish-packages.yml:117`](.github/workflows/publish-packages.yml#L117); `docs-build.yml`; [`Dockerfile:46`](Dockerfile#L46) | i.e. everywhere an install happens except a developer's first `pnpm install` |
 | `.npmrc` | **absent** | so no `engine-strict`, no registry override, no `audit` configuration |
 
 `autoInstallPeers: true` is worth pausing on: a package whose peer is not declared
@@ -81,13 +81,13 @@ The 20 exact pins are not arbitrary. They fall into four groups:
 | Group | Entries | Reason |
 | --- | --- | --- |
 | **The framework trio** | `next@16.2.11`, `react@19.2.3`, `react-dom@19.2.3`, plus `eslint-config-next@16.2.11` in devDeps | A framework minor is a migration. `eslint-config-next` is pinned to the *same* version so the lint config cannot describe a different Next than the one installed. |
-| **The agent harness** | `@earendil-works/pi-agent-core@0.78.0`, `@earendil-works/pi-ai@0.78.0` | `lib/agent/VENDOR.md:19`-`:21` states the reason explicitly: `0.78.0` is the recorded baseline for a possible future source vendoring, and an exact pin is what keeps that baseline meaningful. |
+| **The agent harness** | `@earendil-works/pi-agent-core@0.78.0`, `@earendil-works/pi-ai@0.78.0` | [`lib/agent/VENDOR.md:19`](lib/agent/VENDOR.md#pinning-rationale)-[`:21`](lib/agent/VENDOR.md#pinning-rationale) states the reason explicitly: `0.78.0` is the recorded baseline for a possible future source vendoring, and an exact pin is what keeps that baseline meaningful. |
 | **Parsing and security surface** | `sanitize-html@2.17.0`, `undici@7.29.0`, `js-yaml@4.3.0`, `graphemer@1.4.0`, `nanoid@5.1.16`, `sharp@0.35.4`, `lodash@4.18.1`, `docx@9.4.1` | Libraries whose behaviour change is a security or correctness event rather than a feature. `sharp` additionally has its install script suppressed. |
-| **Tools whose OUTPUT BYTES are compared** | `prettier@3.8.1`, `hyperframes@0.7.60`, `fontkit@2.0.4`, `@fontsource/noto-sans@5.3.0`, `@fontsource/noto-sans-arabic@5.3.0`, `semver@7.8.5` | Prettier rewrites the tree, so a minor turns every open PR red. `hyperframes`' lint output text is string-matched in CI (`ci.yml:307` greps for `0 errors, 0 warnings`). `fontkit` and the two pinned fonts feed committed generated assets. |
+| **Tools whose OUTPUT BYTES are compared** | `prettier@3.8.1`, `hyperframes@0.7.60`, `fontkit@2.0.4`, `@fontsource/noto-sans@5.3.0`, `@fontsource/noto-sans-arabic@5.3.0`, `semver@7.8.5` | Prettier rewrites the tree, so a minor turns every open PR red. `hyperframes`' lint output text is string-matched in CI ([`ci.yml:307`](.github/workflows/ci.yml#L307) greps for `0 errors, 0 warnings`). `fontkit` and the two pinned fonts feed committed generated assets. |
 
 The eight `workspace:*` links are the six `@openmaic` packages plus the two
 vendored forks. Note the asymmetry that
-[05-published-packages.md](./05-published-packages.md) explains: the **root** app
+[05-published-packages.md](docs/13-dependencies/05-published-packages.md) explains: the **root** app
 uses `workspace:*` (published as an exact pin, irrelevant because the root is
 never published), while the six packages must use `workspace:^` between
 themselves — and a script enforces that.
@@ -132,7 +132,7 @@ override anywhere in the repository.
 
 ## Release-time trust boundary
 
-Covered in detail at [05-published-packages.md](./05-published-packages.md); the
+Covered in detail at [05-published-packages.md](docs/13-dependencies/05-published-packages.md); the
 supply-chain-relevant summary:
 
 | Control | Effect |
@@ -163,7 +163,7 @@ environment.
 | **`postinstall` runs nine builds of third-party and first-party code on every install, including on developer machines.** | This is the largest install-time execution surface in the repository, and it is unavoidable — the app does not build without it. |
 | **`autoInstallPeers: true`.** | The manifest under-describes `node_modules`. |
 | **`Dockerfile` uses the floating `node:22-alpine` tag.** | Two builds of the same commit can ship different Node patch levels. `render-service/Dockerfile` digest-pins by contrast, so the pattern exists in the repository and simply is not applied to the app image. |
-| **`ALPINE_MIRROR` and `NPM_REGISTRY` are build args.** | `Dockerfile:6`-`:22` lets an operator redirect both the OS package mirror and the npm registry. Useful in restricted networks; also a build-time trust delegation with no verification beyond apk/pnpm's own. |
+| **`ALPINE_MIRROR` and `NPM_REGISTRY` are build args.** | [`Dockerfile:6`](Dockerfile#L6)-[`:22`](Dockerfile#L22) lets an operator redirect both the OS package mirror and the npm registry. Useful in restricted networks; also a build-time trust delegation with no verification beyond apk/pnpm's own. |
 | **`ci.yml`, `storage-pg-contract.yml` and `docs-build.yml` use floating action tags** (`actions/checkout@v4`, `pnpm/action-setup@v4`) and declare **no `permissions:` block**, so they inherit the repository default. | The two publish workflows do neither. The asymmetry is deliberate (the publish path is the one holding a token) but it means the PR-time workflows are the softer target. |
 | **`render-service` registry pins drift silently from the workspace.** | Two dsl patch releases and two renderer patch releases behind, with no comparison anywhere. |
 
@@ -179,7 +179,7 @@ Worth saying plainly, because the gaps above are easier to list:
 - Two of the checks (`assertPackageListIsComplete`,
   `assert-pg-contract-suites.mjs`) exist specifically to detect a *gate going
   quiet*, which is the failure mode most repositories never think about.
-- `scripts/openmaic-packages.mjs:17`-`:33` states the threat model rather than
+- [`scripts/openmaic-packages.mjs:17`](scripts/openmaic-packages.mjs#L17)-[`:33`](scripts/openmaic-packages.mjs#L33) states the threat model rather than
   implying one: the gates catch mistakes, not deliberate subversion, and cannot,
   because they are configuration in the same repository as the code they check.
 
@@ -198,12 +198,12 @@ Worth saying plainly, because the gaps above are easier to list:
 
 ## Related
 
-- [05-published-packages.md](./05-published-packages.md) — the gates and the
+- [05-published-packages.md](docs/13-dependencies/05-published-packages.md) — the gates and the
   release pipeline in full.
-- [04-vendored-forks.md](./04-vendored-forks.md) — the two forks this chain builds
+- [04-vendored-forks.md](docs/13-dependencies/04-vendored-forks.md) — the two forks this chain builds
   first.
-- [07-licences.md](./07-licences.md) — the licence side of the same graph.
-- [16-development-view/index.md](../16-development-view/index.md) — the CI jobs
+- [07-licences.md](docs/13-dependencies/07-licences.md) — the licence side of the same graph.
+- [16-development-view/index.md](docs/16-development-view/index.md) — the CI jobs
   these controls live in.
-- [17-deployment-view/index.md](../17-deployment-view/index.md) — how the built
+- [17-deployment-view/index.md](docs/17-deployment-view/index.md) — how the built
   artefacts reach a host.

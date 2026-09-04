@@ -4,7 +4,7 @@ Four declared capability flags, and exactly one of them changes runtime behaviou
 reproduces the capability types verbatim, tabulates what every catalog model declares, and traces
 every gate. How an entry gets into the registry in the first place — five sourcing paths and the
 operator-YAML declaration pipeline — is
-[./02-model-registry-and-capabilities.md](./02-model-registry-and-capabilities.md).
+[./02-model-registry-and-capabilities.md](docs/04-ai-provider-layer/02-model-registry-and-capabilities.md).
 
 **Sources:** `lib/types/provider.ts`, `lib/ai/providers.ts`, `lib/ai/model-metadata.ts`,
 `lib/ai/thinking-config.ts`, `lib/ai/llm.ts`, `lib/config/apply-token-plan.ts`,
@@ -14,7 +14,7 @@ operator-YAML declaration pipeline — is
 `lib/server/agent-runtime/generation-ai-call.ts`, `lib/server/agent-runtime/agent-driver-model.ts`,
 `lib/server/classroom-generation.ts`, `components/scene-renderers/pbl/v2/submission.tsx`,
 `components/settings/*`;
-[../appendix/research/ai-provider-layer/01a-modules-catalog.md](../appendix/research/ai-provider-layer/01a-modules-catalog.md).
+[../appendix/research/ai-provider-layer/01a-modules-catalog.md](docs/appendix/research/ai-provider-layer/01a-modules-catalog.md).
 
 ## The capability types, verbatim
 
@@ -91,7 +91,7 @@ export type ThinkingRequestAdapter =
 
 `control` drives the settings UI; `requestAdapter` drives the wire format. They are orthogonal —
 `kimi:kimi-k3` has `control: 'effort'` with `requestAdapter: 'openai'`
-(`lib/ai/model-metadata.ts:162`), while `deepseek:deepseek-v4-pro` has `control: 'effort'` with
+([`lib/ai/model-metadata.ts:162`](lib/ai/model-metadata.ts#L162)), while `deepseek:deepseek-v4-pro` has `control: 'effort'` with
 `requestAdapter: 'deepseek'` (`:167`).
 
 ## Declared capabilities per provider
@@ -126,30 +126,30 @@ Computed by evaluating the `PROVIDERS` literal, then applying the same overlay
 Facts that follow:
 
 - `streaming: true` on **all 104** entries. Nothing in the codebase reads it except the settings
-  UI badge (`components/settings/provider-config-panel.tsx:470`). It is decorative.
+  UI badge ([`components/settings/provider-config-panel.tsx:470`](components/settings/provider-config-panel.tsx#L470)). It is decorative.
 - `tools` is false on exactly two entries (`azure`'s placeholder aside): `atlascloud`'s
-  non-function-calling entry (`lib/ai/providers.ts:240`) and one `ollama` entry. Also read only by
-  the settings UI (`provider-config-panel.tsx:465`).
+  non-function-calling entry ([`lib/ai/providers.ts:240`](lib/ai/providers.ts#L240)) and one `ollama` entry. Also read only by
+  the settings UI ([`provider-config-panel.tsx:465`](components/settings/provider-config-panel.tsx#L465)).
 - **16 catalog models have no thinking capability at all**: all 8 `bedrock`, all 3 `ollama`, 1
   `atlascloud`, 1 `siliconflow`, 3 `grok`. For those, `buildThinkingProviderOptions` returns
-  `undefined` (`lib/ai/llm.ts:149`) and `getCompatThinkingBodyParams` returns `undefined`
-  (`lib/ai/providers.ts:1618`) — thinking config is accepted, normalised and then silently
+  `undefined` ([`lib/ai/llm.ts:149`](lib/ai/llm.ts#L149)) and `getCompatThinkingBodyParams` returns `undefined`
+  ([`lib/ai/providers.ts:1618`](lib/ai/providers.ts#L1618)) — thinking config is accepted, normalised and then silently
   discarded.
-- **`lemonade` has a wildcard**: `getCatalogThinkingCapability` (`lib/ai/model-metadata.ts:464`)
+- **`lemonade` has a wildcard**: `getCatalogThinkingCapability` ([`lib/ai/model-metadata.ts:464`](lib/ai/model-metadata.ts#L464))
   returns `lemonadeToggleBudget` for *any* unknown `lemonade` model id, so a self-hosted model the
   catalog has never heard of still gets a thinking control.
 - **16 `THINKING_CAPABILITIES` keys reference models absent from the catalog**: 12 `doubao` keys
   for the Volcengine Ark Agent Plan aliases (`doubao-seed-2.0-*`, `deepseek-v4-*`, `glm-5.2`,
   `kimi-k2.*`, `minimax-m*`, `ark-code-latest`) and 4 `lemonade` ids the wildcard already covers.
   The Ark keys are load-bearing: the token-plan preset seeds those ids into the store
-  (`lib/config/token-plan-presets.ts:145` onward) and `tokenPlanModelInfo`
-  (`lib/config/apply-token-plan.ts:122`) overlays the capability so a seeded model does not lose
-  its reasoning control. The comment at `lib/ai/model-metadata.ts:393`–`:399` documents exactly
+  ([`lib/config/token-plan-presets.ts:145`](lib/config/token-plan-presets.ts#L145) onward) and `tokenPlanModelInfo`
+  ([`lib/config/apply-token-plan.ts:122`](lib/config/apply-token-plan.ts#L122)) overlays the capability so a seeded model does not lose
+  its reasoning control. The comment at [`lib/ai/model-metadata.ts:393`](lib/ai/model-metadata.ts#L393)–[`:399`](lib/ai/model-metadata.ts#L399) documents exactly
   this.
 
 ### The 28 capability shapes
 
-`THINKING_CAPABILITIES` (`lib/ai/model-metadata.ts:264`) has 104 keys built from 5 constructors
+`THINKING_CAPABILITIES` ([`lib/ai/model-metadata.ts:264`](lib/ai/model-metadata.ts#L264)) has 104 keys built from 5 constructors
 and 23 named constants. Frequency of use:
 
 | Shape | Uses | `control` | `requestAdapter` | Notes |
@@ -224,7 +224,7 @@ entry that declares `vision: true` (67 of 104); `streaming` is `true` on all 104
 
 The last row is the 16 ids whose thinking config is normalised and then discarded. The `lemonade`
 row lists the single catalog id; any *other* `lemonade` id — a self-hosted model the catalog has
-never seen — still gets `lemonadeToggleBudget` from the wildcard at `model-metadata.ts:464`.
+never seen — still gets `lemonadeToggleBudget` from the wildcard at [`model-metadata.ts:464`](lib/ai/model-metadata.ts#L464).
 `azure` contributes no rows: it ships zero catalog models.
 
 ## What actually gates behaviour
@@ -290,9 +290,9 @@ different sources of truth for the same question.
 ### `outputWindow` — the de-facto response cap
 
 `maxOutputTokens: modelInfo?.outputWindow` appears at 7 generation call sites
-(`scene-content/route.ts:153,167`, `scene-actions/route.ts:115,129`,
-`scene-outlines-stream/route.ts:501,510`, `chat/pi/route.ts:233`) plus
-`lib/server/agent-runtime/generation-ai-call.ts:29` and four sites in
+([`scene-content/route.ts:153,167`](app/api/generate/scene-content/route.ts#L153), [`scene-actions/route.ts:115,129`](app/api/generate/scene-actions/route.ts#L115),
+[`scene-outlines-stream/route.ts:501,510`](app/api/generate/scene-outlines-stream/route.ts#L501), [`chat/pi/route.ts:233`](app/api/chat/pi/route.ts#L233)) plus
+[`lib/server/agent-runtime/generation-ai-call.ts:29`](lib/server/agent-runtime/generation-ai-call.ts#L29) and four sites in
 `lib/server/classroom-generation.ts` (`:226` off `modelInfo?.outputWindow`; `:322`, `:348`, `:372`
 off the `resolveStageModel` destructure) — twelve caps in total. The only other `maxOutputTokens`
 in that file is the hardcoded `256` at `:392`. When it is `undefined` — an Azure deployment, a
@@ -301,8 +301,8 @@ probed id, a
 
 ### `contextWindow` — compaction only
 
-Two consumers, both pi-based: `app/api/chat/pi/route.ts:234` and
-`lib/server/agent-runtime/agent-driver-model.ts:73`, where the chain is
+Two consumers, both pi-based: [`app/api/chat/pi/route.ts:234`](app/api/chat/pi/route.ts#L234) and
+[`lib/server/agent-runtime/agent-driver-model.ts:73`](lib/server/agent-runtime/agent-driver-model.ts#L73), where the chain is
 `route.contextWindow ?? modelInfo.contextWindow ?? 128_000`. The comment at `:68`–`:72` is
 explicit that the value is an *internal* estimate for deciding when to compact and is never sent
 to the model API.

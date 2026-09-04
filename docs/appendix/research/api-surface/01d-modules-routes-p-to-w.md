@@ -105,19 +105,19 @@ stable cross-course identifier for the author (`:19-23`).
 
 | Route | Method | Notes |
 | --- | --- | --- |
-| `/api/stages` | `GET` | `{stages: store.listDocuments()}` (`route.ts:38-42`) |
+| `/api/stages` | `GET` | `{stages: store.listDocuments()}` ([`route.ts:38-42`](app/api/stages/route.ts#L38-L42)) |
 | `/api/stages` | `POST` | `{name, description?}`; `name` required and ≤ 120 chars; validated before owner resolution; id minted as `` `stage-${randomBytes(9).toString('base64url')}` `` (`:30-32`, `:59-77`); returns `201 {stage:{...,sceneCount:0}}` |
 | `/api/stages/[id]` | `GET` | full `{stage, scenes, outline}` document or `ownerNotFound` |
-| `/api/stages/[id]` | `PATCH` | rename; `name` non-empty ≤ 120 (`[id]/route.ts:87-98`) |
+| `/api/stages/[id]` | `PATCH` | rename; `name` non-empty ≤ 120 ([`[id]/route.ts:87-98`](app/api/stages/[id]/route.ts#L87-L98)) |
 | `/api/stages/[id]` | `PUT` | whole-document save; requires `stage.id` string + `scenes` array (`:127-144`); `stage.id` must equal the path id (`:148-155`); existence-gated so a PUT cannot resurrect a deleted course or mint one under a client id (`:157-162`); server overwrites `stage.updatedAt` (`:170`) |
-| `/api/stages/[id]` | `DELETE` | `store.deleteDocument(id)` then `{ok:true}` — idempotent *over existence*, so no 404 for an unknown id (`:180-188`). Not unconditional: the runtime gate answers plain-text 404 first (`:184`), and a throw from the store becomes a 500 in `withRequestOwnerId`'s catch (`with-owner.ts:20-23`) |
-| `/api/stages/[id]/manifest` | `GET` | `{rev, scenes:[{id,order,rev}]}` from DB triggers (`manifest/route.ts:1-16`) |
-| `/api/stages/[id]/scenes` | `GET` | `?ids=a,b,c`; trims, dedupes, drops ids containing `\0` or a lone surrogate (`scenes/route.ts:41-59`), empty → `400 empty_scene_ids`, over 200 → `400 too_many_scene_ids` (no silent truncation) |
+| `/api/stages/[id]` | `DELETE` | `store.deleteDocument(id)` then `{ok:true}` — idempotent *over existence*, so no 404 for an unknown id (`:180-188`). Not unconditional: the runtime gate answers plain-text 404 first (`:184`), and a throw from the store becomes a 500 in `withRequestOwnerId`'s catch ([`with-owner.ts:20-23`](lib/server/agent-runtime/with-owner.ts#L20-L23)) |
+| `/api/stages/[id]/manifest` | `GET` | `{rev, scenes:[{id,order,rev}]}` from DB triggers ([`manifest/route.ts:1-16`](app/api/stages/[id]/manifest/route.ts#L1-L16)) |
+| `/api/stages/[id]/scenes` | `GET` | `?ids=a,b,c`; trims, dedupes, drops ids containing `\0` or a lone surrogate ([`scenes/route.ts:41-59`](app/api/stages/[id]/scenes/route.ts#L41-L59)), empty → `400 empty_scene_ids`, over 200 → `400 too_many_scene_ids` (no silent truncation) |
 | `/api/stages/[id]/freshness` | `GET` | SSE; see below |
-| `/api/stages/[id]/status` | `GET` | explicitly unauthenticated: `{isPublic, publishedAt}` or `404 {error:'not_found'}` (`status/route.ts:21-44`) |
-| `/api/stages/[id]/publish` | `POST` | anon owner → `401 {error:'login_required'}`; foreign owner → `403 {error:'forbidden'}`; already public → idempotent 200 (`publish/route.ts:26-46`) |
+| `/api/stages/[id]/status` | `GET` | explicitly unauthenticated: `{isPublic, publishedAt}` or `404 {error:'not_found'}` ([`status/route.ts:21-44`](app/api/stages/[id]/status/route.ts#L21-L44)) |
+| `/api/stages/[id]/publish` | `POST` | anon owner → `401 {error:'login_required'}`; foreign owner → `403 {error:'forbidden'}`; already public → idempotent 200 ([`publish/route.ts:26-46`](app/api/stages/[id]/publish/route.ts#L26-L46)) |
 | `/api/stages/[id]/unpublish` | `POST` | same gates, then `setStagePublished(db, id, false, null)` |
-| `/api/stages/[id]/generation-complete` | `POST` | owner-only narrow UPDATE via `markStageGenerationComplete`; an untouched row → 404 (`generation-complete/route.ts:41-45`) |
+| `/api/stages/[id]/generation-complete` | `POST` | owner-only narrow UPDATE via `markStageGenerationComplete`; an untouched row → 404 ([`generation-complete/route.ts:41-45`](app/api/stages/[id]/generation-complete/route.ts#L41-L45)) |
 
 `mapSaveError` in `stages/[id]` translates store failures:
 `DocumentNotFoundError`→404, `DocumentVersionError`→`400 'document was written by a newer client; reload before saving'`,

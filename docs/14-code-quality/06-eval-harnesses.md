@@ -2,16 +2,16 @@
 
 **Four harness directories exposing six `pnpm eval:*` runner scripts** — the canonical
 phrasing, reconciled in
-[`../16-development-view/06-testing-and-evals.md`](../16-development-view/06-testing-and-evals.md),
+[`../16-development-view/06-testing-and-evals.md`](docs/16-development-view/06-testing-and-evals.md),
 because `eval/orchestration` ships three runners. 4 271 lines, 103 scenarios. Five of the
 six scripts have a real pass/fail exit contract. **No workflow invokes any of them and no
 baseline is committed**, so they are manual instruments, not gates.
 
 **Sources:** `eval/orchestration/{runner,answering-runner,answer-content-runner,judge}.ts`,
 `eval/outline-language/{runner,judge}.ts`, `eval/pbl-v2-planner/runner.ts`,
-`eval/whiteboard-layout/{runner,scorer,state-manager}.ts`, `package.json:28-33`,
-`.gitignore:76-80`;
-[`../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md`](../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md).
+`eval/whiteboard-layout/{runner,scorer,state-manager}.ts`, [`package.json:28-33`](package.json#L28-L33),
+[`.gitignore:76-80`](.gitignore#L76-L80);
+[`../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md`](docs/appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md).
 
 ## Inventory
 
@@ -22,12 +22,12 @@ grep -n 'eval' package.json                                    # 6 scripts, :28-
 
 | Harness | Scenarios | Scoring | Exit contract | Gates anything? |
 | --- | --- | --- | --- | --- |
-| `eval/orchestration` (premature-END) | 5 (`scenarios/premature-end.json`) | **Deterministic.** `classifyDecision` calls the production `parseDirectorDecision` (`judge.ts:10`); END/not-END is binary | `process.exit(allPostFixPass ? 0 : 1)` — `runner.ts:187` | no |
-| `eval/orchestration` (answering) | 7 (`scenarios/answering.json`) | Threshold over sampled runs | `process.exit(overallPass ? 0 : 1)` — `answering-runner.ts:402` | no |
-| `eval/orchestration` (answer-content) | 12 (`scenarios/answer-content.json`) | LLM judge (`answer-content-judge.ts`) | `process.exit(overallPass ? 0 : 1)` — `answer-content-runner.ts:516` | no |
-| `eval/outline-language` | 50 (`scenarios/language-test-cases.json`) | LLM-as-judge, explicitly *lenient* rubric (`judge.ts:14-21`) | `process.exit(passed === results.length ? 0 : 1)` — `runner.ts:168` | no |
-| `eval/pbl-v2-planner` | 23 (`scenarios/test-cases.json`) × up to 2 prompt variants | Deterministic completion gate **and** two LLM judges (`judge-prompt.md`, `judge-prompt-scenario.md`, `judge-prompt-completability.md`) | `process.exit(allPassed ? 0 : 1)` requiring `r.ok && r.passesCompletionGate`, plus `completability.pass` only when `judgeEnabled()` — `runner.ts:913-919`; harness crash exits **2** | no |
-| `eval/whiteboard-layout` | 6 (`scenarios/*.json`) | VLM scorer, 5 dimensions 1-10 (`scorer.ts:26-49`: readability, overlap, rendering_correctness, content_completeness, layout_logic) | **none** — `main()` exits non-zero only on "no scenarios" (`:356`) or a fatal throw (`:393`) | no |
+| `eval/orchestration` (premature-END) | 5 (`scenarios/premature-end.json`) | **Deterministic.** `classifyDecision` calls the production `parseDirectorDecision` ([`judge.ts:10`](eval/orchestration/judge.ts#L10)); END/not-END is binary | `process.exit(allPostFixPass ? 0 : 1)` — [`runner.ts:187`](eval/orchestration/runner.ts#L187) | no |
+| `eval/orchestration` (answering) | 7 (`scenarios/answering.json`) | Threshold over sampled runs | `process.exit(overallPass ? 0 : 1)` — [`answering-runner.ts:402`](eval/orchestration/answering-runner.ts#L402) | no |
+| `eval/orchestration` (answer-content) | 12 (`scenarios/answer-content.json`) | LLM judge (`answer-content-judge.ts`) | `process.exit(overallPass ? 0 : 1)` — [`answer-content-runner.ts:516`](eval/orchestration/answer-content-runner.ts#L516) | no |
+| `eval/outline-language` | 50 (`scenarios/language-test-cases.json`) | LLM-as-judge, explicitly *lenient* rubric ([`judge.ts:14-21`](eval/outline-language/judge.ts#L14-L21)) | `process.exit(passed === results.length ? 0 : 1)` — [`runner.ts:168`](eval/outline-language/runner.ts#L168) | no |
+| `eval/pbl-v2-planner` | 23 (`scenarios/test-cases.json`) × up to 2 prompt variants | Deterministic completion gate **and** two LLM judges (`judge-prompt.md`, `judge-prompt-scenario.md`, `judge-prompt-completability.md`) | `process.exit(allPassed ? 0 : 1)` requiring `r.ok && r.passesCompletionGate`, plus `completability.pass` only when `judgeEnabled()` — [`runner.ts:913-919`](eval/pbl-v2-planner/runner.ts#L913-L919); harness crash exits **2** | no |
+| `eval/whiteboard-layout` | 6 (`scenarios/*.json`) | VLM scorer, 5 dimensions 1-10 ([`scorer.ts:26-49`](eval/whiteboard-layout/scorer.ts#L26-L49): readability, overlap, rendering_correctness, content_completeness, layout_logic) | **none** — `main()` exits non-zero only on "no scenarios" ([`:356`](eval/whiteboard-layout/runner.ts#L356)) or a fatal throw ([`:393`](eval/whiteboard-layout/runner.ts#L393)) | no |
 
 `eval/shared/` is a three-file support library (`markdown-report.ts`,
 `resolve-model.ts`, `run-dir.ts`), not a harness.
@@ -82,19 +82,19 @@ sufficient". It imports the production parser (`:10`) rather than re-deriving th
 so a change to the parser changes the eval — which is the correct coupling for a
 regression guard.
 
-**2. The END-rate denominator excludes errored samples.** `judge.ts:30-34` filters
+**2. The END-rate denominator excludes errored samples.** [`judge.ts:30-34`](eval/orchestration/judge.ts#L30-L34) filters
 `!s.error` before computing the rate, with the incident named: "so API failures (e.g.
 provider 'Forbidden') don't masquerade as deterministic END behavior." An Anthropic
 `Forbidden` on every sample would otherwise read as 100 % END, i.e. as the bug being
 guarded against.
 
-**3. `eval/whiteboard-layout` exercises the real executor.** `state-manager.ts:4` imports
+**3. `eval/whiteboard-layout` exercises the real executor.** [`state-manager.ts:4`](eval/whiteboard-layout/state-manager.ts#L4) imports
 `ActionEngine` from `@/lib/action/engine` and drives headless Zustand stores; the runner
-serialises actions through a single `actionChain` promise (`runner.ts:130`, `:190`, `:221`)
+serialises actions through a single `actionChain` promise ([`runner.ts:130`](eval/whiteboard-layout/runner.ts#L130), `:190`, `:221`)
 because `ensureWhiteboardOpen()` awaits an internal delay on first use (`:126`). It is the
 only harness that integrates the production action executor end to end — which is notable
 given that `lib/action/engine.ts` is the repository's type-safety hotspot
-([03-type-safety.md](./03-type-safety.md)).
+([03-type-safety.md](docs/14-code-quality/03-type-safety.md)).
 
 ## What they do not do
 
@@ -108,8 +108,8 @@ grep -n 'eval' .gitignore                    # :76-80 — five results paths
 | --- | --- | --- |
 | **No workflow invokes any harness** | `grep -rn 'eval:' .github/workflows/` → no output | Five real exit-code contracts gate nothing |
 | **No committed baseline** | `git ls-files 'eval/*/results/*'` → empty | Every run starts from zero. A threshold on an absolute LLM score is a much weaker signal than a delta against a recorded run — which is the deeper reason these cannot simply be wired up |
-| **`whiteboard-layout` has no threshold** | `runner.ts:339-390` — `main()` returns after writing the report; the only `process.exit(1)` calls are at `:356` (no scenarios) and `:393` (fatal throw) | A board scoring 2/10 on every dimension exits 0 |
-| **`eval/pbl-v2-planner/results/` is not gitignored** | `.gitignore:76-80` covers `whiteboard-layout`, `outline-language` and the three `orchestration` output dirs (`results/`, `results-answering/`, `results-answer-content/`) — not this one | A PBL run leaves untracked files in `git status` that can be committed by accident |
+| **`whiteboard-layout` has no threshold** | [`runner.ts:339-390`](eval/whiteboard-layout/runner.ts#L339-L390) — `main()` returns after writing the report; the only `process.exit(1)` calls are at `:356` (no scenarios) and `:393` (fatal throw) | A board scoring 2/10 on every dimension exits 0 |
+| **`eval/pbl-v2-planner/results/` is not gitignored** | [`.gitignore:76-80`](.gitignore#L76-L80) covers `whiteboard-layout`, `outline-language` and the three `orchestration` output dirs (`results/`, `results-answering/`, `results-answer-content/`) — not this one | A PBL run leaves untracked files in `git status` that can be committed by accident |
 | **`vitest.eval.config.ts` is dead** | `find . -name '*.eval.test.ts' -not -path '*/node_modules/*'` → 0; `grep -rn 'vitest.eval.config'` finds only documentation | 14 lines of config matching nothing, referenced by no script, workflow or document |
 
 The absent baseline is the load-bearing gap, and it makes "add the evals to CI" the wrong
@@ -118,7 +118,7 @@ first step. Every run spends real provider tokens — `eval/outline-language` is
 additionally needs a live app on `--base-url` and a headed capture browser. Wiring an
 absolute threshold into CI before a baseline exists produces a flaky gate rather than a
 signal. The concrete first step is in
-[12-remediation-backlog.md](./12-remediation-backlog.md).
+[12-remediation-backlog.md](docs/14-code-quality/12-remediation-backlog.md).
 
 ## Cost and environment shape
 
@@ -140,7 +140,7 @@ flowchart LR
   O1 -->|"cheapest to gate first"| PICK["The only harness whose cost<br/>and determinism both suit CI"]
 ```
 
-`eval/whiteboard-layout/runner.ts:294` also supports a `--rescore` mode that re-scores
+[`eval/whiteboard-layout/runner.ts:294`](eval/whiteboard-layout/runner.ts#L294) also supports a `--rescore` mode that re-scores
 existing screenshots without re-running inference — the right primitive for building the
 missing baseline cheaply.
 

@@ -1,6 +1,6 @@
 # The Durable Agent Loop, Part 2: Dispatch, Stop and Settle
 
-Continues [`01-agent-loop.md`](./01-agent-loop.md) at step six. Tool dispatch and
+Continues [`01-agent-loop.md`](docs/05-agent-runtime/01-agent-loop.md) at step six. Tool dispatch and
 the durable receipt protocol, the two mechanisms that end a run, the settle
 sequence, and why the SSE stream is not part of the loop at all.
 
@@ -8,7 +8,7 @@ sequence, and why the SSE stream is not part of the loop at all.
 `lib/server/agent-runtime/tool-call-integrity.ts`,
 `lib/agent/runtime/{allowlist,tool-timeout}.ts`,
 `app/api/agent/sessions/[id]/events/route.ts`.
-Evidence: [`../appendix/research/agent-runtime/03-flows.md`](../appendix/research/agent-runtime/03-flows.md).
+Evidence: [`../appendix/research/agent-runtime/03-flows.md`](docs/appendix/research/agent-runtime/03-flows.md).
 
 ## Six: tool dispatch and the durable receipt
 
@@ -40,7 +40,7 @@ sequenceDiagram
 ```
 
 Two orderings in that diagram are load-bearing and commented as such
-(`runner.ts:1509-1513`): a tool call becomes *pending* as soon as its assistant
+([`runner.ts:1509-1513`](lib/server/agent-runtime/runner.ts#L1509-L1513)): a tool call becomes *pending* as soon as its assistant
 frame is emitted, so an abort can queue its receipt while the frame is still on
 the write chain; and it stops being pending only **after** its fenced append
 succeeds, because clearing it at event time would reopen the orphan race during
@@ -53,16 +53,16 @@ inside the critical write (`:1520-1532`).
 
 `userFramesSeen` is incremented on the same `message_end` (`:1517`), which is what
 makes the skill-preload pin window ("valid through user frame N") meaningful —
-see [`04-session-and-context.md`](./04-session-and-context.md).
+see [`04-session-and-context.md`](docs/05-agent-runtime/04-session-and-context.md).
 
 The five authorisation layers a call passes through before `tool.execute` are
-documented in [`03-tool-catalogue.md`](./03-tool-catalogue.md).
+documented in [`03-tool-catalogue.md`](docs/05-agent-runtime/03-tool-catalogue.md).
 
 ## Seven: loop / stop
 
 Two mechanisms decide when the run is over.
 
-**The wind-down loop** (`runner.ts:1732-1740`) is not a turn loop — pi owns turns.
+**The wind-down loop** ([`runner.ts:1732-1740`](lib/server/agent-runtime/runner.ts#L1732-L1740)) is not a turn loop — pi owns turns.
 It exists to catch a follow-up message that arrived while the agent was going idle:
 
 ```
@@ -81,7 +81,7 @@ The comment above it (`:1729-1731`) explains the deliberate limit: pi is already
 idle at that point, so an accepted steer is durably detected and requeued by the
 settle check for the *next* claim rather than extending this run.
 
-**The `ask_user` latch** (`createAskUserTerminateLatch`, `runner.ts:834`) makes a
+**The `ask_user` latch** (`createAskUserTerminateLatch`, [`runner.ts:834`](lib/server/agent-runtime/runner.ts#L834)) makes a
 successful `ask_user` terminal and *sticky* across a mixed tool batch: once
 committed, `afterToolCall` returns `{terminate:true}` for the rest of the batch
 (`:1493-1499`). The predicate itself is one line —
@@ -147,7 +147,7 @@ stateDiagram-v2
   Succeeded --> [*]: session_end succeeded
 ```
 
-The settle sequence, in order (`runner.ts:1746-1789`):
+The settle sequence, in order ([`runner.ts:1746-1789`](lib/server/agent-runtime/runner.ts#L1746-L1789)):
 
 1. `queueInterruptedToolResults()` — receipts for any still-pending call, appended
    through the same attempt-fenced storage as normal messages, resolved only after
@@ -193,7 +193,7 @@ non-propagating `flushAll(false)`, and removes the session from `ctx.running`.
 ## Nine: the stream is a separate reader
 
 Nothing in the loop writes to a client. `GET /api/agent/sessions/:id/events`
-(`app/api/agent/sessions/[id]/events/route.ts:62`) is a **pure reader of the
+([`app/api/agent/sessions/[id]/events/route.ts:62`](app/api/agent/sessions/[id]/events/route.ts#L62)) is a **pure reader of the
 store** (`:30-33`): a disconnect closes the reader and nothing else. The wakeup is
 the same `subscribeAgentEventWakeup({kind:'session', sessionId})` bus the runner
 uses (`:282`), registered *before* the initial backlog read so a commit racing
@@ -221,30 +221,30 @@ flowchart LR
 ```
 
 The hook fires inside the business transaction on purpose
-(`lib/server/agent-runtime/store.ts:69-75`): PG emits `NOTIFY` only at commit, so
+([`lib/server/agent-runtime/store.ts:69-75`](lib/server/agent-runtime/store.ts#L69-L75)): PG emits `NOTIFY` only at commit, so
 the reader wakes exactly when the row becomes visible, and a dropped notification
 degrades latency rather than correctness because every stream keeps its fallback
 poll.
 
-See [`02-client-server-split.md`](./02-client-server-split.md) for the frame
-format and the fold, and [`08-failure-modes.md`](./08-failure-modes.md) for the
+See [`02-client-server-split.md`](docs/05-agent-runtime/02-client-server-split.md) for the frame
+format and the fold, and [`08-failure-modes.md`](docs/05-agent-runtime/08-failure-modes.md) for the
 degraded-catch-up path.
 
 ## Open questions
 
-- **Compaction is unwired.** `agentRuntimeConfig.compaction` (`config.ts:27-42`)
+- **Compaction is unwired.** `agentRuntimeConfig.compaction` ([`config.ts:27-42`](lib/server/agent-runtime/config.ts#L27-L42))
   reads three env vars and has zero consumers; `runner.ts` never passes
   `transformContext` to `buildAgent`. The config comment admits it
-  (`config.ts:20-26`), but an operator setting
+  ([`config.ts:20-26`](lib/server/agent-runtime/config.ts#L20-L26)), but an operator setting
   `OPENMAIC_AGENT_COMPACTION_ENABLED=true` gets no context transformation at all.
   Whether enabling it is a one-line wiring or needs the "later slice" cannot be
   answered from the tree.
 - **`meta.stageId` is never read by the runner.** It is persisted
-  (`app/api/agent/sessions/route.ts:139-143`) and streamed to the client, but no
+  ([`app/api/agent/sessions/route.ts:139-143`](app/api/agent/sessions/route.ts#L139-L143)) and streamed to the client, but no
   `meta.stageId` reference exists in `runner.ts`. The route defers validation
-  "until a later slice consumes stageId" (`route.ts:133-136`); what that consumer
+  "until a later slice consumes stageId" ([`route.ts:133-136`](app/api/agent/sessions/route.ts#L133-L136)); what that consumer
   is meant to be is not derivable.
 - **Store guarantees.** `claimNextSession` ordering/fairness, whether
   `requeueSession` resets `attempt` to 0 or 1, and whether
   `finishSession(..., expectedAttempt)` is a compare-and-set are implemented in
-  `packages/@openmaic/storage` — see [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md).
+  `packages/@openmaic/storage` — see [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md).

@@ -3,16 +3,16 @@
 The three gates that govern what a *published* tarball declares, rather than what
 the working tree looks like: `check:package-versions` (two modes),
 `check-internal-dependency-ranges`, and the packed tarball smoke test. Continues
-[`07-quality-gates.md`](./07-quality-gates.md), which covers the five tree-hygiene
+[`07-quality-gates.md`](docs/16-development-view/07-quality-gates.md), which covers the five tree-hygiene
 gates.
 
 **Sources:** `scripts/check-package-version-bumps.mjs` (685 lines),
 `scripts/check-internal-dependency-ranges.mjs` (159),
 `scripts/smoke-test-package-tarballs.mjs` (206),
-`scripts/openmaic-packages.mjs:17-33`, `.github/workflows/ci.yml:59-89`,
-`.github/workflows/publish-packages.yml:114-237`. Evidence:
-[`quality-testing-ci-deps/01b`](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[`quality-testing-ci-deps/05`](../appendix/research/quality-testing-ci-deps/05-failure-modes.md).
+[`scripts/openmaic-packages.mjs:17-33`](scripts/openmaic-packages.mjs#L17-L33), [`.github/workflows/ci.yml:59-89`](.github/workflows/ci.yml#L59-L89),
+[`.github/workflows/publish-packages.yml:114-237`](.github/workflows/publish-packages.yml#L114-L237). Evidence:
+[`quality-testing-ci-deps/01b`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[`quality-testing-ci-deps/05`](docs/appendix/research/quality-testing-ci-deps/05-failure-modes.md).
 
 ## Where the three sit
 
@@ -33,7 +33,7 @@ flowchart LR
   A1 -.->|"same script, different mode"| B1
 ```
 
-The pairing is deliberate. `ci.yml:83-87` states it: the tarball smoke test proves
+The pairing is deliberate. [`ci.yml:83-87`](.github/workflows/ci.yml#L83-L87) states it: the tarball smoke test proves
 the claim about "the bytes that would actually be published, but it installs five
 package tarballs, so it runs only on the release path. This is the cheap
 source-level form, here so that a pull request restoring `workspace:*` fails at
@@ -81,9 +81,9 @@ stateDiagram-v2
 For each package whose **publishable inputs** changed between `<base-ref>` and
 `HEAD`, the manifest version must have increased (`runDiffMode`, `:441`).
 "Publishable input" means "file under the package directory" minus the ignore
-lists documented in [`04-scripts-inventory.md`](./04-scripts-inventory.md).
+lists documented in [`04-scripts-inventory.md`](docs/16-development-view/04-scripts-inventory.md).
 
-**Fails as** exactly the message `CONTRIBUTING.md:136-138` quotes:
+**Fails as** exactly the message [`CONTRIBUTING.md:143-145`](CONTRIBUTING.md#changing-a-published-package) quotes:
 
 ```
 <package>: publishable package inputs changed but version did not increase (0.11.0 -> 0.11.0)
@@ -153,12 +153,12 @@ check below reads this list, so if the list itself is wrong there is nothing
 meaningful to say about what it contains."
 
 The rationale for `workspace:^` over `workspace:*` is in
-[`02-package-dependency-graph.md`](./02-package-dependency-graph.md).
+[`02-package-dependency-graph.md`](docs/16-development-view/02-package-dependency-graph.md).
 
 ## Gate 8 — the packed tarball smoke test
 
 `scripts/smoke-test-package-tarballs.mjs` (206 lines), release path only
-(`publish-packages.yml:234-237`). It is the strongest form of the dependency-range
+([`publish-packages.yml:234-237`](.github/workflows/publish-packages.yml#L234-L237)). It is the strongest form of the dependency-range
 claim because it inspects the bytes that would actually be published.
 
 ```mermaid
@@ -201,7 +201,7 @@ and highlighting peers are imported by that entry.
 
 ## The stated threat model for all of these
 
-`scripts/openmaic-packages.mjs:17-33` is the design statement, and it applies to
+[`scripts/openmaic-packages.mjs:17-33`](scripts/openmaic-packages.mjs#L17-L33) is the design statement, and it applies to
 every gate in both files:
 
 > This list, and the checks built on it, are configuration held in the same
@@ -215,9 +215,9 @@ Three limitations are labelled `KNOWN LIMITATION` inside the gate that has them:
 
 | Limitation | Where |
 | --- | --- |
-| "publishable input == file under the package directory" under-approximates: a toolchain bump alone can change a tarball with no diff under the package directory | `check-package-version-bumps.mjs:16-30` |
-| a caret deduplicates within one 0.x line only | `check-internal-dependency-ranges.mjs:36-42`, restated at `smoke-test-package-tarballs.mjs:52-56` |
-| the release job's pack/upload/test filesystem race | `publish-packages.yml:227-233`, see [`08b-release-workflows.md`](./08b-release-workflows.md) |
+| "publishable input == file under the package directory" under-approximates: a toolchain bump alone can change a tarball with no diff under the package directory | [`check-package-version-bumps.mjs:16-30`](scripts/check-package-version-bumps.mjs#L16-L30) |
+| a caret deduplicates within one 0.x line only | [`check-internal-dependency-ranges.mjs:36-42`](scripts/check-internal-dependency-ranges.mjs#L36-L42), restated at [`smoke-test-package-tarballs.mjs:52-56`](scripts/smoke-test-package-tarballs.mjs#L52-L56) |
+| the release job's pack/upload/test filesystem race | [`publish-packages.yml:227-233`](.github/workflows/publish-packages.yml#L227-L233), see [`08b-release-workflows.md`](docs/16-development-view/08b-release-workflows.md) |
 
 ## Open questions
 

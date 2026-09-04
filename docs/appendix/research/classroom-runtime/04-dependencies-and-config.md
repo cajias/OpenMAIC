@@ -25,25 +25,25 @@ Counted by grepping `from '<pkg>'` across every in-scope path plus
 | `zustand` | (via `lib/store/*`) | `interactive-iframe-pool`, `widget-iframe`, `canvas`, `stage`, `settings`, `media-generation`, `scene-runtime-errors` |
 
 `dexie` is reached only indirectly, through dynamic `import('@/lib/utils/database')`
-(`load-classroom.ts:361`, `:654`, `playback/cursor.ts:84`) so importing these
+([`load-classroom.ts:361`](lib/classroom/load-classroom.ts#L361), [`:654`](lib/classroom/load-classroom.ts#L654), [`playback/cursor.ts:84`](lib/playback/cursor.ts#L84)) so importing these
 modules never opens IndexedDB.
 
 ## 2. Browser platform APIs the subsystem depends on
 
 | API | Where | Degradation if absent |
 | --- | --- | --- |
-| `window.speechSynthesis` (Web Speech) | `engine.ts:641`, `use-browser-tts.ts` | falls through to `scheduleReadingTimer` |
-| `SpeechSynthesisVoice` async load | `engine.ts:862` `ensureVoicesLoaded` | 2 s timeout then whatever `getVoices()` returns |
-| `HTMLAudioElement` | `use-discussion-tts.ts:271`, `lib/utils/audio-player` | queue advances on the `error` listener (`:284`) |
-| `requestIdleCallback` | `load-classroom.ts:501` | falls back to `setTimeout(resolve, 0)` |
-| `ResizeObserver` | `pbl-renderer.tsx:349` | guarded by `typeof ResizeObserver !== 'undefined'`; the rAF poll still tracks the rect |
-| `requestAnimationFrame` polling | `interactive-renderer.tsx:56`, `pbl-renderer.tsx:363`, `proactive-card.tsx:85` | none — hard dependency |
-| Fullscreen API | `PlaybackChromeRoot.tsx:589`, `InteractiveIframeHost.tsx:99` | `catch` logs "Fullscreen request denied — browser policy" (`:596`) |
-| `navigator.keyboard.lock(['Escape'])` | `PlaybackChromeRoot.tsx:593` | optional-chained + `.catch(() => {})` |
-| `sessionStorage` | `action-resume.ts:61` | every write is `try`/`catch`; resume is best-effort |
-| `localStorage` | `use-instructor-stream.ts:306` (`x-user-locale`) | `catch` and skip |
-| `postMessage` | `InteractiveIframeHost.tsx:177`, iframe shims | none — the only parent↔iframe channel |
-| `structuredClone` | `pbl-renderer.tsx:139`, `use-instructor-stream.ts:138`, `submission.tsx:526` | none — hard dependency |
+| `window.speechSynthesis` (Web Speech) | [`engine.ts:641`](lib/playback/engine.ts#L641), `use-browser-tts.ts` | falls through to `scheduleReadingTimer` |
+| `SpeechSynthesisVoice` async load | [`engine.ts:862`](lib/playback/engine.ts#L862) `ensureVoicesLoaded` | 2 s timeout then whatever `getVoices()` returns |
+| `HTMLAudioElement` | [`use-discussion-tts.ts:271`](lib/hooks/use-discussion-tts.ts#L271), `lib/utils/audio-player` | queue advances on the `error` listener ([`:284`](lib/hooks/use-discussion-tts.ts#L284)) |
+| `requestIdleCallback` | [`load-classroom.ts:501`](lib/classroom/load-classroom.ts#L501) | falls back to `setTimeout(resolve, 0)` |
+| `ResizeObserver` | [`pbl-renderer.tsx:349`](components/scene-renderers/pbl-renderer.tsx#L349) | guarded by `typeof ResizeObserver !== 'undefined'`; the rAF poll still tracks the rect |
+| `requestAnimationFrame` polling | [`interactive-renderer.tsx:56`](components/scene-renderers/interactive-renderer.tsx#L56), [`pbl-renderer.tsx:363`](components/scene-renderers/pbl-renderer.tsx#L363), [`proactive-card.tsx:85`](components/chat/proactive-card.tsx#L85) | none — hard dependency |
+| Fullscreen API | [`PlaybackChromeRoot.tsx:589`](components/edit/PlaybackChromeRoot.tsx#L589), [`InteractiveIframeHost.tsx:99`](components/scene-renderers/InteractiveIframeHost.tsx#L99) | `catch` logs "Fullscreen request denied — browser policy" ([`:596`](components/edit/PlaybackChromeRoot.tsx#L596)) |
+| `navigator.keyboard.lock(['Escape'])` | [`PlaybackChromeRoot.tsx:593`](components/edit/PlaybackChromeRoot.tsx#L593) | optional-chained + `.catch(() => {})` |
+| `sessionStorage` | [`action-resume.ts:61`](lib/playback/action-resume.ts#L61) | every write is `try`/`catch`; resume is best-effort |
+| `localStorage` | [`use-instructor-stream.ts:306`](components/scene-renderers/pbl/v2/use-instructor-stream.ts#L306) (`x-user-locale`) | `catch` and skip |
+| `postMessage` | [`InteractiveIframeHost.tsx:177`](components/scene-renderers/InteractiveIframeHost.tsx#L177), iframe shims | none — the only parent↔iframe channel |
+| `structuredClone` | [`pbl-renderer.tsx:139`](components/scene-renderers/pbl-renderer.tsx#L139), [`use-instructor-stream.ts:138`](components/scene-renderers/pbl/v2/use-instructor-stream.ts#L138), [`submission.tsx:526`](components/scene-renderers/pbl/v2/submission.tsx#L526) | none — hard dependency |
 | `document.fullscreenElement` | portal-host selection in two places | portals to `document.body` |
 
 ## 3. HTTP surfaces
@@ -52,31 +52,31 @@ modules never opens IndexedDB.
 
 | Endpoint | Caller | Notes |
 | --- | --- | --- |
-| `GET /api/classroom?id=` | `load-classroom.ts:261` | server fallback when IndexedDB is empty |
-| `GET /api/stage-meta/:stageId` | `stage-meta-client.ts:42` | `credentials: 'include'`, `cache: 'no-store'`; three outcomes |
-| `GET /api/agent/runtime` | `components/stage.tsx:76` | decides whether the Pro Switch enters the workspace |
-| `POST /api/chat` | `use-chat-sessions.ts:1307` | the live discussion / Q&A SSE stream |
-| `POST /api/generate/tts` | `use-discussion-tts.ts:241` | returns `{base64, format}`; the client builds a `data:` URL |
-| `POST /api/pbl/v2/open-task` | `chat.tsx:396`, `workspace.tsx:186` | greeting / setup opener |
-| `POST /api/pbl/v2/instructor` | `chat.tsx:506` | teaching turn |
-| `POST /api/pbl/v2/simulator` | `chat.tsx:385`, `:499` | scenario roleplay turn |
-| `POST /api/pbl/v2/evaluate` | `use-instructor-stream.ts:184`, `submission.tsx:510`, `workspace.tsx:186` | task / milestone / final |
-| `POST /api/pbl/v2/task/update` | `workspace.tsx:148`, `:234`, `chat.tsx:218` | stateless mutation |
-| `POST /api/parse-pdf` | `submission.tsx:1051` | PDF submission → text |
-| `PATCH /api/stages/:id` | `lib/live/server-api.ts:34` | course rename (misfiled under `lib/live/`) |
+| `GET /api/classroom?id=` | [`load-classroom.ts:261`](lib/classroom/load-classroom.ts#L261) | server fallback when IndexedDB is empty |
+| `GET /api/stage-meta/:stageId` | [`stage-meta-client.ts:42`](lib/classroom/stage-meta-client.ts#L42) | `credentials: 'include'`, `cache: 'no-store'`; three outcomes |
+| `GET /api/agent/runtime` | [`components/stage.tsx:76`](components/stage.tsx#L76) | decides whether the Pro Switch enters the workspace |
+| `POST /api/chat` | [`use-chat-sessions.ts:1307`](components/chat/use-chat-sessions.ts#L1307) | the live discussion / Q&A SSE stream |
+| `POST /api/generate/tts` | [`use-discussion-tts.ts:241`](lib/hooks/use-discussion-tts.ts#L241) | returns `{base64, format}`; the client builds a `data:` URL |
+| `POST /api/pbl/v2/open-task` | [`chat.tsx:396`](components/scene-renderers/pbl/v2/chat.tsx#L396), [`workspace.tsx:186`](components/scene-renderers/pbl/v2/workspace.tsx#L186) | greeting / setup opener |
+| `POST /api/pbl/v2/instructor` | [`chat.tsx:506`](components/scene-renderers/pbl/v2/chat.tsx#L506) | teaching turn |
+| `POST /api/pbl/v2/simulator` | [`chat.tsx:385`](components/scene-renderers/pbl/v2/chat.tsx#L385), [`:499`](components/scene-renderers/pbl/v2/chat.tsx#L499) | scenario roleplay turn |
+| `POST /api/pbl/v2/evaluate` | [`use-instructor-stream.ts:184`](components/scene-renderers/pbl/v2/use-instructor-stream.ts#L184), [`submission.tsx:510`](components/scene-renderers/pbl/v2/submission.tsx#L510), [`workspace.tsx:186`](components/scene-renderers/pbl/v2/workspace.tsx#L186) | task / milestone / final |
+| `POST /api/pbl/v2/task/update` | [`workspace.tsx:148`](components/scene-renderers/pbl/v2/workspace.tsx#L148), [`:234`](components/scene-renderers/pbl/v2/workspace.tsx#L234), [`chat.tsx:218`](components/scene-renderers/pbl/v2/chat.tsx#L218) | stateless mutation |
+| `POST /api/parse-pdf` | [`submission.tsx:1051`](components/scene-renderers/pbl/v2/submission.tsx#L1051) | PDF submission → text |
+| `PATCH /api/stages/:id` | [`lib/live/server-api.ts:34`](lib/live/server-api.ts#L34) | course rename (misfiled under `lib/live/`) |
 
 ### Served by this subsystem
 
 | Route | File | Behaviour |
 | --- | --- | --- |
-| `POST /api/classroom` | `app/api/classroom/route.ts:14` | `persistClassroom({id, stage, scenes}, baseUrl)`; id defaults to `randomUUID()` |
+| `POST /api/classroom` | [`app/api/classroom/route.ts:14`](app/api/classroom/route.ts#L14) | `persistClassroom({id, stage, scenes}, baseUrl)`; id defaults to `randomUUID()` |
 | `GET /api/classroom` | `:51` | requires `id`, `isValidClassroomId(id)` (`/^[a-zA-Z0-9_-]+$/`), 404 when absent |
-| `GET /api/classroom-media/:classroomId/*path` | `app/api/classroom-media/.../route.ts:40` | static media with HTTP range support |
+| `GET /api/classroom-media/:classroomId/*path` | [`app/api/classroom-media/[classroomId]/[...path]/route.ts:40`](app/api/classroom-media/[classroomId]/[...path]/route.ts#L40) | static media with HTTP range support |
 | `POST /api/pbl/v2/{instructor,open-task,evaluate,simulator}` | see §5 | SSE, `maxDuration = 300` |
-| `POST /api/pbl/v2/task/update` | `task/update/route.ts:20` | JSON, `maxDuration = 60` |
+| `POST /api/pbl/v2/task/update` | [`task/update/route.ts:20`](app/api/pbl/v2/task/update/route.ts#L20) | JSON, `maxDuration = 60` |
 
 The media route's defence-in-depth is worth quoting because it is unusually
-thorough for this codebase (`route.ts:47-76`): `isValidClassroomId`, reject
+thorough for this codebase ([`route.ts:47-76`](app/api/classroom-media/[classroomId]/[...path]/route.ts#L47-L76)): `isValidClassroomId`, reject
 `..` and NUL in path segments, allowlist the first segment to `media` or `audio`,
 then `fs.realpath` and verify the resolved path is still under
 `path.resolve(CLASSROOMS_DIR, classroomId)` — so a symlink planted inside the
@@ -85,29 +85,29 @@ immutable` on 200/206, but explicitly `no-store` on a 416 so an unsatisfiable
 range cannot poison shared caches (`:88`).
 
 `CLASSROOMS_DIR = path.join(process.cwd(), 'data', 'classrooms')`
-(`lib/server/classroom-storage.ts:6`) — plain filesystem, one `<id>.json` per
+([`lib/server/classroom-storage.ts:6`](lib/server/classroom-storage.ts#L6)) — plain filesystem, one `<id>.json` per
 classroom.
 
 ## 4. Environment variables
 
 | Name | Required | Effect | Evidence |
 | --- | --- | --- | --- |
-| `ALLOWED_FRAME_ANCESTORS` | no | appended to the CSP `frame-ancestors` directive; when set, `X-Frame-Options` is omitted entirely (XFO cannot express an allowlist) | `next.config.ts:39-51` |
-| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | no | gates the workspace pane host and, with `/api/agent/runtime`, the Pro Switch destination | `lib/config/feature-flags.ts:33`, `components/stage.tsx:68` |
-| `NEXT_PUBLIC_MAIC_EDITOR_ENABLED` | no | enables the edit chrome; implied true when the Pro workbench flag is on | `feature-flags.ts:48` |
-| `NEXT_PUBLIC_PI_CHAT_ENABLED` | no | enables slide-element references in playback mode (`showElementReference`) | `feature-flags.ts:73`, `PlaybackChromeRoot.tsx:1211` |
-| `DEFAULT_MODEL` | effectively yes for PBL | last fallback in model resolution; with nothing resolvable, the PBL routes 400 with "No model could be resolved" | `lib/server/resolve-model.ts:65` |
-| `MODEL_ROUTES` | no | JSON map; `pbl-v2-runtime` plus `pbl-v2-runtime:{instructor,open-task,evaluate,simulator}` are routable keys, and a route **wins over the client's `x-model`** | `lib/server/model-routes.ts:142-146`, `resolve-model.ts:56-78` |
-| `PBL_V2_DEV_PROFICIENCY_BADGE` | no | surfaces the internal proficiency tier in the UI; the learner never sees it otherwise | `lib/pbl/v2/api/sse.ts:122` |
+| `ALLOWED_FRAME_ANCESTORS` | no | appended to the CSP `frame-ancestors` directive; when set, `X-Frame-Options` is omitted entirely (XFO cannot express an allowlist) | [`next.config.ts:39-51`](next.config.ts#L39-L51) |
+| `NEXT_PUBLIC_PRO_WORKBENCH_ENABLED` | no | gates the workspace pane host and, with `/api/agent/runtime`, the Pro Switch destination | [`lib/config/feature-flags.ts:33`](lib/config/feature-flags.ts#L33), [`components/stage.tsx:68`](components/stage.tsx#L68) |
+| `NEXT_PUBLIC_MAIC_EDITOR_ENABLED` | no | enables the edit chrome; implied true when the Pro workbench flag is on | [`feature-flags.ts:48`](lib/config/feature-flags.ts#L48) |
+| `NEXT_PUBLIC_PI_CHAT_ENABLED` | no | enables slide-element references in playback mode (`showElementReference`) | [`feature-flags.ts:73`](lib/config/feature-flags.ts#L73), [`PlaybackChromeRoot.tsx:1211`](components/edit/PlaybackChromeRoot.tsx#L1211) |
+| `DEFAULT_MODEL` | effectively yes for PBL | last fallback in model resolution; with nothing resolvable, the PBL routes 400 with "No model could be resolved" | [`lib/server/resolve-model.ts:65`](lib/server/resolve-model.ts#L65) |
+| `MODEL_ROUTES` | no | JSON map; `pbl-v2-runtime` plus `pbl-v2-runtime:{instructor,open-task,evaluate,simulator}` are routable keys, and a route **wins over the client's `x-model`** | [`lib/server/model-routes.ts:142-146`](lib/server/model-routes.ts#L142-L146), [`resolve-model.ts:56-78`](lib/server/resolve-model.ts#L56-L78) |
+| `PBL_V2_DEV_PROFICIENCY_BADGE` | no | surfaces the internal proficiency tier in the UI; the learner never sees it otherwise | [`lib/pbl/v2/api/sse.ts:122`](lib/pbl/v2/api/sse.ts#L122) |
 | `NODE_ENV` | — | read twice in `lib/pbl/v2/runtime/hydration.ts` (`:283`, `:363`) — the **only** `process.env` reads inside the whole in-scope tree |
-| `VERCEL` | no | switches the Next build off `output: 'standalone'` | `next.config.ts:4` |
+| `VERCEL` | no | switches the Next build off `output: 'standalone'` | [`next.config.ts:4`](next.config.ts#L4) |
 
 Everything else the runtime needs (TTS provider keys, base URLs, model, locale)
 travels **per request**, not per environment: `useDiscussionTTS` sends
 `ttsApiKey` / `ttsBaseUrl` from the client settings store
-(`use-discussion-tts.ts:251-254`), and the PBL streams send
+([`use-discussion-tts.ts:251-254`](lib/hooks/use-discussion-tts.ts#L251-L254)), and the PBL streams send
 `x-model` / `x-api-key` / `x-base-url` / `x-provider-type` / `x-user-locale`
-headers (`use-instructor-stream.ts:292-310`).
+headers ([`use-instructor-stream.ts:292-310`](components/scene-renderers/pbl/v2/use-instructor-stream.ts#L292-L310)).
 
 ## 5. Config resolution for a PBL LLM call
 
@@ -143,9 +143,9 @@ Two consequences a reader should internalise:
 1. An operator-configured `MODEL_ROUTES` entry silently overrides whatever model
    the learner's browser has saved, *and* drops the browser's API key/base URL so
    a routed Anthropic model is never built with the client's OpenAI credentials
-   (`resolve-model.ts:73-81`).
+   ([`resolve-model.ts:73-81`](lib/server/resolve-model.ts#L73-L81)).
 2. `thinkingConfig` is never forced by the PBL agents themselves — the instructor
-   comment at `instructor.ts:1519` says the runtime "holds no opinion of its own"
+   comment at [`instructor.ts:1519`](lib/pbl/v2/agents/instructor.ts#L1519) says the runtime "holds no opinion of its own"
    and points operators at pinning `thinking` off on the `pbl-v2-runtime` route
    when they want cheap, snappy turns.
 
@@ -155,15 +155,15 @@ All from `useSettingsStore` (persisted to `localStorage`):
 
 | Setting | Read at | Effect |
 | --- | --- | --- |
-| `ttsEnabled`, `ttsProviderId`, `ttsProvidersConfig` | `engine.ts:632`, `use-discussion-tts.ts:47` | whether narration is synthesised at all, and by whom |
-| `ttsMuted`, `ttsVolume` | `PlaybackChromeRoot.tsx:990`, `:997`; `use-discussion-tts.ts:456` | applied live to the current audio element |
-| `ttsSpeed` | `engine.ts:802`, `use-discussion-tts.ts:250` | browser-TTS `utterance.rate` and the server TTS request |
-| `playbackSpeed` (`PLAYBACK_SPEEDS`) | `PlaybackChromeRoot.tsx:1004`, `engine.ts:801`, `timeline.ts:187` | divides every dwell; also multiplies `utterance.rate` |
-| `autoPlayLecture` | `engine.ts:885` | 1.5 s later advance to the next scene, never off an activity scene |
-| `selectedAgentIds`, `agentMode` | `PlaybackChromeRoot.tsx:221`, `engine.ts:866` | the roundtable cast **and** whether a `discussion` action fires at all |
-| `agentVoiceOverrides` | `use-discussion-tts.ts:55` | per-agent voice binding |
-| `sidebarCollapsed`, `chatAreaCollapsed`, `chatAreaWidth` | `PlaybackChromeRoot.tsx:160-165` | layout; presentation mode force-collapses both (`:594`) |
-| `asrEnabled` | `roundtable/index.tsx:214` | whether the `V` shortcut and mic button exist |
+| `ttsEnabled`, `ttsProviderId`, `ttsProvidersConfig` | [`engine.ts:632`](lib/playback/engine.ts#L632), [`use-discussion-tts.ts:47`](lib/hooks/use-discussion-tts.ts#L47) | whether narration is synthesised at all, and by whom |
+| `ttsMuted`, `ttsVolume` | [`PlaybackChromeRoot.tsx:990`](components/edit/PlaybackChromeRoot.tsx#L990), [`:997`](components/edit/PlaybackChromeRoot.tsx#L997); [`use-discussion-tts.ts:456`](lib/hooks/use-discussion-tts.ts#L456) | applied live to the current audio element |
+| `ttsSpeed` | [`engine.ts:802`](lib/playback/engine.ts#L802), [`use-discussion-tts.ts:250`](lib/hooks/use-discussion-tts.ts#L250) | browser-TTS `utterance.rate` and the server TTS request |
+| `playbackSpeed` (`PLAYBACK_SPEEDS`) | [`PlaybackChromeRoot.tsx:1004`](components/edit/PlaybackChromeRoot.tsx#L1004), [`engine.ts:801`](lib/playback/engine.ts#L801), [`timeline.ts:187`](lib/choreography/timeline.ts#L187) | divides every dwell; also multiplies `utterance.rate` |
+| `autoPlayLecture` | [`PlaybackChromeRoot.tsx:885`](components/edit/PlaybackChromeRoot.tsx#L885) | 1.5 s later advance to the next scene, never off an activity scene |
+| `selectedAgentIds`, `agentMode` | [`PlaybackChromeRoot.tsx:221`](components/edit/PlaybackChromeRoot.tsx#L221), [`PlaybackChromeRoot.tsx:866`](components/edit/PlaybackChromeRoot.tsx#L866) | the roundtable cast **and** whether a `discussion` action fires at all |
+| `agentVoiceOverrides` | [`use-discussion-tts.ts:55`](lib/hooks/use-discussion-tts.ts#L55) | per-agent voice binding |
+| `sidebarCollapsed`, `chatAreaCollapsed`, `chatAreaWidth` | [`PlaybackChromeRoot.tsx:160-165`](components/edit/PlaybackChromeRoot.tsx#L160-L165) | layout; presentation mode force-collapses both ([`:594`](components/edit/PlaybackChromeRoot.tsx#L594)) |
+| `asrEnabled` | [`roundtable/index.tsx:214`](components/roundtable/index.tsx#L214) | whether the `V` shortcut and mic button exist |
 
 ## 7. The choreography purity boundary
 

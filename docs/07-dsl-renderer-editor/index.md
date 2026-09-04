@@ -6,9 +6,9 @@ via `@openmaic/editor`, or an AI agent via typed DSL ops), and the two bridges t
 (`@openmaic/importer` in, vendored `pptxgenjs` out).
 
 It is a C4 Level-3 component view of one subsystem. It does not cover playback scheduling
-(see [../08-classroom-runtime/index.md](../08-classroom-runtime/index.md)), TTS/whiteboard/video
-(see [../09-media-and-export/index.md](../09-media-and-export/index.md)), or where documents are
-stored (see [../10-persistence-and-state/index.md](../10-persistence-and-state/index.md)).
+(see [../08-classroom-runtime/index.md](docs/08-classroom-runtime/index.md)), TTS/whiteboard/video
+(see [../09-media-and-export/index.md](docs/09-media-and-export/index.md)), or where documents are
+stored (see [../10-persistence-and-state/index.md](docs/10-persistence-and-state/index.md)).
 
 ## Who this is for
 
@@ -20,7 +20,7 @@ that you will open the cited file rather than trust a paraphrase.
 
 | Concern | Home | Nature |
 | --- | --- | --- |
-| The contract | `packages/@openmaic/dsl` | pure types, generated JSON Schema, pure validators/normalizers, two migration ladders; zero runtime deps (`packages/@openmaic/dsl/src/index.ts:10-12`; `package.json` declares no `dependencies` block at all) |
+| The contract | `packages/@openmaic/dsl` | pure types, generated JSON Schema, pure validators/normalizers, two migration ladders; zero runtime deps ([`packages/@openmaic/dsl/src/index.ts:10-12`](packages/@openmaic/dsl/src/index.ts#L10-L12); `package.json` declares no `dependencies` block at all) |
 | Read-only paint | `packages/@openmaic/renderer` | React; `Slide` in, DOM out, plus an off-screen PNG/geometry snapshot path |
 | Mutation | `packages/@openmaic/editor` | pure op/transaction/history kernel (`src/core/index.ts`) + a React gesture surface (`src/react/`) + optional chrome (`src/ui/`) |
 | `.pptx` → DSL | `packages/@openmaic/importer` | OOXML unzip → model → serializer → `Slide[]`, then the DSL's own normalize pass |
@@ -74,8 +74,8 @@ flowchart TD
 ```
 
 Dependency arrows are declared and kept acyclic by fiat in
-`packages/@openmaic/dsl/src/index.ts:4-8`: `dsl -> (nothing)`, `renderer -> dsl`, `importer -> dsl`;
-`scripts/openmaic-packages.mjs:37` adds `editor -> {dsl, renderer}`.
+[`packages/@openmaic/dsl/src/index.ts:4-8`](packages/@openmaic/dsl/src/index.ts#L4-L8): `dsl -> (nothing)`, `renderer -> dsl`, `importer -> dsl`;
+[`scripts/openmaic-packages.mjs:37`](scripts/openmaic-packages.mjs#L37) adds `editor -> {dsl, renderer}`.
 
 ## Sources
 
@@ -90,7 +90,7 @@ Read from the code at `main` / `c2c9553a`. Primary paths:
 - `packages/pptxgenjs/src/**`, `packages/mathml2omml/src/**`
 - `scripts/{sync-maic-importer,assert-vendor-maic-importer,check-package-version-bumps,openmaic-packages}.mjs`
 
-Evidence packs: [../appendix/research/dsl-renderer-editor/00-overview.md](../appendix/research/dsl-renderer-editor/00-overview.md)
+Evidence packs: [../appendix/research/dsl-renderer-editor/00-overview.md](docs/appendix/research/dsl-renderer-editor/00-overview.md)
 and its siblings `01a`–`07`.
 
 ## Reading order
@@ -128,22 +128,22 @@ are reference material you reach for when a build breaks or a release is being c
 
 | File | What it covers |
 | --- | --- |
-| [01-dsl-schema.md](./01-dsl-schema.md) | The node-type inventory: the 10-variant `PPTElement` union, `Slide`, `Stage`/`Scene`/content kinds, the 21-verb `Action` union, and an annotated minimal document |
-| [02-dsl-invariants.md](./02-dsl-invariants.md) | What a valid document must satisfy: the structural validators, the generated JSON Schema, the two independent version ladders, and the cross-line guard |
-| [03-renderer.md](./03-renderer.md) | `Slide` → DOM: the canvas contract, z-order, fit-scale math, the authored-vs-rendered box divergence, and what is and is not deterministic |
-| [04-editor-prosemirror.md](./04-editor-prosemirror.md) | The `EditIntent`/`EditorOperation` two-layer kernel, undo/redo, ProseMirror integration, and the DSL ↔ PM document mapping |
-| [05-ai-edit-operations.md](./05-ai-edit-operations.md) | Why the agent emits typed DSL ops instead of prose: the op vocabulary, the closed TypeBox mirror, and concurrent-write handling |
-| [06-importer-pptx-to-dsl.md](./06-importer-pptx-to-dsl.md) | `.pptx` → `Slide[]`: the four-layer parser, the shape-preset machinery, unit conversion, and the fidelity losses that are known and accepted |
-| [07-export-pptx.md](./07-export-pptx.md) | `Slide[]` → `.pptx` via the vendored pptxgenjs, equations via temml + mathml2omml, and what is dropped |
-| [08-export-html.md](./08-export-html.md) | The classroom ZIP and interactive-HTML asset inlining — what "HTML export" actually is here, and what it is not |
-| [09-vendored-forks.md](./09-vendored-forks.md) | Why pptxgenjs and mathml2omml are vendored, the importer's static-URL bundle, and the sync/assert guard scripts |
-| [10-public-package-api.md](./10-public-package-api.md) | The public export surface consumers may rely on, plus the version-bump gate that protects the serialized format |
+| [01-dsl-schema.md](docs/07-dsl-renderer-editor/01-dsl-schema.md) | The node-type inventory: the 10-variant `PPTElement` union, `Slide`, `Stage`/`Scene`/content kinds, the 21-verb `Action` union, and an annotated minimal document |
+| [02-dsl-invariants.md](docs/07-dsl-renderer-editor/02-dsl-invariants.md) | What a valid document must satisfy: the structural validators, the generated JSON Schema, the two independent version ladders, and the cross-line guard |
+| [03-renderer.md](docs/07-dsl-renderer-editor/03-renderer.md) | `Slide` → DOM: the canvas contract, z-order, fit-scale math, the authored-vs-rendered box divergence, and what is and is not deterministic |
+| [04-editor-prosemirror.md](docs/07-dsl-renderer-editor/04-editor-prosemirror.md) | The `EditIntent`/`EditorOperation` two-layer kernel, undo/redo, ProseMirror integration, and the DSL ↔ PM document mapping |
+| [05-ai-edit-operations.md](docs/07-dsl-renderer-editor/05-ai-edit-operations.md) | Why the agent emits typed DSL ops instead of prose: the op vocabulary, the closed TypeBox mirror, and concurrent-write handling |
+| [06-importer-pptx-to-dsl.md](docs/07-dsl-renderer-editor/06-importer-pptx-to-dsl.md) | `.pptx` → `Slide[]`: the four-layer parser, the shape-preset machinery, unit conversion, and the fidelity losses that are known and accepted |
+| [07-export-pptx.md](docs/07-dsl-renderer-editor/07-export-pptx.md) | `Slide[]` → `.pptx` via the vendored pptxgenjs, equations via temml + mathml2omml, and what is dropped |
+| [08-export-html.md](docs/07-dsl-renderer-editor/08-export-html.md) | The classroom ZIP and interactive-HTML asset inlining — what "HTML export" actually is here, and what it is not |
+| [09-vendored-forks.md](docs/07-dsl-renderer-editor/09-vendored-forks.md) | Why pptxgenjs and mathml2omml are vendored, the importer's static-URL bundle, and the sync/assert guard scripts |
+| [10-public-package-api.md](docs/07-dsl-renderer-editor/10-public-package-api.md) | The public export surface consumers may rely on, plus the version-bump gate that protects the serialized format |
 
 ## Cross-topic links
 
-- Who calls `patch_stage` and how a session survives a restart: [../05-agent-runtime/index.md](../05-agent-runtime/index.md)
-- Who produces the first `Slide` of a course: [../06-generation-pipeline/index.md](../06-generation-pipeline/index.md)
-- Who plays an `Action` list: [../08-classroom-runtime/index.md](../08-classroom-runtime/index.md)
-- Who resolves an `AssetRef` to bytes: [../10-persistence-and-state/index.md](../10-persistence-and-state/index.md)
-- Vendored-fork licensing and the full dependency inventory: [../13-dependencies/index.md](../13-dependencies/index.md)
-- The set root: [../README.md](../README.md)
+- Who calls `patch_stage` and how a session survives a restart: [../05-agent-runtime/index.md](docs/05-agent-runtime/index.md)
+- Who produces the first `Slide` of a course: [../06-generation-pipeline/index.md](docs/06-generation-pipeline/index.md)
+- Who plays an `Action` list: [../08-classroom-runtime/index.md](docs/08-classroom-runtime/index.md)
+- Who resolves an `AssetRef` to bytes: [../10-persistence-and-state/index.md](docs/10-persistence-and-state/index.md)
+- Vendored-fork licensing and the full dependency inventory: [../13-dependencies/index.md](docs/13-dependencies/index.md)
+- The set root: [../README.md](docs/README.md)

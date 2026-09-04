@@ -12,14 +12,14 @@ two earlier revisions of the rule that review rejected. Where this page quotes, 
 Three things must happen on every server-side model call, and none of them is visible at the
 call site:
 
-1. **Usage accounting.** `recordUsageSafe` fires after the call (`lib/ai/llm.ts:295,361,415`)
+1. **Usage accounting.** `recordUsageSafe` fires after the call ([`lib/ai/llm.ts:295,361,415`](lib/ai/llm.ts#L295))
    and appends a JSONL line under `data/usage/`.
 2. **The `LLM_THINKING_DISABLED` kill switch.** An operator must be able to turn reasoning
    off globally.
 3. **Per-provider thinking resolution.** Nineteen providers wire reasoning control
    differently; native providers take `providerOptions`, OpenAI-compatible gateways strip
    unknown ones and need a `fetch` shim reading an `AsyncLocalStorage`
-   ([`../04-ai-provider-layer/index.md`](../04-ai-provider-layer/index.md)).
+   ([`../04-ai-provider-layer/index.md`](docs/04-ai-provider-layer/index.md)).
 
 The Vercel AI SDK's `generateText` and `streamText` do the model call and none of the three.
 A direct call therefore opts out of all of them **invisibly** — the code looks correct.
@@ -29,7 +29,7 @@ A direct call therefore opts out of all of them **invisibly** — the code looks
 This is written down, in the config, with an issue number: "The PBL v2 runtime drifted
 exactly this way (#1003): five direct calls meant zero usage records for the busiest traffic
 in the product, plus three different meanings for one thinking config"
-(`eslint.config.mjs:580-582`).
+([`eslint.config.mjs:580-582`](eslint.config.mjs#L580-L582)).
 
 Five call sites. The busiest path in the product. Zero usage records. Nothing failed, nothing
 logged, and nothing would have caught it.
@@ -56,7 +56,7 @@ flowchart TD
 ```
 
 **Every reachable import form is covered, and the config says each was fed to ESLint rather
-than assumed** (`eslint.config.mjs:589-599`):
+than assumed** ([`eslint.config.mjs:589-599`](eslint.config.mjs#L589-L599)):
 
 | Form | Covered by |
 | --- | --- |
@@ -79,8 +79,8 @@ integration test must be able to call the raw SDK to assert what the wrapper is 
 Flat ESLint config **replaces** a rule's options in a later matching block rather than
 merging them. That makes a single repo-wide ban actively dangerous here: it would silently
 drop the module boundaries of every block that also sets the same key
-([01](./01-two-agent-runtimes.md) and the walls in
-[`../14-code-quality/09-architectural-consistency.md`](../14-code-quality/09-architectural-consistency.md)).
+([01](docs/18-decisions/01-two-agent-runtimes.md) and the walls in
+[`../14-code-quality/09-architectural-consistency.md`](docs/14-code-quality/09-architectural-consistency.md)).
 
 Three consequences, all deliberate:
 
@@ -114,7 +114,7 @@ does; both are named (`:626`).
 
 **Accounting in a middleware instead of a wrapper.** The AI SDK does support middleware, and
 the codebase uses it for reasoning extraction (`wrapLanguageModel` +
-`extractReasoningMiddleware`, `lib/ai/providers.ts:34`). It is not sufficient here because
+`extractReasoningMiddleware`, [`lib/ai/providers.ts:34`](lib/ai/providers.ts#L34)). It is not sufficient here because
 the kill switch and the thinking resolution have to run *before* the model object is built,
 which is where `getModel()` sits — a middleware sees a call that has already been shaped.
 **Inferred:** this ordering argument is reconstruction; the config does not state it.
@@ -128,11 +128,11 @@ not a claim.
 **Bad.**
 
 - **The wall names two exports, so it is a denylist of two.** `experimental_transcribe` is
-  imported directly (`lib/audio/asr-providers.ts:149`, called at `:406`), which is how
-  `UsageKind`'s `'asr'` member (`lib/server/usage-storage.ts:21`) ends up written by nobody
+  imported directly ([`lib/audio/asr-providers.ts:149`](lib/audio/asr-providers.ts#L149), called at [`:406`](lib/audio/asr-providers.ts#L406)), which is how
+  `UsageKind`'s `'asr'` member ([`lib/server/usage-storage.ts:21`](lib/server/usage-storage.ts#L21)) ends up written by nobody
   — `grep -rn "kind: 'asr'"` returns nothing. Tier-2 backlog item 6
-  ([`../14-code-quality/12-remediation-backlog.md`](../14-code-quality/12-remediation-backlog.md)).
-  A positive allowlist, as used for `@openmaic/generation`'s imports (`eslint.config.mjs:162-179`),
+  ([`../14-code-quality/12-remediation-backlog.md`](docs/14-code-quality/12-remediation-backlog.md)).
+  A positive allowlist, as used for `@openmaic/generation`'s imports ([`eslint.config.mjs:162-179`](eslint.config.mjs#L162-L179)),
   would not have this hole.
 - **`render-service/**` is globally eslint-ignored** (`:56`), so the wall does not apply
   there at all. It has no `ai` import today; nothing would reject one.
@@ -159,5 +159,5 @@ need, and the fix is to widen `callLLM`, not to widen the exemptions.
 
 ---
 
-Previous [05-client-first-persistence-with-a-postgres-cutover.md](./05-client-first-persistence-with-a-postgres-cutover.md)
-· back to [index.md](./index.md) · set root [`../README.md`](../README.md)
+Previous [05-client-first-persistence-with-a-postgres-cutover.md](docs/18-decisions/05-client-first-persistence-with-a-postgres-cutover.md)
+· back to [index.md](docs/18-decisions/index.md) · set root [`../README.md`](docs/README.md)

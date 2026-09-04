@@ -5,7 +5,7 @@ named above them, doc comments trimmed.
 
 ## 1. Pass exports
 
-`lib/video-export/index.ts:28-46`
+[`lib/video-export/index.ts:28-46`](lib/video-export/index.ts#L28-L46)
 
 ```ts
 export { normalizeScenes, type NormalizeResult } from './passes/normalize';
@@ -31,7 +31,7 @@ export {
 
 ## 2. Pass signatures
 
-`lib/video-export/passes/normalize.ts:17`, `:93`
+[`lib/video-export/passes/normalize.ts:17`](lib/video-export/passes/normalize.ts#L17), [`:93`](lib/video-export/passes/normalize.ts#L93)
 
 ```ts
 export interface NormalizeResult {
@@ -43,7 +43,7 @@ export interface NormalizeResult {
 export function normalizeScenes(scenes: readonly CompilerScene[]): NormalizeResult;
 ```
 
-`lib/video-export/passes/probe.ts:31`
+[`lib/video-export/passes/probe.ts:31`](lib/video-export/passes/probe.ts#L31)
 
 ```ts
 export function buildTimelineOptions(
@@ -53,7 +53,7 @@ export function buildTimelineOptions(
 ): ResolveTimelineOptions;
 ```
 
-`lib/video-export/passes/timeline.ts:45`, `:89`
+[`lib/video-export/passes/timeline.ts:45`](lib/video-export/passes/timeline.ts#L45), [`:89`](lib/video-export/passes/timeline.ts#L89)
 
 ```ts
 export interface TimelineResult {
@@ -71,7 +71,7 @@ export function buildTimeline(
 ): TimelineResult;
 ```
 
-`lib/video-export/passes/visuals.ts:26`, `:65`
+[`lib/video-export/passes/visuals.ts:26`](lib/video-export/passes/visuals.ts#L26), [`:65`](lib/video-export/passes/visuals.ts#L65)
 
 ```ts
 export interface VisualsResult {
@@ -84,12 +84,12 @@ export interface VisualsResult {
 export function prepareQuizQuestionList(scene: CompilerScene): QuizQuestionListQuestion[];
 ```
 
-Quiz question-list timing constants (`passes/visuals.ts:90-95`):
+Quiz question-list timing constants ([`passes/visuals.ts:90-95`](lib/video-export/passes/visuals.ts#L90-L95)):
 `QUIZ_TRANSITION_MS = 600`, `QUIZ_TOP_HOLD_MS = 1200`,
 `QUIZ_BOTTOM_HOLD_MS = 1200`, `QUIZ_SCROLL_PX_PER_SECOND_720P = 96`,
 `QUIZ_MIN_SCROLL_MS = 4000`, `QUIZ_MAX_SCROLL_MS = 24_000`.
 
-`lib/video-export/passes/interactive.ts:6`, `:24`; `passes/reflow.ts:8`, `:31`
+[`lib/video-export/passes/interactive.ts:6`](lib/video-export/passes/interactive.ts#L6), [`:24`](lib/video-export/passes/interactive.ts#L24); [`passes/reflow.ts:8`](lib/video-export/passes/reflow.ts#L8), [`:31`](lib/video-export/passes/reflow.ts#L31)
 
 ```ts
 export interface InteractiveResult { scenes: VideoTimelineScene[]; diagnostics: Diagnostic[] }
@@ -112,7 +112,7 @@ export function reflowQuizTimelines(
 ): ReflowResult;
 ```
 
-`lib/video-export/passes/geometry.ts:20`, `:32`, `:59`, `:84`
+[`lib/video-export/passes/geometry.ts:20`](lib/video-export/passes/geometry.ts#L20), [`:32`](lib/video-export/passes/geometry.ts#L32), [`:59`](lib/video-export/passes/geometry.ts#L59), [`:84`](lib/video-export/passes/geometry.ts#L84)
 
 ```ts
 export interface GeometryResult { scenes: VideoTimelineScene[]; diagnostics: Diagnostic[] }
@@ -136,7 +136,7 @@ export function applyGeometry(
 ): GeometryResult;
 ```
 
-`lib/video-export/passes/assets.ts:28`, `:35`, `:48`, `:112`
+[`lib/video-export/passes/assets.ts:28`](lib/video-export/passes/assets.ts#L28), [`:35`](lib/video-export/passes/assets.ts#L35), [`:48`](lib/video-export/passes/assets.ts#L48), [`:112`](lib/video-export/passes/assets.ts#L112)
 
 ```ts
 export interface AssetsResult {
@@ -155,7 +155,7 @@ export function planAssets(
 ): AssetsResult;
 ```
 
-`lib/video-export/passes/emit.ts:18`, `:28`, `:36`
+[`lib/video-export/passes/emit.ts:18`](lib/video-export/passes/emit.ts#L18), [`:28`](lib/video-export/passes/emit.ts#L28), [`:36`](lib/video-export/passes/emit.ts#L36)
 
 ```ts
 export const VideoExportManifestSchema = VideoTimelineSchema.extend({
@@ -169,7 +169,7 @@ export function emitManifestJson(ir: VideoTimeline, space: number = 2): string;
 
 ## 3. Subtitles
 
-`lib/video-export/subtitles.ts:38`, `:43`, `:53`; `lib/video-export/index.ts:48`
+[`lib/video-export/subtitles.ts:38`](lib/video-export/subtitles.ts#L38), [`:43`](lib/video-export/subtitles.ts#L43), [`:53`](lib/video-export/subtitles.ts#L53); [`lib/video-export/index.ts:48`](lib/video-export/index.ts#L48)
 
 ```ts
 export function usableCues(cues: readonly SubtitleCue[]): SubtitleCue[];
@@ -181,7 +181,7 @@ export { splitCue, splitCues, splitCueText, textUnits } from './split-cue';
 
 ## 4. Emitter contract
 
-`lib/video-export/emit-hyperframes/index.ts:54`, `:60`, `:68`, `:73`, `:93`,
+[`lib/video-export/emit-hyperframes/index.ts:54`](lib/video-export/emit-hyperframes/index.ts#L54), [`:60`](lib/video-export/emit-hyperframes/index.ts#L60), [`:68`](lib/video-export/emit-hyperframes/index.ts#L68), [`:73`](lib/video-export/emit-hyperframes/index.ts#L73), [`:93`](lib/video-export/emit-hyperframes/index.ts#L93),
 `:141`, `:175`, `:234`, `:237`, `:1229`
 
 ```ts
@@ -240,7 +240,7 @@ export function emitHyperframes(
 key the live QuizView / PBL Hero use (`:86-92`).
 `CoverCardLabels` (`:135`) is a backward-compatible alias.
 
-Emitter defaults (`index.ts:187-190`, `:1233-1249`): `DEFAULT_WIDTH = 1920`,
+Emitter defaults ([`index.ts:187-190`](lib/video-export/emit-hyperframes/index.ts#L187-L190), `:1233-1249`): `DEFAULT_WIDTH = 1920`,
 `DEFAULT_GSAP_PATH = 'assets/vendor/gsap.min.js'`,
 `DEFAULT_MANIFEST = 'openmaic-video-manifest.json'`, `DEFAULT_LOCALE = 'en-US'`,
 `compositionId = 'openmaic'`, height derived from the IR's 16:9 pixel base,
@@ -248,7 +248,7 @@ Emitter defaults (`index.ts:187-190`, `:1233-1249`): `DEFAULT_WIDTH = 1920`,
 
 ## 5. Generated font/CSS modules the emitter consumes
 
-`emit-hyperframes/katex-assets.ts:9`, `:13`, `:17`, `:99`;
+[`emit-hyperframes/katex-assets.ts:9`](lib/video-export/emit-hyperframes/katex-assets.ts#L9), [`:13`](lib/video-export/emit-hyperframes/katex-assets.ts#L13), [`:17`](lib/video-export/emit-hyperframes/katex-assets.ts#L17), [`:99`](lib/video-export/emit-hyperframes/katex-assets.ts#L99);
 `emit-hyperframes/noto-cjk-assets.ts`; `emit-hyperframes/inter-font.ts`;
 `emit-hyperframes/quiz-script-font-plan.ts`
 
@@ -278,7 +278,7 @@ export function planQuizScriptFonts(surfaceMarkup: readonly string[]): QuizFontP
 ```
 
 Script selection is by Unicode property, not locale
-(`quiz-script-font-plan.ts:16-23`): `\p{Script_Extensions=Cyrillic}` /
+([`quiz-script-font-plan.ts:16-23`](lib/video-export/emit-hyperframes/quiz-script-font-plan.ts#L16-L23)): `\p{Script_Extensions=Cyrillic}` /
 `\p{Script_Extensions=Arabic}` to collect candidates, plus a `\p{Script=…}`
 *primary*-character gate for Cyrillic so a decomposed Latin accent (U+0301, whose
 Script_Extensions include Cyrillic) cannot pull in the Cyrillic pack. Arabic
@@ -287,7 +287,7 @@ are `Script=Common` with `Script_Extensions=Arabic` (`:53-59`). Code points the
 selected pack does not cover are re-emitted as an extra `requiredFontLoads` entry
 (`:72-80`).
 
-Also re-exported from `lib/video-export/index.ts:62-67`: `quizQuestionListCss`,
+Also re-exported from [`lib/video-export/index.ts:62-67`](lib/video-export/index.ts#L62-L67): `quizQuestionListCss`,
 `renderQuizQuestionListSurface`, `QuizQuestionListContent`,
 `QuizQuestionListLabels` (all from `emit-hyperframes/quiz-question-list`).
 

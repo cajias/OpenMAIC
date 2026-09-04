@@ -7,8 +7,8 @@ infrastructure. This section separates volume (large) from assurance (uneven).
 **Sources:** `vitest.config.ts` and the eight sibling configs, `playwright.config.ts`,
 `.github/workflows/ci.yml`, `.github/workflows/storage-pg-contract.yml`,
 `.github/workflows/publish-packages.yml`, `scripts/assert-pg-contract-suites.mjs`;
-[`../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md`](../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md),
-[`06-quality-and-metrics.md`](../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md).
+[`../appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md`](docs/appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md),
+[`06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md).
 
 ## Volume
 
@@ -29,7 +29,7 @@ grep -rhoE '\btest\.describe\(' e2e/tests | wc -l                  # 13
 deliberately. The obvious-looking `(it|test)(\.[a-z]+)?\(` is case-sensitive: it
 matches a bare `it(`/`test(` or an all-lowercase modifier, but not a camelCase one,
 so it silently misses `it.skipIf(!ffmpegAvailable)(` at
-`tests/agent-runtime/voice-clone-tools.test.ts:474` — the only such instance in
+[`tests/agent-runtime/voice-clone-tools.test.ts:474`](tests/agent-runtime/voice-clone-tools.test.ts#L474) — the only such instance in
 `tests/`, and enough on its own to move the headline figure. The lowercase-only
 class counts 6 384 cases in `tests/` and a grand total of 7 836; `\.\w+` counts
 **6 385** and **7 837**. The published figure throughout this set is now 7 837.
@@ -39,15 +39,15 @@ all six packages and for `render-service`.
 
 | Project | Files | Cases | Runs in CI? |
 | --- | --- | --- | --- |
-| root `tests/` | 666 | 6 385 | yes — `ci.yml:137` `pnpm test` |
-| `@openmaic/storage` | 32 | 483 | yes — `ci.yml:187` |
+| root `tests/` | 666 | 6 385 | yes — [`ci.yml:137`](.github/workflows/ci.yml#L137) `pnpm test` |
+| `@openmaic/storage` | 32 | 483 | yes — [`ci.yml:187`](.github/workflows/ci.yml#L187) |
 | `@openmaic/editor` | 49 | **432** | **no workflow invokes it** |
-| `@openmaic/dsl` | 7 | 200 | yes — `ci.yml:143` |
-| `@openmaic/generation` | 26 | 135 | yes — `ci.yml:149` |
-| `render-service` | 16 | 121 | yes — `ci.yml:220` `npm test` |
+| `@openmaic/dsl` | 7 | 200 | yes — [`ci.yml:143`](.github/workflows/ci.yml#L143) |
+| `@openmaic/generation` | 26 | 135 | yes — [`ci.yml:149`](.github/workflows/ci.yml#L149) |
+| `render-service` | 16 | 121 | yes — [`ci.yml:220`](.github/workflows/ci.yml#L220) `npm test` |
 | `@openmaic/renderer` | 14 | **45** | **no workflow invokes it** |
-| `@openmaic/importer` | 12 | 36 | yes — `ci.yml:140` |
-| `e2e` (Playwright) | 15 specs | 30 `test(` in 13 `test.describe` groups | yes — `ci.yml:333` |
+| `@openmaic/importer` | 12 | 36 | yes — [`ci.yml:140`](.github/workflows/ci.yml#L140) |
+| `e2e` (Playwright) | 15 specs | 30 `test(` in 13 `test.describe` groups | yes — [`ci.yml:333`](.github/workflows/ci.yml#L333) |
 | **total** | **837** | **7 837** unit/integration + 30 e2e | |
 
 The two totals are the sums of the column above them: 666 + 32 + 49 + 7 + 26 + 16 + 14 +
@@ -75,10 +75,10 @@ grep -rhoE 'pnpm --filter @openmaic/[a-z]+ (run )?[a-z:]+' .github/workflows/*.y
 ```
 
 `@openmaic/renderer` and `@openmaic/editor` both declare `"test": "vitest run"`
-(`packages/@openmaic/renderer/package.json:44`,
-`packages/@openmaic/editor/package.json:38`), and neither appears in any workflow. The
-root Vitest project cannot pick them up: `vitest.config.ts:11` is
-`include: ['tests/**/*.test.ts']`. `publish-packages.yml:225` runs `--filter
+([`packages/@openmaic/renderer/package.json:44`](packages/@openmaic/renderer/package.json#L44),
+[`packages/@openmaic/editor/package.json:38`](packages/@openmaic/editor/package.json#L38)), and neither appears in any workflow. The
+root Vitest project cannot pick them up: [`vitest.config.ts:11`](vitest.config.ts#L11) is
+`include: ['tests/**/*.test.ts']`. [`publish-packages.yml:225`](.github/workflows/publish-packages.yml#L225) runs `--filter
 "@openmaic/editor" run typecheck` but not its tests.
 
 **63 test files and 477 cases — the third- and seventh-largest suites by case count
@@ -111,7 +111,7 @@ flowchart TD
 Note the shape: it is not a pyramid narrowing to a few e2e tests — it is a very wide
 unit base, a thin but *well-designed* contract layer, and a genuinely small e2e tip (30
 tests). The contract layer is where the interesting engineering is (see
-[11-strengths.md](./11-strengths.md)); it is also where the skips are.
+[11-strengths.md](docs/14-code-quality/11-strengths.md)); it is also where the skips are.
 
 ## Coverage: none
 
@@ -157,7 +157,7 @@ endpoint; **both `access-code` routes** are the credential check itself;
 **`app/api/pbl/v2/task/update/route.ts`** is 163 lines of five-branch learner-state
 mutation; the **four `export-video` routes** are the only ones handling a 300 MiB
 streamed upload and a byte-stream response. `app/api/parse-pdf/route.ts` appears only as
-a *string literal* in `tests/providers/provider-neutrality-guard.test.ts:77,270`, not as
+a *string literal* in [`tests/providers/provider-neutrality-guard.test.ts:77,270`](tests/providers/provider-neutrality-guard.test.ts#L77), not as
 an import.
 
 ## Subsystem versus test presence
@@ -182,7 +182,7 @@ grep -rl "@/lib/action/engine" tests e2e packages/@openmaic/*/test | wc -l
 | `components/settings/tts-settings.tsx` | 1 672 | **0** | |
 | `components/generation/outlines-editor.tsx` | 1 523 | **0** | |
 | `middleware.ts` | 90 | **0** | **The HMAC access-code gate and the `/workbench` 404 gate** |
-| `lib/server/agent-runtime/course-edit/element-schema.ts` | 694 | **0** | The hand-maintained TypeBox mirror of `slides.ts` — no drift check either ([08](./08-complexity-hotspots.md)) |
+| `lib/server/agent-runtime/course-edit/element-schema.ts` | 694 | **0** | The hand-maintained TypeBox mirror of `slides.ts` — no drift check either ([08](docs/14-code-quality/08-complexity-hotspots.md)) |
 | `packages/@openmaic/importer/src/shapes/presets.ts` | 6 574 | **0** | 154 OOXML preset geometry generators, no per-preset assertion |
 
 `middleware.ts` deserves its own note. It is the only auth gate in the system, and:
@@ -195,11 +195,11 @@ grep -c '  it(\|  test(' tests/server/access-token.test.ts        # 1
 
 Zero tests reference the middleware, the cookie name, or the env var. Its Node twin,
 `lib/server/access-token.ts`, has a 17-line test with one `test()`. Neither verifier ever
-compares the signed timestamp to now (`middleware.ts:22-43`,
-`lib/server/access-token.ts:11-25`), so a leaked `openmaic_access` cookie is valid until
+compares the signed timestamp to now ([`middleware.ts:22-43`](middleware.ts#L22-L43),
+[`lib/server/access-token.ts:11-25`](lib/server/access-token.ts#L11-L25)), so a leaked `openmaic_access` cookie is valid until
 `ACCESS_CODE` is rotated — and the two implementations differ in their comparison
 primitive (`timingSafeEqual` in Node, a hand-rolled non-constant-time loop in Edge, with
-the caveat written down at `middleware.ts:37`).
+the caveat written down at [`middleware.ts:37`](middleware.ts#L37)).
 
 ### The one genuine test-directory gap, corrected
 
@@ -227,26 +227,26 @@ sed -n '61,65p' scripts/assert-pg-contract-suites.mjs
 
 | Suite | Guard | Set in CI? |
 | --- | --- | --- |
-| `packages/@openmaic/storage/test/pg-document-store.pg.test.ts` | `describe.skipIf(!PG_CONTRACT_URL)` | yes — `storage-pg-contract.yml:32`; **in `REQUIRED_SUITES`** |
+| `packages/@openmaic/storage/test/pg-document-store.pg.test.ts` | `describe.skipIf(!PG_CONTRACT_URL)` | yes — [`storage-pg-contract.yml:32`](.github/workflows/storage-pg-contract.yml#L32); **in `REQUIRED_SUITES`** |
 | `…/pg-runtime-store.pg.test.ts` | same | yes; in `REQUIRED_SUITES` |
 | `…/pg-scene-revision.pg.test.ts` | same | yes; in `REQUIRED_SUITES` |
 | `…/pg-agent-session-store.pg.test.ts` | same | runs, **not** in `REQUIRED_SUITES` |
 | `…/pg-agent-session-material.pg.test.ts` | same | runs, not in `REQUIRED_SUITES` |
 | `…/pg-asset-store.pg.test.ts` | same | runs, not in `REQUIRED_SUITES` |
-| `tests/lib/whiteboard/runtime-store.pg.test.ts` | `skipIf` **plus** a hard fail at `:23` when `STORAGE_PG_CONTRACT_REQUIRED=1` and the URL is absent | yes — invoked explicitly at `storage-pg-contract.yml:67` |
-| `tests/agent-runtime/event-notify.pg.test.ts:57` | `describe.skipIf(!contractUrl)`, no hard-fail guard | **no** |
-| `tests/agent-runtime/park-attempt-budget.pg.test.ts:30` | same | **no** |
-| `tests/agent-runtime/session-events-live.pg.test.ts:51` | same | **no** |
-| `tests/persistence/owner-materials.pg.test.ts:29` | same | **no** |
-| `packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts:22` | `skipIf(!configured)` + hard fail at `:16` under `STORAGE_S3_CONTRACT_REQUIRED=1` | **no** — `S3_CONTRACT_ENDPOINT` appears nowhere under `.github/` |
+| `tests/lib/whiteboard/runtime-store.pg.test.ts` | `skipIf` **plus** a hard fail at `:23` when `STORAGE_PG_CONTRACT_REQUIRED=1` and the URL is absent | yes — invoked explicitly at [`storage-pg-contract.yml:67`](.github/workflows/storage-pg-contract.yml#L67) |
+| [`tests/agent-runtime/event-notify.pg.test.ts:57`](tests/agent-runtime/event-notify.pg.test.ts#L57) | `describe.skipIf(!contractUrl)`, no hard-fail guard | **no** |
+| [`tests/agent-runtime/park-attempt-budget.pg.test.ts:30`](tests/agent-runtime/park-attempt-budget.pg.test.ts#L30) | same | **no** |
+| [`tests/agent-runtime/session-events-live.pg.test.ts:51`](tests/agent-runtime/session-events-live.pg.test.ts#L51) | same | **no** |
+| [`tests/persistence/owner-materials.pg.test.ts:29`](tests/persistence/owner-materials.pg.test.ts#L29) | same | **no** |
+| [`packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts:22`](packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts#L22) | `skipIf(!configured)` + hard fail at [`:16`](packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts#L16) under `STORAGE_S3_CONTRACT_REQUIRED=1` | **no** — `S3_CONTRACT_ENDPOINT` appears nowhere under `.github/` |
 
 Five suites silently pass in every job: four app-level PostgreSQL contracts covering
 `NOTIFY` delivery, attempt-budget fencing, live SSE tails and owner-quota locking, plus
 the S3 byte-store contract. The irony is documented in the repository itself —
-`storage-pg-contract.yml:47-52` and `scripts/assert-pg-contract-suites.mjs:4-40` argue at
+[`storage-pg-contract.yml:47-52`](.github/workflows/storage-pg-contract.yml#L47-L52) and [`scripts/assert-pg-contract-suites.mjs:4-40`](scripts/assert-pg-contract-suites.mjs#L4-L40) argue at
 length that a silently-skipping suite is worse than no suite, and then five of them skip.
 The audit that exists to prevent a narrowed suite set covers 3 of the 6 storage suites
-(`scripts/assert-pg-contract-suites.mjs:61-65`).
+([`scripts/assert-pg-contract-suites.mjs:61-65`](scripts/assert-pg-contract-suites.mjs#L61-L65)).
 
 ## Discipline markers
 
@@ -275,6 +275,6 @@ exist, so the suite is assertion-driven:
   and `:277` already, so a technical blocker is not evident from the files.
 - Whether the four app-level `*.pg.test.ts` files are expected to be added to the PG job
   or considered redundant with the storage-package suites. The job invokes exactly one
-  app-level suite (`storage-pg-contract.yml:67`) and the comment does not say why.
+  app-level suite ([`storage-pg-contract.yml:67`](.github/workflows/storage-pg-contract.yml#L67)) and the comment does not say why.
 - Whether an S3-compatible CI service was planned. `docker-compose.yml` has no
   S3-compatible service either.

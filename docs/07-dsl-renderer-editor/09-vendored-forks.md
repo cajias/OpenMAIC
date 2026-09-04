@@ -10,19 +10,19 @@ scripts that stop a missing artifact from becoming an opaque runtime error.
 `packages/mathml2omml/{package.json,src/parse-stringify/parse.js}`,
 `scripts/{sync-maic-importer,assert-vendor-maic-importer}.mjs`, `lib/import/use-import-pptx.ts`,
 `.gitignore`, commit `a3f88d53`;
-evidence [../appendix/research/dsl-renderer-editor/01b-modules.md](../appendix/research/dsl-renderer-editor/01b-modules.md) §6.
+evidence [../appendix/research/dsl-renderer-editor/01b-modules.md](docs/appendix/research/dsl-renderer-editor/01b-modules.md) §6.
 
 ## 1. The three cases
 
 | Thing | Version | Wired as | Why vendored | Local divergence |
 | --- | --- | --- | --- | --- |
-| `packages/pptxgenjs` | 4.0.1 (`package.json:3`) | `"pptxgenjs": "workspace:*"` (root `package.json:129`) | needs an OMML formula primitive upstream does not have | one feature: `addFormula` / `addFormulaDefinition` / `SLIDE_OBJECT_TYPES.formula` / `FormulaProps` and one `gen-xml` case |
-| `packages/mathml2omml` | 0.5.0 (`package.json:2`) | `"mathml2omml": "workspace:*"` (root `package.json:114`) | an upstream bug in the text-container check | **one character**: commit `a3f88d53` |
+| `packages/pptxgenjs` | 4.0.1 ([`package.json:3`](packages/pptxgenjs/package.json#L3)) | `"pptxgenjs": "workspace:*"` (root [`package.json:129`](package.json#L129)) | needs an OMML formula primitive upstream does not have | one feature: `addFormula` / `addFormulaDefinition` / `SLIDE_OBJECT_TYPES.formula` / `FormulaProps` and one `gen-xml` case |
+| `packages/mathml2omml` | 0.5.0 ([`package.json:2`](packages/mathml2omml/package.json#L2)) | `"mathml2omml": "workspace:*"` (root [`package.json:114`](package.json#L114)) | an upstream bug in the text-container check | **one character**: commit `a3f88d53` |
 | `packages/@openmaic/importer` dist | 0.1.3 | `"@openmaic/importer": "workspace:*"` for **types only**; values load from `/vendor/maic-importer/index.js` | `pdfjs-dist`'s dynamic `require()` is a hard Turbopack error | the whole `src/import-pipeline/` + `src/openmaic/` trees (it is a `pptxtojson` fork) |
 
-Licences differ and matter: `pptxgenjs` is MIT (`packages/pptxgenjs/package.json:10`), `mathml2omml` is
+Licences differ and matter: `pptxgenjs` is MIT ([`packages/pptxgenjs/package.json:10`](packages/pptxgenjs/package.json#L10)), `mathml2omml` is
 **LGPL-3.0-or-later** (`packages/mathml2omml/package.json`). See
-[../13-dependencies/index.md](../13-dependencies/index.md).
+[../13-dependencies/index.md](docs/13-dependencies/index.md).
 
 ## 2. `pptxgenjs` — one added primitive, traced end to end
 
@@ -58,13 +58,13 @@ Five files carry the delta, and nothing else in the fork is modified:
 Two implementation details worth knowing because they constrain the caller:
 
 - The formula rides inside `<mc:AlternateContent><mc:Choice Requires="a14">` with an `<mc:Fallback>`
-  sibling (`gen-xml.ts:695-696`, `:722`), which is how PowerPoint's math namespace is declared for
+  sibling ([`gen-xml.ts:695-696`](packages/pptxgenjs/src/gen-xml.ts#L695-L696), [`:722`](packages/pptxgenjs/src/gen-xml.ts#L722)), which is how PowerPoint's math namespace is declared for
   readers that support it while older readers get a plain shape.
 - `fontSize` reaches the XML twice, in different units: as `sz="round(fontSize * 100)"` on
-  `<a:defRPr>` (`gen-xml.ts:693`) — hundredths of a point — and via `latexToOmml`'s injected
-  `<a:rPr sz>` on each math run (`lib/export/latex-to-omml.ts:26`). Both are needed; that is why
+  `<a:defRPr>` ([`gen-xml.ts:693`](packages/pptxgenjs/src/gen-xml.ts#L693)) — hundredths of a point — and via `latexToOmml`'s injected
+  `<a:rPr sz>` on each math run ([`lib/export/latex-to-omml.ts:26`](lib/export/latex-to-omml.ts#L26)). Both are needed; that is why
   `buildPptxBlob` passes `fontSize` to *both* `latexToOmml` and `addFormula`
-  (`lib/export/use-export-pptx.ts:1044`, `:1053`).
+  ([`lib/export/use-export-pptx.ts:1044`](lib/export/use-export-pptx.ts#L1044), [`:1053`](lib/export/use-export-pptx.ts#L1053)).
 
 Build: `rollup -c --bundleConfigAsCjs` (`packages/pptxgenjs/package.json`), emitting
 `dist/pptxgen.{es,cjs}.js` plus the `types/` tree it ships as-is.
@@ -82,8 +82,8 @@ textContainerNames.includes(arr[level].name) &&
 
 The upstream code was `textContainerNames.includes[arr[level].name]` — indexing the `includes` *method
 object* instead of calling it, which always evaluates `undefined` and so always fails the condition.
-`textContainerNames` is `['mtext', 'mi', 'mn', 'mo', 'ms']` (`parse.js:8`); the same array is used
-correctly at `parse.js:48`, which is what makes the bug at `:82` clearly a typo rather than intent.
+`textContainerNames` is `['mtext', 'mi', 'mn', 'mo', 'ms']` ([`parse.js:8`](packages/mathml2omml/src/parse-stringify/parse.js#L8)); the same array is used
+correctly at [`parse.js:48`](packages/mathml2omml/src/parse-stringify/parse.js#L48), which is what makes the bug at [`:82`](packages/mathml2omml/src/parse-stringify/parse.js#L82) clearly a typo rather than intent.
 
 `git show --stat a3f88d53` confirms the scope: **1 file changed, 1 insertion, 1 deletion**. One other
 commit touched the package — `a58618a7`, "use cross-platform file copy in mathml2omml", which is why
@@ -97,7 +97,7 @@ upstream, which is the open question below.
 ## 4. The importer bundle — vendored by URL, not by workspace
 
 This is the structurally interesting one. `@openmaic/importer` **is** a workspace package and **is** a
-root dependency (`package.json:77`), but the app never imports its values.
+root dependency ([`package.json:77`](package.json#L77)), but the app never imports its values.
 
 ```mermaid
 flowchart TD
@@ -139,16 +139,16 @@ flowchart TD
 
 ### 4.1 Why the URL indirection exists
 
-Stated in three places, consistently. `scripts/sync-maic-importer.mjs:6-9`: "the bundle contains
+Stated in three places, consistently. [`scripts/sync-maic-importer.mjs:6-9`](scripts/sync-maic-importer.mjs#L6-L9): "the bundle contains
 dynamic `require()` patterns (from `pdfjs-dist`) that Turbopack rejects as a hard 'Module not found:
 Can't resolve `<dynamic>`' error. By serving it as a static asset and importing it via a runtime URL,
 we bypass the bundler entirely while keeping types via the workspace package."
 
-The app side enforces the same split: `lib/import/use-import-pptx.ts:8-12` marks its
+The app side enforces the same split: [`lib/import/use-import-pptx.ts:8-12`](lib/import/use-import-pptx.ts#L8-L12) marks its
 `@openmaic/importer` import **type-only** with the comment "stripped at compile time, never reaches the
 bundler … The workspace package only contributes types." And the importer package itself keeps
 `parsedToSlides` bundler-safe by never touching the parser tree
-(`packages/@openmaic/importer/src/import-pipeline/index.ts:3-8`), which is the escape hatch for a
+([`packages/@openmaic/importer/src/import-pipeline/index.ts:3-8`](packages/@openmaic/importer/src/import-pipeline/index.ts#L3-L8)), which is the escape hatch for a
 consumer that can pass in pre-parsed JSON.
 
 The three `import()` magic comments (`webpackIgnore`, `turbopackIgnore`, `@vite-ignore`) cover all
@@ -156,13 +156,13 @@ three bundlers a consumer might use.
 
 ### 4.2 Why two guard scripts, not one
 
-`public/vendor/maic-importer` is **gitignored** (`.gitignore:37`), so it exists only if `postinstall`
+`public/vendor/maic-importer` is **gitignored** ([`.gitignore:37`](.gitignore#L37)), so it exists only if `postinstall`
 ran. Each guard closes a different hole:
 
 | Guard | When | Guards against | Failure surface |
 | --- | --- | --- | --- |
 | `sync-maic-importer.mjs` | `postinstall`, or manually via `pnpm run sync:maic-importer` | running the sync before the importer is built — it `stat`s `dist` and refuses (`:20-26`) | `exit 1` naming the build command |
-| `assert-vendor-maic-importer.mjs` | `pnpm build`, before `next build` (`package.json:16`) | a deploy that skipped or failed the sync | `exit 1` printing `pnpm --filter @openmaic/importer build && pnpm run sync:maic-importer` |
+| `assert-vendor-maic-importer.mjs` | `pnpm build`, before `next build` ([`package.json:16`](package.json#L16)) | a deploy that skipped or failed the sync | `exit 1` printing `pnpm --filter @openmaic/importer build && pnpm run sync:maic-importer` |
 | the runtime `HEAD` probe | every import attempt | the artifact vanishing between build and serve | a distinct `import.error.parserUnavailable` toast instead of an opaque `SyntaxError` |
 
 The assert deliberately requires a **non-empty file**, not mere existence (`:22-24`). Its docstring
@@ -173,7 +173,7 @@ distinguishable in a bug report.
 
 ### 4.3 The `postinstall` order is not incidental
 
-`package.json:10` builds in a fixed chain: `mathml2omml → pptxgenjs → dsl → generation → storage →
+[`package.json:10`](package.json#L10) builds in a fixed chain: `mathml2omml → pptxgenjs → dsl → generation → storage →
 importer → renderer → editor → sync`. Two constraints force it: `@openmaic/dsl` must be built before
 its three dependents (they consume its emitted `dist` and `dist/schema`), and the importer must be
 built before the sync step can copy its `dist`.
@@ -190,7 +190,7 @@ There is no automated upstream-diff check for either fork. What exists instead:
 | a pinned `version` field matching the upstream release (`4.0.1`, `0.5.0`) | you can `npm diff` against the registry by hand |
 | `git log -- packages/<fork>/` | the complete local delta, since both forks arrived in one commit |
 | the delta being **small and feature-shaped** | pptxgenjs's addition is one feature in five files; mathml2omml's is one character |
-| the `check:package-versions` gate | covers the six publishable `@openmaic/*` packages, **not** the two vendored forks — see [./10-public-package-api.md](./10-public-package-api.md) |
+| the `check:package-versions` gate | covers the six publishable `@openmaic/*` packages, **not** the two vendored forks — see [./10-public-package-api.md](docs/07-dsl-renderer-editor/10-public-package-api.md) |
 
 **Inferred:** upgrading either fork means re-applying the delta by hand. For `mathml2omml` that is
 trivial; for `pptxgenjs` it means re-porting `addFormula` across five files, one of which
@@ -204,7 +204,7 @@ trivial; for `pptxgenjs` it means re-porting `addFormula` across five files, one
 - Whether the `mathml2omml` one-character fix (`a3f88d53`) was reported upstream. If it landed, this
   fork can be replaced by a version bump; nothing in the repo records that.
 - Whether `pdfjs-dist` is still needed by the importer at all. It is pinned at `4.8.69`
-  (`packages/@openmaic/importer/package.json:57`) and is the sole cause of the whole vendor-bundle
+  ([`packages/@openmaic/importer/package.json:57`](packages/@openmaic/importer/package.json#L57)) and is the sole cause of the whole vendor-bundle
   dance; which importer code path actually uses it was not traced.
 - Whether `public/vendor/maic-importer` could be committed instead of gitignored, removing both guards.
   Nothing in the repo discusses that trade-off.

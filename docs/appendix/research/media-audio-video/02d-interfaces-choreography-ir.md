@@ -5,7 +5,7 @@ above them, doc comments trimmed.
 
 ## 1. Timing spec (imported by both the app runtime and the exporter)
 
-`lib/choreography/timing.ts:18`, `:21`, `:31`, `:34`, `:43`, `:46`, `:49`, `:52`,
+[`lib/choreography/timing.ts:18`](lib/choreography/timing.ts#L18), [`:21`](lib/choreography/timing.ts#L21), [`:31`](lib/choreography/timing.ts#L31), [`:34`](lib/choreography/timing.ts#L34), [`:43`](lib/choreography/timing.ts#L43), [`:46`](lib/choreography/timing.ts#L46), [`:49`](lib/choreography/timing.ts#L49), [`:52`](lib/choreography/timing.ts#L52),
 `:55`, `:58`, `:64`, `:72`, `:97`, `:113`
 
 ```ts
@@ -31,14 +31,14 @@ export interface SpeechEstimateOptions {
 export function estimateSpeechDurationMs(text: string, opts?: SpeechEstimateOptions): number;
 ```
 
-The no-audio estimate's private constants (`timing.ts:83-95`): a CJK regex over
+The no-audio estimate's private constants ([`timing.ts:83-95`](lib/choreography/timing.ts#L83-L95)): a CJK regex over
 CJK Unified Ideographs + Ext-A + Hiragana + Katakana + Hangul Syllables;
 `CJK_RATIO_THRESHOLD = 0.3`; `MIN_READING_MS = 2000`; `CJK_MS_PER_CHAR = 150`;
 `NON_CJK_MS_PER_WORD = 240` (≈250 WPM).
 
 ## 2. Index-domain → time-domain expansion
 
-`lib/choreography/timeline.ts:61`, `:71`, `:128`, `:282`
+[`lib/choreography/timeline.ts:61`](lib/choreography/timeline.ts#L61), [`:71`](lib/choreography/timeline.ts#L71), [`:128`](lib/choreography/timeline.ts#L128), [`:282`](lib/choreography/timeline.ts#L282)
 
 ```ts
 export const IMPLICIT_WB_OPEN: Action = {
@@ -77,13 +77,13 @@ export function resolveActionTimeline(
 ): TimelineSegment[];
 ```
 
-`lib/choreography/index.ts:22-25` re-exports `./timing`, `./cursor`, `./timeline`,
+[`lib/choreography/index.ts:22-25`](lib/choreography/index.ts#L22-L25) re-exports `./timing`, `./cursor`, `./timeline`,
 `./descriptors/index` — `EMPTY_SCENE_DWELL` / `resolvePlaybackCursor` from
 `./cursor`, `DESCRIPTORS` / `getDescriptor` from the descriptors package.
 
 ## 3. Compiler DI boundary
 
-`lib/video-export/deps.ts:38`, `:50`, `:61`, `:83`, `:101`, `:109`, `:122`,
+[`lib/video-export/deps.ts:38`](lib/video-export/deps.ts#L38), [`:50`](lib/video-export/deps.ts#L50), [`:61`](lib/video-export/deps.ts#L61), [`:83`](lib/video-export/deps.ts#L83), [`:101`](lib/video-export/deps.ts#L101), [`:109`](lib/video-export/deps.ts#L109), [`:122`](lib/video-export/deps.ts#L122),
 `:142`, `:151`, `:165`, `:170`
 
 `CompilerSceneContent` (`:38`) is the deliberately-loose structural slice the pure
@@ -151,7 +151,7 @@ export interface CompileConfig {
 }
 ```
 
-`lib/video-export/interactive-static.ts:4`, `:7`, `:10`, `:13`
+[`lib/video-export/interactive-static.ts:4`](lib/video-export/interactive-static.ts#L4), [`:7`](lib/video-export/interactive-static.ts#L7), [`:10`](lib/video-export/interactive-static.ts#L10), [`:13`](lib/video-export/interactive-static.ts#L13)
 
 ```ts
 export const INTERACTIVE_READY_TIMEOUT_MS = 8_000;
@@ -165,7 +165,7 @@ export type InteractiveHtmlFailure =
   | 'too-large';
 ```
 
-`lib/video-export/compile.ts:48`, `:54`, `:152`
+[`lib/video-export/compile.ts:48`](lib/video-export/compile.ts#L48), [`:54`](lib/video-export/compile.ts#L54), [`:152`](lib/video-export/compile.ts#L152)
 
 ```ts
 export interface CompileInput {
@@ -187,7 +187,7 @@ export function compileVideoTimeline(input: CompileInput, deps: CompileDeps): Vi
 
 ## 4. IR envelope, enums and key schemas
 
-`lib/video-export/ir.ts:32`, `:35`, `:38`, `:417`, `:424`
+[`lib/video-export/ir.ts:32`](lib/video-export/ir.ts#L32), [`:35`](lib/video-export/ir.ts#L35), [`:38`](lib/video-export/ir.ts#L38), [`:417`](lib/video-export/ir.ts#L417), [`:424`](lib/video-export/ir.ts#L424)
 
 ```ts
 export const VIDEO_TIMELINE_SCHEMA = 'openmaic.videoTimeline';
@@ -203,7 +203,7 @@ export const CANVAS: Canvas = {
 export class VideoTimelineCompileError extends Error {}
 ```
 
-`lib/video-export/ir.ts:59`, `:80`, `:110`, `:281`, `:333`
+[`lib/video-export/ir.ts:59`](lib/video-export/ir.ts#L59), [`:80`](lib/video-export/ir.ts#L80), [`:110`](lib/video-export/ir.ts#L110), [`:281`](lib/video-export/ir.ts#L281), [`:333`](lib/video-export/ir.ts#L333)
 
 ```ts
 export const DiagnosticSeveritySchema = z.enum(['info', 'warn', 'error']);
@@ -232,7 +232,7 @@ z.enum(['stored', 'capped', 'zero', 'skipped']);
 export const AssetKindSchema = z.enum(['audio', 'image', 'video', 'poster', 'frame', 'html']);
 ```
 
-`lib/video-export/ir.ts:113`, `:341`, `:365`
+[`lib/video-export/ir.ts:113`](lib/video-export/ir.ts#L113), [`:341`](lib/video-export/ir.ts#L341), [`:365`](lib/video-export/ir.ts#L365)
 
 ```ts
 export const BaseSegmentSchema = z.discriminatedUnion('kind', [
@@ -263,7 +263,7 @@ export const AssetPlanEntrySchema = z.object({
 `{ playbackSpeed: number; ttsEnabled: boolean; whiteboardInitiallyOpen: boolean }`.
 
 All 20 inferred type aliases (the schema is the single source) sit together at
-`ir.ts:391-414` — `PercentageGeometry` through `VideoTimeline`.
+[`ir.ts:391-414`](lib/video-export/ir.ts#L391-L414) — `PercentageGeometry` through `VideoTimeline`.
 
 ## 5. Composition
 

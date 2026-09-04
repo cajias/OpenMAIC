@@ -13,8 +13,8 @@ posts the entire `PBLProjectV2` on every call and applies the returned patches.
 `app/api/pbl/v2/{instructor,open-task,evaluate,simulator,task/update}/route.ts`,
 `app/api/quiz-grade/route.ts`, `lib/pbl/v2/api/sse.ts`,
 `lib/server/{classroom-storage,http-range}.ts`; evidence
-[`../appendix/research/api-surface/01c-modules-routes-f-to-p.md`](../appendix/research/api-surface/01c-modules-routes-f-to-p.md),
-[`../appendix/research/classroom-runtime/`](../appendix/research/classroom-runtime/00-overview.md).
+[`../appendix/research/api-surface/01c-modules-routes-f-to-p.md`](docs/appendix/research/api-surface/01c-modules-routes-f-to-p.md),
+[`../appendix/research/classroom-runtime/`](docs/appendix/research/classroom-runtime/00-overview.md).
 
 ## The group
 
@@ -121,7 +121,7 @@ Details worth carrying:
   so a large video never enters process memory. `cancel()` destroys the fs
   stream.
 - Multi-range requests are not supported — `parseRangeHeader` returns single
-  byte ranges only (`lib/server/http-range.ts:1-18`).
+  byte ranges only ([`lib/server/http-range.ts:1-18`](lib/server/http-range.ts#L1-L18)).
 - MIME comes from a fixed 11-entry map (`:10-22`), not from sniffing.
 - This route uses a **fourth** error envelope: `{error: '<Human Message>'}` in
   Title Case, unrelated to `apiError` and to the `snake_case` shape used by
@@ -141,11 +141,11 @@ return `createSSEResponse(generator, {signal: req.signal})`.
 | `POST /api/pbl/v2/task/update` | 60 | — (no LLM) | `project`, `action` | pure switch over five actions; unknown action → `400 INVALID_REQUEST 'Unknown action: X'` (`:159-160`) |
 
 A model-resolution throw becomes `400 INVALID_REQUEST` carrying the raw message
-on all four LLM routes (e.g. `evaluate/route.ts:85-88`) — not a 500.
+on all four LLM routes (e.g. [`evaluate/route.ts:85-88`](app/api/pbl/v2/evaluate/route.ts#L85-L88)) — not a 500.
 
 ### The wire format
 
-`createSSEResponse` (`lib/pbl/v2/api/sse.ts:211`) is the **only formally typed
+`createSSEResponse` ([`lib/pbl/v2/api/sse.ts:211`](lib/pbl/v2/api/sse.ts#L211)) is the **only formally typed
 streaming contract in the whole HTTP surface**.
 
 | Property | Value |
@@ -265,4 +265,4 @@ Success is `200 {success:true, score, comment}`; a thrown error is
 - `sim_phase` and `reset_draft` are declared in `PBLSSEEvent` but which generator
   emits them was not traced here.
 
-Next: [`05-media-and-export.md`](./05-media-and-export.md).
+Next: [`05-media-and-export.md`](docs/12-api-reference/05-media-and-export.md).

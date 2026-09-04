@@ -2,33 +2,33 @@
 
 What a valid document must satisfy, who checks it, and how a stored document written years ago is
 brought forward. Three mechanisms cooperate: `validate*` (report), `normalize*` (repair), and the
-version ladders (migrate). Node types are in [./01-dsl-schema.md](./01-dsl-schema.md).
+version ladders (migrate). Node types are in [./01-dsl-schema.md](docs/07-dsl-renderer-editor/01-dsl-schema.md).
 
 **Sources:** `packages/@openmaic/dsl/src/{validate,normalize,version,legacy-line-geometry,guards,runtime}.ts`,
 `packages/@openmaic/dsl/scripts/gen-schema.mjs`, `lib/edit/slide-schema.ts`,
 `scripts/check-package-version-bumps.mjs`;
-evidence [../appendix/research/dsl-renderer-editor/02b-interfaces.md](../appendix/research/dsl-renderer-editor/02b-interfaces.md),
-[../appendix/research/dsl-renderer-editor/05-failure-modes.md](../appendix/research/dsl-renderer-editor/05-failure-modes.md).
+evidence [../appendix/research/dsl-renderer-editor/02b-interfaces.md](docs/appendix/research/dsl-renderer-editor/02b-interfaces.md),
+[../appendix/research/dsl-renderer-editor/05-failure-modes.md](docs/appendix/research/dsl-renderer-editor/05-failure-modes.md).
 
 ## 1. The invariants
 
 | # | Invariant | Enforced by |
 | --- | --- | --- |
-| I1 | `scene.type === scene.content.type` for all four kinds | the `Scene` distributive conditional (`stage.ts:278`) at compile time; `validate.ts:267` at runtime |
-| I2 | Every enumerated union's tuple is exhaustive in both directions | `as const satisfies readonly T[]` plus a companion conditional type: `SCENE_TYPES` (`stage.ts:30`, `:35`), `ACTION_TYPES` (`action.ts:312`, `:318`), `WIDGET_TYPES` (`interactive.ts:20`, `:24`), `RUNTIME_SESSION_STATUSES` (`runtime.ts`) |
-| I3 | Each action variant carries its variant-required fields with the right runtime kind | `ACTION_REQUIRED_FIELDS` (`validate.ts:43`), a `Record<ActionType, Record<field, FieldKind>>` kept in lockstep with the generated `action.schema.json` **by a test** |
-| I4 | A `line` element carries neither `height` nor `rotate` | the type's `Omit` (`slides.ts:480`); on stored data, migration step 0.2.0→0.3.0 (`legacy-line-geometry.ts:64`) |
-| I5 | Array order in `Slide.elements` is z-order | the renderer, not the contract: `elementIndexById` → `zIndex` (`packages/@openmaic/renderer/src/SlideCanvas.tsx:119`, `SlideElement.tsx:170`) |
-| I6 | A line's `start`/`end` are **local** to `(left, top)` | `normalize.ts:518-526` derives `start=[0,0]`, `end=[width,height]`, with the comment naming the double-offset bug absolute coordinates would cause |
-| I7 | A `runtimeDslVersion`-stamped aggregate never carries `dslVersion`, and vice versa | `validate.ts:405` rejects the stray stamp; `versionOf` (`version.ts:388`) throws on the ambiguous envelope |
-| I8 | A `RuntimeRecord.seq` is a non-negative integer | `validate.ts:447` — `typeof x === 'number'` alone would admit `NaN`/`Infinity`/fractional and corrupt replay order |
-| I9 | `normalize*` is pure, non-mutating and idempotent | stated at `normalize.ts:32-33`; every path spreads rather than assigns |
-| I10 | Every migration transform is pure, side-effect-free, and depends on no runtime library | stated as a contract requirement at `version.ts:147-152` |
+| I1 | `scene.type === scene.content.type` for all four kinds | the `Scene` distributive conditional ([`stage.ts:278`](packages/@openmaic/dsl/src/stage.ts#L278)) at compile time; [`validate.ts:267`](packages/@openmaic/dsl/src/validate.ts#L267) at runtime |
+| I2 | Every enumerated union's tuple is exhaustive in both directions | `as const satisfies readonly T[]` plus a companion conditional type: `SCENE_TYPES` ([`stage.ts:30`](packages/@openmaic/dsl/src/stage.ts#L30), `:35`), `ACTION_TYPES` ([`action.ts:312`](packages/@openmaic/dsl/src/action.ts#L312), `:318`), `WIDGET_TYPES` ([`interactive.ts:20`](packages/@openmaic/dsl/src/interactive.ts#L20), `:24`), `RUNTIME_SESSION_STATUSES` (`runtime.ts`) |
+| I3 | Each action variant carries its variant-required fields with the right runtime kind | `ACTION_REQUIRED_FIELDS` ([`validate.ts:43`](packages/@openmaic/dsl/src/validate.ts#L43)), a `Record<ActionType, Record<field, FieldKind>>` kept in lockstep with the generated `action.schema.json` **by a test** |
+| I4 | A `line` element carries neither `height` nor `rotate` | the type's `Omit` ([`slides.ts:480`](packages/@openmaic/dsl/src/slides.ts#L480)); on stored data, migration step 0.2.0→0.3.0 ([`legacy-line-geometry.ts:64`](packages/@openmaic/dsl/src/legacy-line-geometry.ts#L64)) |
+| I5 | Array order in `Slide.elements` is z-order | the renderer, not the contract: `elementIndexById` → `zIndex` ([`packages/@openmaic/renderer/src/SlideCanvas.tsx:119`](packages/@openmaic/renderer/src/SlideCanvas.tsx#L119), [`SlideElement.tsx:170`](packages/@openmaic/renderer/src/SlideElement.tsx#L170)) |
+| I6 | A line's `start`/`end` are **local** to `(left, top)` | [`normalize.ts:518-526`](packages/@openmaic/dsl/src/normalize.ts#L518-L526) derives `start=[0,0]`, `end=[width,height]`, with the comment naming the double-offset bug absolute coordinates would cause |
+| I7 | A `runtimeDslVersion`-stamped aggregate never carries `dslVersion`, and vice versa | [`validate.ts:405`](packages/@openmaic/dsl/src/validate.ts#L405) rejects the stray stamp; `versionOf` ([`version.ts:388`](packages/@openmaic/dsl/src/version.ts#L388)) throws on the ambiguous envelope |
+| I8 | A `RuntimeRecord.seq` is a non-negative integer | [`validate.ts:447`](packages/@openmaic/dsl/src/validate.ts#L447) — `typeof x === 'number'` alone would admit `NaN`/`Infinity`/fractional and corrupt replay order |
+| I9 | `normalize*` is pure, non-mutating and idempotent | stated at [`normalize.ts:32-33`](packages/@openmaic/dsl/src/normalize.ts#L32-L33); every path spreads rather than assigns |
+| I10 | Every migration transform is pure, side-effect-free, and depends on no runtime library | stated as a contract requirement at [`version.ts:147-152`](packages/@openmaic/dsl/src/version.ts#L147-L152) |
 
 Two invariants are notably **not** enforced anywhere in the contract: `Scene.stageId` is never checked
-against a real `Stage` (it is documented as being "for data integrity checks", `stage.ts:230`), and
+against a real `Stage` (it is documented as being "for data integrity checks", [`stage.ts:230`](packages/@openmaic/dsl/src/stage.ts#L230)), and
 element ids are not checked for uniqueness within a slide by `validateScene`. The latter is caught
-only on the agent write path — see [./05-ai-edit-operations.md](./05-ai-edit-operations.md).
+only on the agent write path — see [./05-ai-edit-operations.md](docs/07-dsl-renderer-editor/05-ai-edit-operations.md).
 
 ## 2. Three checking layers, deliberately unequal
 
@@ -53,7 +53,7 @@ flowchart TD
   HOLE --> GAP["a malformed element can pass validateScene<br/>and is caught only by T1"]
 ```
 
-`validate.ts:11-16` states the relationship explicitly: the validators are a **structural subset**
+[`validate.ts:11-16`](packages/@openmaic/dsl/src/validate.ts#L11-L16) states the relationship explicitly: the validators are a **structural subset**
 (presence + discriminants), the shipped JSON Schema is the cross-language mirror that additionally
 checks each field's value shape, and both describe the same contract.
 
@@ -94,7 +94,7 @@ Also on `validateRuntimeSession`: `runtimeDslVersion` is **required** and must b
 ### 2.2 `normalize*` — the repair pass
 
 `normalize.ts` is the complement of `validate.ts`: validate reports, normalize repairs. Semantics are
-stated once at `normalize.ts:28-33`:
+stated once at [`normalize.ts:28-33`](packages/@openmaic/dsl/src/normalize.ts#L28-L33):
 
 | Input state | Result |
 | --- | --- |
@@ -146,13 +146,13 @@ would collide with `map`'s index argument (`:613-614`). The importer is the one 
 
 | Line | Stamp field | Current | Ladder | Unversioned epoch? |
 | --- | --- | --- | --- | --- |
-| document | `dslVersion` (`version.ts:91`) | `DSL_VERSION = '0.3.0'` (`:61`) | `DSL_MIGRATIONS`, 3 steps (`:235`) | yes — `UNVERSIONED_DSL_VERSION = '0.0.0'` (`:76`) |
+| document | `dslVersion` ([`version.ts:91`](packages/@openmaic/dsl/src/version.ts#L91)) | `DSL_VERSION = '0.3.0'` ([`:61`](packages/@openmaic/dsl/src/version.ts#L61)) | `DSL_MIGRATIONS`, 3 steps ([`:235`](packages/@openmaic/dsl/src/version.ts#L235)) | yes — `UNVERSIONED_DSL_VERSION = '0.0.0'` ([`:76`](packages/@openmaic/dsl/src/version.ts#L76)) |
 | runtime | `runtimeDslVersion` (`:108`) | `RUNTIME_DSL_VERSION = '0.1.0'` (`:276`) | `RUNTIME_DSL_MIGRATIONS`, **empty** (`:314`) | no — throws `noRuntimeEpochError` (`:488`) |
 
 A third, app-only line exists outside the package: `CURRENT_SLIDE_CONTENT_SCHEMA_VERSION = 1`
-(`lib/edit/slide-schema.ts:24`) on `SlideContent.schemaVersion`, applied by `migrateSlideContent`
+([`lib/edit/slide-schema.ts:24`](lib/edit/slide-schema.ts#L24)) on `SlideContent.schemaVersion`, applied by `migrateSlideContent`
 (`:26`) at every SlideContent read boundary. It has no per-step migration body — v1 only guarantees
-the field is present (`slide-schema.ts:11-13`) — and it is forward-compatible in the same way as the
+the field is present ([`slide-schema.ts:11-13`](lib/edit/slide-schema.ts#L11-L13)) — and it is forward-compatible in the same way as the
 DSL ladder (`:31-36`).
 
 ### 3.1 The document ladder
@@ -169,20 +169,20 @@ export const DSL_MIGRATIONS: readonly DslMigration[] = [
 Every `from`/`to` is a **pinned literal**, never the moving `DSL_VERSION`, so appending a step cannot
 retroactively re-target an existing one (`:213-216`).
 
-Steps 1 and 2 are pure stamps. Step 2's reason is instructive (`version.ts:163-182`): 0.2.0 removes
+Steps 1 and 2 are pure stamps. Step 2's reason is instructive ([`version.ts:163-182`](packages/@openmaic/dsl/src/version.ts#L163-L182)): 0.2.0 removes
 `audioUrl` from the *contract*, but removing it from *data* is not a pure transform's job — the URL
 may be the only live handle for the narration, and whether it is live is a reachability question only
 the app-side reference converter can answer by probing. The ladder runs on every read, before the
 converter sees the document, so a ladder entry that dropped `audioUrl` would destroy a possibly live
 handle first.
 
-Step 3 is the ladder's only real payload transform. Its motivation (`version.ts:188-205`) is a
+Step 3 is the ladder's only real payload transform. Its motivation ([`version.ts:188-205`](packages/@openmaic/dsl/src/version.ts#L188-L205)) is a
 concrete production failure: `patch_stage` validates the whole canvas against a closed schema whose
 `line` variant lists neither `rotate` nor `height`, so **one** legacy line element made every agent
 edit to its scene fail — old classrooms opened fine (import does not validate) and then rejected
 their first agent edit.
 
-`stripLegacyLineGeometry` (`legacy-line-geometry.ts:64`) walks every line-element surface of every
+`stripLegacyLineGeometry` ([`legacy-line-geometry.ts:64`](packages/@openmaic/dsl/src/legacy-line-geometry.ts#L64)) walks every line-element surface of every
 migratable envelope shape: a Stage aggregate (`{stage, scenes}`), a single Scene row, or a single
 Stage row (`:24-32`). It returns the input **by identity** when nothing needed stripping (`:19-20`,
 implemented at `:88`) and shares untouched subtrees by reference — a cheap no-op detector. It gates on
@@ -221,7 +221,7 @@ stateDiagram-v2
   StuckThrow --> [*]
 ```
 
-Everything above is `runLadder` (`version.ts:597`) plus its single reader `versionOf` (`:379`).
+Everything above is `runLadder` ([`version.ts:597`](packages/@openmaic/dsl/src/version.ts#L597)) plus its single reader `versionOf` ([`:379`](packages/@openmaic/dsl/src/version.ts#L379)).
 The design points:
 
 - **One reader.** `versionOf` is the sole implementation behind `dslVersionOf` (`:407`),
@@ -244,44 +244,44 @@ The design points:
 
 Changing `DSL_VERSION` or `RUNTIME_DSL_VERSION` requires an npm version increase that the dependents'
 caret range will **not** admit: a MINOR while `@openmaic/dsl` is `0.x`, a MAJOR once it reaches
-`1.0.0` (`version.ts:25-40`). The rule is stated as "escapes the caret" rather than as a fixed level
+`1.0.0` ([`version.ts:25-40`](packages/@openmaic/dsl/src/version.ts#L25-L40)). The rule is stated as "escapes the caret" rather than as a fixed level
 because the level changes at the 1.0 boundary.
 
-The failure it prevents is spelled out at `version.ts:46-50`: `@openmaic/storage`, `renderer` and
+The failure it prevents is spelled out at [`version.ts:46-50`](packages/@openmaic/dsl/src/version.ts#L46-L50): `@openmaic/storage`, `renderer` and
 `importer` depend on the DSL as `workspace:^`, published as a caret; the same published `storage`
 version resolved against two different admitted dsl versions would write rows it then refuses to
 read, because storage compares these constants by value.
 
 `scripts/check-package-version-bumps.mjs` enforces it at merge time and at release. Mechanics and its
-documented limitations are in [./10-public-package-api.md](./10-public-package-api.md).
+documented limitations are in [./10-public-package-api.md](docs/07-dsl-renderer-editor/10-public-package-api.md).
 
 ## 5. Where each layer runs
 
 | Boundary | Layer | Behaviour |
 | --- | --- | --- |
-| pptx import | `normalizeSlideWith({onInvalid:'drop'})` | drop the element, `console.warn`, keep the slide (`packages/@openmaic/importer/src/import-pipeline/index.ts:101`) |
-| generation output | `validate*` / `normalize*` per producer | see [../06-generation-pipeline/index.md](../06-generation-pipeline/index.md) |
-| agent `patch_stage` | closed TypeBox canvas schema **then** `validateScene` | reject the op with a path-anchored message ([./05-ai-edit-operations.md](./05-ai-edit-operations.md)) |
-| browser editor commit | op-kernel field-kind tables only | no `validateScene` on the write path ([./04-editor-prosemirror.md](./04-editor-prosemirror.md)) |
-| store read | `migrate` / `migrateRuntime` | see [../10-persistence-and-state/index.md](../10-persistence-and-state/index.md) |
+| pptx import | `normalizeSlideWith({onInvalid:'drop'})` | drop the element, `console.warn`, keep the slide ([`packages/@openmaic/importer/src/import-pipeline/index.ts:101`](packages/@openmaic/importer/src/import-pipeline/index.ts#L101)) |
+| generation output | `validate*` / `normalize*` per producer | see [../06-generation-pipeline/index.md](docs/06-generation-pipeline/index.md) |
+| agent `patch_stage` | closed TypeBox canvas schema **then** `validateScene` | reject the op with a path-anchored message ([./05-ai-edit-operations.md](docs/07-dsl-renderer-editor/05-ai-edit-operations.md)) |
+| browser editor commit | op-kernel field-kind tables only | no `validateScene` on the write path ([./04-editor-prosemirror.md](docs/07-dsl-renderer-editor/04-editor-prosemirror.md)) |
+| store read | `migrate` / `migrateRuntime` | see [../10-persistence-and-state/index.md](docs/10-persistence-and-state/index.md) |
 
 ## Open questions
 
 - **The most consequential gap in this section.** `validateScene` accepts a `slide` scene whose
-  `content.canvas` is merely "an object" (`validate.ts:272`) and never runs an element-level check.
-  `validateAppScene` (`lib/document-store/validators.ts:27`) delegates straight to it for slide
+  `content.canvas` is merely "an object" ([`validate.ts:272`](packages/@openmaic/dsl/src/validate.ts#L272)) and never runs an element-level check.
+  `validateAppScene` ([`lib/document-store/validators.ts:27`](lib/document-store/validators.ts#L27)) delegates straight to it for slide
   scenes. So a browser-side edit can, in principle, persist an out-of-contract element that the agent
   path's TypeBox `validateSlideCanvas` would have rejected. Whether any browser write path applies an
   equivalent check was not established.
 - How many stored documents are still below `DSL_VERSION 0.3.0`, and whether migration runs eagerly
   or lazily per access. The 0.2.0→0.3.0 comment implies real affected data existed
-  (`version.ts:196-201`), but no telemetry or backfill script was found in this subsystem; the
+  ([`version.ts:196-201`](packages/@openmaic/dsl/src/version.ts#L196-L201)), but no telemetry or backfill script was found in this subsystem; the
   migrate-on-read boundary belongs to `@openmaic/storage`.
 - Whether `SlideContent.schemaVersion` will ever move past `1`. If not, it is a permanent no-op field
   every writer still stamps, and nothing connects it to the ladder mechanics in `version.ts`.
-- `RUNTIME_DSL_MIGRATIONS` ships empty and `runtime.ts:6` describes `RuntimeStore` as "Part B of
+- `RUNTIME_DSL_MIGRATIONS` ships empty and [`runtime.ts:6`](packages/@openmaic/dsl/src/runtime.ts#L6) describes `RuntimeStore` as "Part B of
   #869". Whether the runtime version line has a live producer today was not determined from this
   subsystem's scope.
 - The generated schema artifacts could not be inspected (`packages/@openmaic/dsl/dist` is absent in
   this checkout), so which definitions actually end up `additionalProperties: false` is read from
-  `gen-schema.mjs:24` and asserted at `stage.ts:104` rather than verified against an emitted file.
+  [`gen-schema.mjs:24`](packages/@openmaic/dsl/scripts/gen-schema.mjs#L24) and asserted at [`stage.ts:104`](packages/@openmaic/dsl/src/stage.ts#L104) rather than verified against an emitted file.

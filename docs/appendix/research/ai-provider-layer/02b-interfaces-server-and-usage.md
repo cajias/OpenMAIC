@@ -1,6 +1,6 @@
 # Interfaces (b) — Server Resolution, Routing, Config and Usage
 
-Second half of the interface transcription. [`02-interfaces.md`](./02-interfaces.md)
+Second half of the interface transcription. [`02-interfaces.md`](docs/appendix/research/ai-provider-layer/02-interfaces.md)
 carries the isomorphic half — the type graph, `lib/types/provider.ts`,
 `lib/ai/providers.ts`, `lib/ai/llm.ts` and `lib/ai/thinking-config.ts`. This file carries
 everything that only exists on the server, plus the two metadata helpers that bridge the
@@ -111,7 +111,7 @@ export async function resolveModelFromRequest(
 ```
 
 `resolveModelFromHeaders` (`:162`) is exported but referenced by no other file in the
-tree — see [`../../../14-code-quality/10-duplication-and-dead-code.md`](../../../14-code-quality/10-duplication-and-dead-code.md).
+tree — see [`../../../14-code-quality/10-duplication-and-dead-code.md`](docs/14-code-quality/10-duplication-and-dead-code.md).
 
 ## `lib/server/model-routes.ts`
 
@@ -160,7 +160,7 @@ export function getStageModel(stage?: string): string | undefined;
 
 Twenty members. `LlmStage` is the *routing* sense of the word "stage" and has nothing to
 do with the `Stage` document or the pipeline steps — see
-[`../../../glossary.md`](../../../glossary.md) for the four senses.
+[`../../../glossary.md`](docs/glossary.md) for the four senses.
 
 ## `lib/server/provider-config.ts` — public API
 
@@ -244,7 +244,7 @@ export async function resolveAgentDriverModel(): Promise<{
 
 `assertAgentDriverRouteConfig` throws on four distinct bad states (`:16,27,34,40`). Its
 boot-time caller downgrades the throw to a warning
-(`lib/server/config-validation.ts:191-195`); a request-path caller does not.
+([`lib/server/config-validation.ts:191-195`](lib/server/config-validation.ts#L191-L195)); a request-path caller does not.
 
 ## Usage types
 
@@ -278,7 +278,7 @@ export async function readUsageRecords(opts: ReadOptions = {}): Promise<UsageRec
 `UsageKind` declares five modalities and four are written. `kind: 'asr'` appears nowhere
 in the tree; the transcription path calls `experimental_transcribe` directly
 (`lib/audio/asr-providers.ts:149,406`) and records nothing. See
-[`../../../14-code-quality/09-architectural-consistency.md`](../../../14-code-quality/09-architectural-consistency.md).
+[`../../../14-code-quality/09-architectural-consistency.md`](docs/14-code-quality/09-architectural-consistency.md).
 
 ## `lib/server/model-fetch.ts`
 
@@ -313,6 +313,6 @@ export class ModelFetchError extends Error {
 
 ---
 
-Previous: [`02-interfaces.md`](./02-interfaces.md) · pack entry
-[`00-overview.md`](./00-overview.md) · all packs
-[`../index.md`](../index.md)
+Previous: [`02-interfaces.md`](docs/appendix/research/ai-provider-layer/02-interfaces.md) · pack entry
+[`00-overview.md`](docs/appendix/research/ai-provider-layer/00-overview.md) · all packs
+[`../index.md`](docs/appendix/research/index.md)

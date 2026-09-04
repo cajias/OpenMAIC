@@ -5,7 +5,7 @@ paraphrased. Continued in `02b-interfaces-egress-body-sse.md`.
 
 ## The response envelope
 
-`lib/server/api-response.ts:42-70`
+[`lib/server/api-response.ts:42-70`](lib/server/api-response.ts#L42-L70)
 
 ```ts
 export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
@@ -33,7 +33,7 @@ callers to pass an object.
 
 ## Owner-scoped response builders
 
-`lib/server/agent-runtime/route-response.ts:15-43`
+[`lib/server/agent-runtime/route-response.ts:15-43`](lib/server/agent-runtime/route-response.ts#L15-L43)
 
 ```ts
 export function withOwnerResponseHeaders(response: NextResponse, headers: Headers): NextResponse;
@@ -50,8 +50,8 @@ export function ownerNotFound(headers: Headers): NextResponse;
 
 ## Identity
 
-`lib/server/agent-runtime/owner.ts:52-56` and
-`lib/server/agent-runtime/with-owner.ts:12-15`
+[`lib/server/agent-runtime/owner.ts:52-56`](lib/server/agent-runtime/owner.ts#L52-L56) and
+[`lib/server/agent-runtime/with-owner.ts:12-15`](lib/server/agent-runtime/with-owner.ts#L12-L15)
 
 ```ts
 export function resolveRequestOwnerId(
@@ -66,7 +66,7 @@ export async function withRequestOwnerId(
 ): Promise<Response>;
 ```
 
-`lib/persistence/server-auth.ts:20` and `:56-69`
+[`lib/persistence/server-auth.ts:20`](lib/persistence/server-auth.ts#L20) and [`:56-69`](lib/persistence/server-auth.ts#L56-L69)
 
 ```ts
 type PersistencePrincipal = RuntimeHttpPrincipal & Partial<Pick<AssetPrincipal, 'key'>>;
@@ -77,7 +77,7 @@ export async function authenticatePersistenceRequest(
 ): Promise<PersistencePrincipal | undefined>;
 ```
 
-`lib/server/access-token.ts:4-11`
+[`lib/server/access-token.ts:4-11`](lib/server/access-token.ts#L4-L11)
 
 ```ts
 export function createAccessToken(accessCode: string): string;
@@ -122,7 +122,7 @@ returned id always carries the `anon:` prefix.
 
 ## Model resolution
 
-`lib/server/resolve-model.ts:21-34`
+[`lib/server/resolve-model.ts:21-34`](lib/server/resolve-model.ts#L21-L34)
 
 ```ts
 export interface ResolvedModel extends ModelWithInfo {
@@ -141,7 +141,7 @@ export interface ResolvedModel extends ModelWithInfo {
 }
 ```
 
-`lib/server/resolve-model.ts:41-55`, `:162-166`, `:183-187`
+[`lib/server/resolve-model.ts:41-55`](lib/server/resolve-model.ts#L41-L55), [`:162-166`](lib/server/resolve-model.ts#L162-L166), [`:183-187`](lib/server/resolve-model.ts#L183-L187)
 
 ```ts
 export async function resolveModel(params: {
@@ -166,7 +166,7 @@ export async function resolveModelFromRequest(
 ): Promise<ResolvedModel>;
 ```
 
-`lib/server/model-routes.ts:52-72` and `:131-154`
+[`lib/server/model-routes.ts:52-72`](lib/server/model-routes.ts#L52-L72) and [`:131-154`](lib/server/model-routes.ts#L131-L154)
 
 ```ts
 export interface StageRoute {
@@ -217,7 +217,7 @@ The mapping from each `LlmStage` key to the route that passes it is tabulated in
 
 ## Request body shapes declared inline in route files
 
-`app/api/agent/sessions/route.ts:25-35`
+[`app/api/agent/sessions/route.ts:25-35`](app/api/agent/sessions/route.ts#L25-L35)
 
 ```ts
 interface CreateSessionBody {
@@ -233,7 +233,7 @@ interface CreateSessionBody {
 }
 ```
 
-`app/api/extract-document/route.ts:40-73`
+[`app/api/extract-document/route.ts:40-73`](app/api/extract-document/route.ts#L40-L73)
 
 ```ts
 interface ExtractSource {
@@ -263,7 +263,7 @@ const ASSET_ID_EXTRACT_STRING_FIELDS = [
 ] as const;
 ```
 
-`app/api/pbl/v2/task/update/route.ts:37-46`
+[`app/api/pbl/v2/task/update/route.ts:37-46`](app/api/pbl/v2/task/update/route.ts#L37-L46)
 
 ```ts
 interface UpdateRequest {
@@ -278,7 +278,7 @@ interface UpdateRequest {
 }
 ```
 
-`app/api/quiz-grade/route.ts:15-26`
+[`app/api/quiz-grade/route.ts:15-26`](app/api/quiz-grade/route.ts#L15-L26)
 
 ```ts
 interface GradeRequest {
@@ -295,7 +295,7 @@ interface GradeResponse {
 }
 ```
 
-`app/api/generate/agent-profiles/route.ts:22-50`
+[`app/api/generate/agent-profiles/route.ts:22-50`](app/api/generate/agent-profiles/route.ts#L22-L50)
 
 ```ts
 interface RequestBody {

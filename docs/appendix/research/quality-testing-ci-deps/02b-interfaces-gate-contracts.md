@@ -1,6 +1,6 @@
 # 02b — Interfaces: gate contracts, env contracts, Playwright fixtures
 
-Continues `02-interfaces.md`, which covers the eval harness type model.
+Continues [`02-interfaces.md`](docs/appendix/research/quality-testing-ci-deps/02-interfaces.md), which covers the eval harness type model.
 
 ## What "interface" means for a gate
 
@@ -59,7 +59,7 @@ module: `check-internal-dependency-ranges.mjs`,
 `smoke-test-package-tarballs.mjs`.
 
 `INTERNAL_DEPENDENTS` is not merely documentation — it is checked in both
-directions by `check-internal-dependency-ranges.mjs:98-134`, so removing an entry
+directions by [`check-internal-dependency-ranges.mjs:98-134`](scripts/check-internal-dependency-ranges.mjs#L98-L134), so removing an entry
 is a failure rather than an exemption.
 
 ## Gate CLI contracts
@@ -80,9 +80,9 @@ is a failure rather than an exemption.
 
 Two contract details that are easy to get wrong when reusing these:
 
-- `verify-package-artifacts.mjs:104-111` asserts the *exact* argument count, so a
+- [`verify-package-artifacts.mjs:104-111`](scripts/verify-package-artifacts.mjs#L104-L111) asserts the *exact* argument count, so a
   stray argument is a failure rather than being ignored. It also shifts a leading
-  bare `--` off `argv` (`smoke-test-package-tarballs.mjs:11`) because
+  bare `--` off `argv` ([`smoke-test-package-tarballs.mjs:11`](scripts/smoke-test-package-tarballs.mjs#L11)) because
   `pnpm test:package-tarballs -- <dir>` passes one through.
 - `check-clawhub-version.mjs` wraps everything in a `UserFacingError` class
   (line 4) so unexpected internal errors surface as the generic "Unable to check
@@ -130,23 +130,23 @@ erDiagram
 
 | Variable | Read at | Semantics |
 | --- | --- | --- |
-| `TEST_LOAD_LOCAL_ENV` | `tests/setup-env.ts:23` | `'1'` opts back into reading `.env.local`; never set in CI |
+| `TEST_LOAD_LOCAL_ENV` | [`tests/setup-env.ts:23`](tests/setup-env.ts#L23) | `'1'` opts back into reading `.env.local`; never set in CI |
 | `PG_CONTRACT_URL` | 11 `*.pg.test.ts` modules | Present ⇒ suites run; absent ⇒ `describe.skipIf` |
-| `STORAGE_PG_CONTRACT_REQUIRED` | `tests/lib/whiteboard/runtime-store.pg.test.ts:23` and 6 storage suites | `'1'` turns a missing `PG_CONTRACT_URL` into a module-level `throw` |
+| `STORAGE_PG_CONTRACT_REQUIRED` | [`tests/lib/whiteboard/runtime-store.pg.test.ts:23`](tests/lib/whiteboard/runtime-store.pg.test.ts#L23) and 6 storage suites | `'1'` turns a missing `PG_CONTRACT_URL` into a module-level `throw` |
 | `STORAGE_VITEST_RESULTS` | workflow only | Path for `--outputFile.json`, consumed by phase 1 |
 | `STORAGE_PG_BASELINE` | workflow only | Path for the pre-run `n_tup_ins` snapshot |
 | `S3_CONTRACT_ENDPOINT`, `STORAGE_S3_CONTRACT_REQUIRED` | `packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts:12,18` | Never set anywhere in `.github/` |
-| `COVER_LAYOUT_BROWSER` | `tests/video-export/cover-card-layout.browser.test.ts:34` | `'1'` makes a missing Chromium a hard failure |
-| `INTERACTIVE_STATIC_BROWSER` | `tests/video-export/interactive-static-html.browser.test.ts:11` | same |
-| `HF_E2E_DIR` | `tests/video-export/e2e-materialize.test.ts:35` | Output dir for Hyperframes lint samples |
-| `CI_PARALLEL_ANNOTATE` | `scripts/ci-run-parallel.sh:46` | `'0'` suppresses `::error::` so the self-test can assert failure |
-| `RELEASE_ARTIFACTS`, `RELEASE_PLAN_PATH` | workflow + `check-package-version-bumps.mjs:665` | Tarball directory; release-plan JSON path |
-| `EVAL_*` (24 distinct names) | `eval/**` | Model strings, sample counts, thresholds — enumerated in `04-dependencies-and-config.md` |
+| `COVER_LAYOUT_BROWSER` | [`tests/video-export/cover-card-layout.browser.test.ts:34`](tests/video-export/cover-card-layout.browser.test.ts#L34) | `'1'` makes a missing Chromium a hard failure |
+| `INTERACTIVE_STATIC_BROWSER` | [`tests/video-export/interactive-static-html.browser.test.ts:11`](tests/video-export/interactive-static-html.browser.test.ts#L11) | same |
+| `HF_E2E_DIR` | [`tests/video-export/e2e-materialize.test.ts:35`](tests/video-export/e2e-materialize.test.ts#L35) | Output dir for Hyperframes lint samples |
+| `CI_PARALLEL_ANNOTATE` | [`scripts/ci-run-parallel.sh:46`](scripts/ci-run-parallel.sh#L46) | `'0'` suppresses `::error::` so the self-test can assert failure |
+| `RELEASE_ARTIFACTS`, `RELEASE_PLAN_PATH` | workflow + [`check-package-version-bumps.mjs:665`](scripts/check-package-version-bumps.mjs#L665) | Tarball directory; release-plan JSON path |
+| `EVAL_*` (24 distinct names) | `eval/**` | Model strings, sample counts, thresholds — enumerated in [`04-dependencies-and-config.md`](docs/appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md) |
 
 Three of these are pinned by tests, so narrowing them fails CI rather than
 silently disabling a suite: `COVER_LAYOUT_BROWSER` and
 `INTERACTIVE_STATIC_BROWSER` at
-`tests/workflows/ci-video-export-contract.test.ts:175` and `:186`, and the whole
+[`tests/workflows/ci-video-export-contract.test.ts:175`](tests/workflows/ci-video-export-contract.test.ts#L175) and [`:186`](tests/workflows/ci-video-export-contract.test.ts#L186), and the whole
 `ci.yml` main-push gate body at that file's `EXPECTED_MAIN_PUSH_GATE` constant
 (lines 30-40).
 
@@ -183,12 +183,12 @@ export class MockApi {
 `mockSceneOutlinesStream` synthesises a full SSE body — one `data:` frame per
 outline plus a terminal `{type:'done', outlines, courseTitle}` frame — and serves
 it with `Content-Type: text/event-stream`, `Cache-Control: no-cache` and
-`Connection: keep-alive` (`e2e/fixtures/mock-api.ts:15-33`).
+`Connection: keep-alive` ([`e2e/fixtures/mock-api.ts:15-33`](e2e/fixtures/mock-api.ts#L15-L33)).
 
 `mockSceneActions(stageId?)` is the one with non-obvious behaviour: when no
 `stageId` is supplied it reads `route.request().postDataJSON()` and takes
 `body.stageId`, falling back to `'test-stage'` inside a `catch` whose comment
-reads `// fallback to default` (`e2e/fixtures/mock-api.ts:50-67`). That is what
+reads `// fallback to default` ([`e2e/fixtures/mock-api.ts:50-67`](e2e/fixtures/mock-api.ts#L50-L67)). That is what
 lets a spec assert against a dynamically generated stage id without threading it
 through the fixture.
 

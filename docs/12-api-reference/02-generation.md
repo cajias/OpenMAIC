@@ -7,16 +7,16 @@ Six routes: the four LLM steps the browser calls while building a course
 access-code middleware and all six resolve their model per request.
 
 The owner-scoped course-document routes that persist the result live in
-[`02b-stages-and-stage-meta.md`](./02b-stages-and-stage-meta.md); the media
+[`02b-stages-and-stage-meta.md`](docs/12-api-reference/02b-stages-and-stage-meta.md); the media
 generators (`generate/{tts,voice,image,video}`) live in
-[`05-media-and-export.md`](./05-media-and-export.md).
+[`05-media-and-export.md`](docs/12-api-reference/05-media-and-export.md).
 
 **Sources:** `app/api/generate/{agent-profiles,scene-outlines-stream,scene-content,scene-actions}/route.ts`,
 `app/api/generate-classroom/route.ts`, `app/api/generate-classroom/[jobId]/route.ts`,
 `lib/server/{resolve-model,model-routes,llm-error-response}.ts`,
 `lib/persistence/resolve-vision-images.ts`; evidence
-[`../appendix/research/api-surface/01c-modules-routes-f-to-p.md`](../appendix/research/api-surface/01c-modules-routes-f-to-p.md),
-[`../appendix/research/generation-pipeline/`](../appendix/research/generation-pipeline/00-overview.md).
+[`../appendix/research/api-surface/01c-modules-routes-f-to-p.md`](docs/appendix/research/api-surface/01c-modules-routes-f-to-p.md),
+[`../appendix/research/generation-pipeline/`](docs/appendix/research/generation-pipeline/00-overview.md).
 
 ## The group and its outbound calls
 
@@ -80,7 +80,7 @@ flowchart TD
 Each route pins itself to an `LlmStage` key so an operator can route it to a
 different model via the `MODEL_ROUTES` JSON env var. `scene-content` builds a
 **composite** key from the outline type and falls back to the base key when the
-composite is unrouted (`scene-content/route.ts:110`):
+composite is unrouted ([`scene-content/route.ts:110`](app/api/generate/scene-content/route.ts#L110)):
 
 ```
 const stage = outline.type ? `scene-content:${outline.type}` : 'scene-content';
@@ -96,13 +96,13 @@ const stage = outline.type ? `scene-content:${outline.type}` : 'scene-content';
 
 A **routed** stage discards the client's `x-api-key`, `x-base-url` and
 `x-provider-type` so a pinned provider can never be built with another
-provider's credentials (`lib/server/resolve-model.ts:56-81`).
+provider's credentials ([`lib/server/resolve-model.ts:56-81`](lib/server/resolve-model.ts#L56-L81)).
 
 ### Headers these routes read
 
 | Header | Route(s) | Effect |
 | --- | --- | --- |
-| `x-model`, `x-api-key`, `x-base-url`, `x-provider-type` | all four `generate/*` | model resolution when the stage is unrouted (`resolve-model.ts:168-172`) |
+| `x-model`, `x-api-key`, `x-base-url`, `x-provider-type` | all four `generate/*` | model resolution when the stage is unrouted ([`lib/server/resolve-model.ts:168-172`](lib/server/resolve-model.ts#L168-L172)) |
 | `x-image-generation-enabled`, `x-video-generation-enabled` | `scene-outlines-stream` | selects the media prompt snippets (`:405-407`) |
 | `x-user-locale` | `scene-content` | `targetLanguage` for the generator (`:322`, `:332`) |
 
@@ -237,7 +237,7 @@ protecting a job, and `pollUrl` is built from `buildRequestOrigin(req)`.
 - **`llmApiError` is used by exactly two routes** (`scene-content`,
   `scene-actions`). It walks `APICallError` / `RetryError` / `cause` /
   `lastError` chains for an HTTP status and maps 429 to `RATE_LIMITED`, anything
-  else to `UPSTREAM_ERROR` (`lib/server/llm-error-response.ts:24-63`), so retry
+  else to `UPSTREAM_ERROR` ([`lib/server/llm-error-response.ts:24-63`](lib/server/llm-error-response.ts#L24-L63)), so retry
   semantics survive without leaking provider bodies. The other four generation
   routes return raw error messages in `error` or `details`.
 - **`agent-profiles` validates the model's output, not just the request.** Fewer
@@ -259,4 +259,4 @@ protecting a job, and `pollUrl` is built from `buildRequestOrigin(req)`.
   lives in `lib/server/classroom-job-store.ts` and was not enumerated for this
   reference.
 
-Next: [`02b-stages-and-stage-meta.md`](./02b-stages-and-stage-meta.md).
+Next: [`02b-stages-and-stage-meta.md`](docs/12-api-reference/02b-stages-and-stage-meta.md).

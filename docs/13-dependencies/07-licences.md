@@ -6,13 +6,13 @@ undeclared. **This is an inventory of what the repository states, not legal
 advice.** Where the repository is silent, this file says so rather than filling
 the gap.
 
-**Sources:** `LICENSE`, `package.json:5`, `README.md:1041`-`:1053`,
-`CHANGELOG.md:132`-`:134`, `CONTRIBUTING.md:193`-`:195`, the ten workspace
+**Sources:** `LICENSE`, [`package.json:5`](package.json#L5), [`README.md:1041`](README.md#-license)-[`:1052`](README.md#third-party-components),
+[`CHANGELOG.md:132`](CHANGELOG.md#license)-[`:134`](CHANGELOG.md#license), [`CONTRIBUTING.md:200`](CONTRIBUTING.md#license)-[`:202`](CONTRIBUTING.md#license), the ten workspace
 `package.json` manifests, `packages/mathml2omml/LICENSE`,
 `packages/@openmaic/renderer/FONTS.md`,
 `packages/@openmaic/renderer/font-licenses/`,
 `scripts/generate-video-export-*.mjs`, `.github/workflows/*.yml`. Evidence:
-[quality-testing-ci-deps/04](../appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
+[quality-testing-ci-deps/04](docs/appendix/research/quality-testing-ci-deps/04-dependencies-and-config.md).
 
 ## Licence flow into the distributed artefacts
 
@@ -42,25 +42,25 @@ flowchart TD
 
 | Artefact | Declared licence | `LICENSE` file | Notes |
 | --- | --- | --- | --- |
-| Repository root | MIT (`LICENSE`, `package.json:5`) | yes, `MIT License / Copyright (c) 2026 THU-MAIC` | `CHANGELOG.md:132`-`:134` records the relicense **from AGPL-3.0 to MIT** in v0.3.0. |
+| Repository root | MIT (`LICENSE`, [`package.json:5`](package.json#L5)) | yes, `MIT License / Copyright (c) 2026 THU-MAIC` | [`CHANGELOG.md:132`](CHANGELOG.md#license)-[`:134`](CHANGELOG.md#license) records the relicense **from AGPL-3.0 to MIT** in v0.3.0. |
 | `@openmaic/dsl` | MIT | yes, in `files` | |
 | `@openmaic/generation` | MIT | yes, in `files` | Also ships `templates`, `snippets`, `prompts-pbl` — the Markdown prompts are part of the published artefact. |
 | `@openmaic/storage` | MIT | yes, in `files` | |
 | `@openmaic/renderer` | MIT | yes, in `files` | Additionally ships `FONTS.md` and `font-licenses/` in `files`. |
 | `@openmaic/editor` | **no `license` field** | yes (MIT), in `files` | npm will publish it with **no SPDX identifier** in the registry metadata. The MIT text ships, but automated consumers see `license: undefined`. |
 | `@openmaic/importer` | MIT | yes, in `files` | |
-| `packages/mathml2omml` | **LGPL-3.0-or-later** (`package.json:26`) | yes, full LGPL text, 7.5 KB | Consumed as `workspace:*`, transpiled by Next, bundled. |
-| `packages/pptxgenjs` | MIT (`package.json:10`) | **no `LICENSE` file** | Directory contains only `src/`, `types/`, `.gitignore`, `package.json`, `rollup.config.mjs`, `tsconfig.json`. Upstream is `gitbrent/PptxGenJS`, MIT. |
+| `packages/mathml2omml` | **LGPL-3.0-or-later** ([`package.json:26`](packages/mathml2omml/package.json#L26)) | yes, full LGPL text, 7.5 KB | Consumed as `workspace:*`, transpiled by Next, bundled. |
+| `packages/pptxgenjs` | MIT ([`package.json:10`](packages/pptxgenjs/package.json#L10)) | **no `LICENSE` file** | Directory contains only `src/`, `types/`, `.gitignore`, `package.json`, `rollup.config.mjs`, `tsconfig.json`. Upstream is `gitbrent/PptxGenJS`, MIT. |
 | `render-service` | **no `license` field**, `private: true` | no | Not published. Runs as a container image. |
 
 ## The LGPL entry
 
 `packages/mathml2omml` is `LGPL-3.0-or-later`, imported by
-`lib/export/latex-to-omml.ts:2`, listed in `next.config.ts` `transpilePackages`,
+[`lib/export/latex-to-omml.ts:2`](lib/export/latex-to-omml.ts#L2), listed in `next.config.ts` `transpilePackages`,
 and therefore compiled into the app's JavaScript output — which is distributed
 both as a Docker image and as a Vercel deployment.
 
-**What the repository does record.** `README.md:1045`-`:1053` names it explicitly
+**What the repository does record.** [`README.md:1045`](README.md#third-party-components)-[`:1052`](README.md#third-party-components) names it explicitly
 under "Third-Party Components", links its `LICENSE`, and states: *"When
 redistributing the repository as a whole, the terms of each bundled package above
 apply to that package's files."* The full LGPL text is present. Both facts are
@@ -76,24 +76,24 @@ This file makes no claim either way.
 Two engineering facts that bear on the size of the question:
 
 - The local divergence from upstream `mathml2omml@0.5.0` is **one character**
-  (`src/parse-stringify/parse.js:82`, commit `a3f88d53`) plus one build-script
+  ([`src/parse-stringify/parse.js:82`](packages/mathml2omml/src/parse-stringify/parse.js#L82), commit `a3f88d53`) plus one build-script
   line. If upstream has since fixed the same bug, the fork could be replaced by
   the registry copy — which would not change the licence, but would remove the
-  in-tree source. See [04-vendored-forks.md](./04-vendored-forks.md).
+  in-tree source. See [04-vendored-forks.md](docs/13-dependencies/04-vendored-forks.md).
 - `latexToOmml` is used only by the PPTX export path and returns `null` on
-  failure (`lib/export/latex-to-omml.ts:70`-`:80`), so the dependency is
+  failure ([`lib/export/latex-to-omml.ts:70`](lib/export/latex-to-omml.ts#L70)-[`:80`](lib/export/latex-to-omml.ts#L80)), so the dependency is
   feature-scoped rather than core.
 
 ## The `pptxgenjs` fork's missing LICENSE file
 
-MIT is declared in `package.json:10` and the upstream repository is named at
+MIT is declared in [`package.json:10`](packages/pptxgenjs/package.json#L10) and the upstream repository is named at
 `:68`-`:71`, but no `LICENSE` file exists in `packages/pptxgenjs/`. MIT's own
 condition is that the copyright notice and permission notice be included in all
 copies or substantial portions. The notice is not in the directory.
 
 Mitigations already in place: the package is `workspace:*` and never published —
-`publish-packages.yml:5`-`:7` pins the publish scope by name *precisely because*
-these two names are not ours. And `README.md:1050` links the licence, though it
+[`publish-packages.yml:5`](.github/workflows/publish-packages.yml#L5)-[`:7`](.github/workflows/publish-packages.yml#L7) pins the publish scope by name *precisely because*
+these two names are not ours. And [`README.md:1050`](README.md#third-party-components) links the licence, though it
 links `package.json` rather than a licence text.
 
 ## Font licences — the best-documented part
@@ -126,9 +126,9 @@ modules rather than leaving it behind:
 
 | Script | Emits | Licence source |
 | --- | --- | --- |
-| `scripts/generate-video-export-katex.mjs:14`, `:58` | `KATEX_MIT_LICENSE` | read from `katex/LICENSE` in `node_modules` |
-| `scripts/generate-video-export-noto-cjk.mjs:12`, `:19`, `:59` | `NOTO_SANS_SC_OFL_LICENSE`, `NOTO_SANS_KR_OFL_LICENSE` | read from each `@fontsource` package's `LICENSE` |
-| `scripts/generate-video-export-noto-script-fonts.mjs:179`-`:210` | `NOTO_SANS_OFL_LICENSE`, `NOTO_SANS_ARABIC_OFL_LICENSE`, plus descriptors placing them at `LICENSES/Noto-Sans-OFL-1.1.txt` and `LICENSES/Noto-Sans-Arabic-OFL-1.1.txt` inside the export | same |
+| [`scripts/generate-video-export-katex.mjs:14`](scripts/generate-video-export-katex.mjs#L14), [`:58`](scripts/generate-video-export-katex.mjs#L58) | `KATEX_MIT_LICENSE` | read from `katex/LICENSE` in `node_modules` |
+| [`scripts/generate-video-export-noto-cjk.mjs:12`](scripts/generate-video-export-noto-cjk.mjs#L12), [`:19`](scripts/generate-video-export-noto-cjk.mjs#L19), [`:59`](scripts/generate-video-export-noto-cjk.mjs#L59) | `NOTO_SANS_SC_OFL_LICENSE`, `NOTO_SANS_KR_OFL_LICENSE` | read from each `@fontsource` package's `LICENSE` |
+| [`scripts/generate-video-export-noto-script-fonts.mjs:179`](scripts/generate-video-export-noto-script-fonts.mjs#L179)-[`:210`](scripts/generate-video-export-noto-script-fonts.mjs#L210) | `NOTO_SANS_OFL_LICENSE`, `NOTO_SANS_ARABIC_OFL_LICENSE`, plus descriptors placing them at `LICENSES/Noto-Sans-OFL-1.1.txt` and `LICENSES/Noto-Sans-Arabic-OFL-1.1.txt` inside the export | same |
 
 So the export ZIP a user downloads carries the font licences alongside the font
 binaries. That is a deliberate design, not an accident: the descriptors name the
@@ -159,12 +159,12 @@ sequenceDiagram
 
 ## Attribution for vendored source
 
-`lib/agent/VENDOR.md:36`-`:58` reproduces the full MIT text and copyright line for
+[`lib/agent/VENDOR.md:36`](lib/agent/VENDOR.md#mit-attribution)-[`:58`](lib/agent/VENDOR.md#mit-attribution) reproduces the full MIT text and copyright line for
 `@earendil-works/pi-*` (Mario Zechner) even though those packages are consumed
-from the registry rather than vendored. `lib/edit/html-edit.ts:1`-`:19` names its
+from the registry rather than vendored. [`lib/edit/html-edit.ts:1`](lib/edit/html-edit.ts#L1)-[`:19`](lib/edit/html-edit.ts#L19) names its
 source file inside `@earendil-works/pi-coding-agent` but does **not** reproduce a
 licence notice for the copied code. Inferred: it inherits the same MIT terms as
-the rest of the pi project, per `lib/agent/VENDOR.md:6`. That inference is not
+the rest of the pi project, per [`lib/agent/VENDOR.md:6`](lib/agent/VENDOR.md#upstream). That inference is not
 stated at the copy site.
 
 ## What no automated check covers
@@ -206,7 +206,7 @@ nothing prevents the survey being done, it simply has not been.
   matches the `LICENSE` file it already ships?
 - Is `https://file.maic.chat` operated by the project? `FONTS.md` calls it "our
   CDN", which implies yes, but the origin is hard-coded with no configuration
-  knob (`packages/@openmaic/renderer/fonts.config.mjs:13`), so a third-party
+  knob ([`packages/@openmaic/renderer/fonts.config.mjs:13`](packages/@openmaic/renderer/fonts.config.mjs#L13)), so a third-party
   deployment serves fonts from an origin it does not control.
 - Should the release pipeline emit an SBOM? It already has the provenance
   machinery and a single trusted artefact directory to attach one to.

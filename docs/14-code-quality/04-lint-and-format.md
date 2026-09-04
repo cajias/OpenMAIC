@@ -8,7 +8,7 @@ account for 122 of them.
 **Sources:** `eslint.config.mjs`, `.prettierrc`, `.prettierignore`,
 `tests/lint-llm-entry-guard.test.ts`, `tests/video-export/eslint-boundary.test.ts`,
 `.github/workflows/ci.yml`;
-[`../appendix/research/quality-testing-ci-deps/02-interfaces.md`](../appendix/research/quality-testing-ci-deps/02-interfaces.md).
+[`../appendix/research/quality-testing-ci-deps/02-interfaces.md`](docs/appendix/research/quality-testing-ci-deps/02-interfaces.md).
 
 ## Config shape
 
@@ -32,7 +32,7 @@ The config extends `eslint-config-next/core-web-vitals` and
 
 Prettier is 16 lines of ordinary settings (`printWidth: 100`, `singleQuote: true`,
 `trailingComma: 'all'`, `endOfLine: 'lf'`) enforced by `prettier . --check` at
-`ci.yml:128`.
+[`ci.yml:128`](.github/workflows/ci.yml#L128).
 
 ## The seven boundary walls
 
@@ -99,7 +99,7 @@ grep -n "ESLint\|lintText" tests/lint-llm-entry-guard.test.ts tests/video-export
 # tests/video-export/eslint-boundary.test.ts:5: const eslint = new ESLint({ cwd: process.cwd() });
 ```
 
-`tests/lint-llm-entry-guard.test.ts:65-68` goes one step further: a path ESLint would
+[`tests/lint-llm-entry-guard.test.ts:65-68`](tests/lint-llm-entry-guard.test.ts#L65-L68) goes one step further: a path ESLint would
 *ignore* returns no result, and the test treats that as a sentinel failure rather than a
 pass — so adding a path to `globalIgnores` cannot quietly turn the guard green.
 
@@ -171,7 +171,7 @@ flowchart LR
 is simultaneously the top file on both metrics with 9 each, paired one-to-one: each
 `eslint-disable-next-line` (`:497`, `:528`, `:558`, `:593`, `:656`, `:691`, `:731`,
 `:753`, `:803`) sits directly above its cast (`:498`, `:529`, `:559`, `:594`, `:657`,
-`:692`, `:732`, `:754`, `:804` — [03-type-safety.md](./03-type-safety.md)). Fixing the
+`:692`, `:732`, `:754`, `:804` — [03-type-safety.md](docs/14-code-quality/03-type-safety.md)). Fixing the
 type fixes the suppression; they are one debt, not two.
 
 **2. The React effect rules are opted out of rather than satisfied — thinly and
@@ -192,13 +192,13 @@ legacy canvas `components/slide-renderer/` (7 across 6 files), and `exhaustive-d
 the same shape (6 of 19 there). Only two files hold more than two suppressions of this
 rule: `WorkspaceShell.tsx` (4, 1 323 lines) and `ActionsBar.tsx` (3, 1 480 lines) —
 neither of which is one of the eight React files over 1 500 lines counted in
-[02](./02-size-and-shape.md), seven of which carry none at all.
-`PlaybackChromeRoot.tsx:960` suppresses `exhaustive-deps` on an effect spanning
+[02](docs/14-code-quality/02-size-and-shape.md), seven of which carry none at all.
+[`PlaybackChromeRoot.tsx:960`](components/edit/PlaybackChromeRoot.tsx#L960) suppresses `exhaustive-deps` on an effect spanning
 `:655`-`:961`.
 
 Note that neither of these is a lint config problem. Both rules are *on* and *erroring*;
 the suppressions are visible, greppable and reviewable. The comment at
-`eslint.config.mjs:600-601` states the design intent explicitly: *"An `eslint-disable`
+[`eslint.config.mjs:600-601`](eslint.config.mjs#L600-L601) states the design intent explicitly: *"An `eslint-disable`
 comment defeats any of them, which is the point: the bypass has to be written down where
 a reviewer sees it."*
 
@@ -206,14 +206,14 @@ a reviewer sees it."*
 
 | Gap | Evidence | Consequence |
 | --- | --- | --- |
-| **`no-unused-vars` is `'warn'`, not `'error'`** | `eslint.config.mjs:65` | Warnings accumulate with no gate counting them. The current count is unmeasurable without an install ([01-method.md](./01-method.md)) |
-| **`e2e/` is not linted** | `eslint.config.mjs:53` ignores `e2e/**`; there is no `e2e/eslint.config.*` | 2 698 lines of TypeScript with no lint and (per [03](./03-type-safety.md)) no `tsc` either |
+| **`no-unused-vars` is `'warn'`, not `'error'`** | [`eslint.config.mjs:65`](eslint.config.mjs#L65) | Warnings accumulate with no gate counting them. The current count is unmeasurable without an install ([01-method.md](docs/14-code-quality/01-method.md)) |
+| **`e2e/` is not linted** | [`eslint.config.mjs:53`](eslint.config.mjs#L53) ignores `e2e/**`; there is no `e2e/eslint.config.*` | 2 698 lines of TypeScript with no lint and (per [03](docs/14-code-quality/03-type-safety.md)) no `tsc` either |
 | **Workflow YAML is not format-checked** | `.prettierignore` excludes `*.yml` and `*.yaml`; `wc -l .github/workflows/*.yml` → 1 228 | 1 228 lines of workflow outside `pnpm check`. Markdown is excluded too (`*.md`), which is defensible; YAML with this much logic in it is less so |
 
-`render-service/**` is also ignored (`eslint.config.mjs:57`), but that one is deliberate
-and covered: the service has its own tsconfig and its own `tsc` step at `ci.yml:216`.
+`render-service/**` is also ignored ([`eslint.config.mjs:57`](eslint.config.mjs#L57)), but that one is deliberate
+and covered: the service has its own tsconfig and its own `tsc` step at [`ci.yml:216`](.github/workflows/ci.yml#L216).
 `packages/@openmaic/importer/src1/**` is ignored by both ESLint (`:44`) and Prettier —
-see [10-duplication-and-dead-code.md](./10-duplication-and-dead-code.md).
+see [10-duplication-and-dead-code.md](docs/14-code-quality/10-duplication-and-dead-code.md).
 
 ## Where lint runs
 
@@ -225,14 +225,14 @@ grep -nE '^\s+run: (pnpm|npx|npm)' .github/workflows/ci.yml
 `--check`, ESLint, root `tsc --noEmit`, `check:i18n-keys`), preceded by a bash-only
 self-test of the parallel runner itself at `:41-50`. The comment at `:123-124` records
 that the four were "~2 minutes" sequential, which is why they were parallelised —
-consistent with the pattern noted in [11-strengths.md](./11-strengths.md) that every
+consistent with the pattern noted in [11-strengths.md](docs/14-code-quality/11-strengths.md) that every
 CI oddity here carries the incident that produced it.
 
 ## Open questions
 
 - Whether `@typescript-eslint/no-unused-vars` was set to `'warn'` deliberately (to keep
   work-in-progress branches lintable) or inherited from a preset. No comment records a
-  decision, and `eslint.config.mjs:63-64` explains only the `^_` ignore patterns.
+  decision, and [`eslint.config.mjs:63-64`](eslint.config.mjs#L63-L64) explains only the `^_` ignore patterns.
 - Whether the 34 `set-state-in-effect` suppressions were reviewed individually or added
   in bulk when React 19 introduced the rule. Answering that needs `git log -S`, which
   was not run.

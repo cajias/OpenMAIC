@@ -8,25 +8,25 @@ Per-module responsibilities with `path:line` anchors. Companion: `01b-modules-vi
 
 `lib/audio/types.ts` is types-only and client-safe. Two shapes matter:
 
-- `TTSProviderConfig` (`lib/audio/types.ts:113`) — registry metadata: `models`,
+- `TTSProviderConfig` ([`lib/audio/types.ts:113`](lib/audio/types.ts#L113)) — registry metadata: `models`,
   `defaultModelId`, `voices`, `supportedFormats`, `speedRange`, plus two policy
   flags: `excludeFromAgentVoiceCatalog` (`:127`, drop a paid showcase provider
   from the agent's `list_voices`) and `requiresRegisteredVoice` (`:134`, the
   provider has *no* deployment default voice — only runtime-registered clones).
-- `TTSModelConfig` (`lib/audio/types.ts:151`) — the per-call request:
+- `TTSModelConfig` ([`lib/audio/types.ts:151`](lib/audio/types.ts#L151)) — the per-call request:
   `providerId`, `modelId?`, `apiKey?`, `baseUrl?`, `voice`, `speed?`, `format?`,
   `providerOptions?`, `signal?`.
 
-Provider ids are an open union (`lib/audio/types.ts:94`) with
+Provider ids are an open union ([`lib/audio/types.ts:94`](lib/audio/types.ts#L94)) with
 `isCustomTTSProvider()` at `:216`; same pattern for ASR at `:187` / `:221`.
 
 ### 1.2 `constants.ts` — the registry (1454 lines)
 
-`TTS_PROVIDERS` (`lib/audio/constants.ts:119`) is a
+`TTS_PROVIDERS` ([`lib/audio/constants.ts:119`](lib/audio/constants.ts#L119)) is a
 `Record<BuiltInTTSProviderId, TTSProviderConfig>` covering ten built-ins:
 `openai-tts`, `azure-tts`, `glm-tts`, `qwen-tts`, `voxcpm-tts`, `doubao-tts`,
 `elevenlabs-tts`, `minimax-tts`, `lemonade-tts`, `browser-native-tts`
-(`lib/audio/types.ts:82-92`). `ASR_PROVIDERS` (`lib/audio/constants.ts:1078`)
+([`lib/audio/types.ts:82-92`](lib/audio/types.ts#L82-L92)). `ASR_PROVIDERS` ([`lib/audio/constants.ts:1078`](lib/audio/constants.ts#L1078))
 covers `openai-whisper`, `browser-native`, `qwen-asr`, `funasr-asr`,
 `lemonade-asr`, `azure-asr`.
 
@@ -37,19 +37,19 @@ Voice/model coupling — the "model follows voice" invariant:
 
 | Symbol | Location | Behaviour |
 | --- | --- | --- |
-| `isQwenVoiceCloneModel` | `constants.ts:86` | `/-tts-vc(?:-|$)/iu` on the model id, or an exact match with the operator-configured VC model. |
-| `isQwenCatalogVoice` | `constants.ts:94` | Voice id present in `TTS_PROVIDERS['qwen-tts'].voices`. |
-| `isQwenCloneVoice` | `constants.ts:99` | Any Qwen voice id **not** in the catalog. Local storage is deliberately not an authority. |
-| `resolveTTSModelForVoice` | `constants.ts:107` | Client half of the invariant: a clone voice forces `QWEN_TTS_VOICE_CLONE_MODEL`; a catalog voice never gets a VC model. |
-| `getManuallySelectableTTSModels` | `constants.ts:1404` | Filters the VC model out of manual pickers — it is only ever *derived*. |
-| `isKnownTTSProviderId` | `constants.ts:1379` | Narrows an arbitrary string through two branches: `Object.hasOwn(TTS_PROVIDERS, id)` — deliberately not `in`, so prototype keys (`toString`) cannot pass — **or** `isCustomTTSProvider(id)`, a bare `id.startsWith('custom-tts-')` prefix test (`types.ts:216-218`) that consults no registry. Only the first branch is an allowlist. |
+| `isQwenVoiceCloneModel` | [`constants.ts:86`](lib/audio/constants.ts#L86) | `/-tts-vc(?:-|$)/iu` on the model id, or an exact match with the operator-configured VC model. |
+| `isQwenCatalogVoice` | [`constants.ts:94`](lib/audio/constants.ts#L94) | Voice id present in `TTS_PROVIDERS['qwen-tts'].voices`. |
+| `isQwenCloneVoice` | [`constants.ts:99`](lib/audio/constants.ts#L99) | Any Qwen voice id **not** in the catalog. Local storage is deliberately not an authority. |
+| `resolveTTSModelForVoice` | [`constants.ts:107`](lib/audio/constants.ts#L107) | Client half of the invariant: a clone voice forces `QWEN_TTS_VOICE_CLONE_MODEL`; a catalog voice never gets a VC model. |
+| `getManuallySelectableTTSModels` | [`constants.ts:1404`](lib/audio/constants.ts#L1404) | Filters the VC model out of manual pickers — it is only ever *derived*. |
+| `isKnownTTSProviderId` | [`constants.ts:1379`](lib/audio/constants.ts#L1379) | Narrows an arbitrary string through two branches: `Object.hasOwn(TTS_PROVIDERS, id)` — deliberately not `in`, so prototype keys (`toString`) cannot pass — **or** `isCustomTTSProvider(id)`, a bare `id.startsWith('custom-tts-')` prefix test ([`types.ts:216-218`](lib/audio/types.ts#L216-L218)) that consults no registry. Only the first branch is an allowlist. |
 
 `DEFAULT_QWEN_TTS_VOICE_CLONE_MODEL = 'qwen3-tts-vc-2026-01-22'`
-(`constants.ts:82`).
+([`constants.ts:82`](lib/audio/constants.ts#L82)).
 
 ### 1.3 `tts-providers.ts` — dispatch and per-provider wire formats
 
-`generateTTS(config, text)` (`lib/audio/tts-providers.ts:207`) validates the key
+`generateTTS(config, text)` ([`lib/audio/tts-providers.ts:207`](lib/audio/tts-providers.ts#L207)) validates the key
 requirement, builds a combined abort signal, then switches on `config.providerId`.
 An unrecognised id that matches `custom-tts-*` falls through to the
 OpenAI-compatible implementation (`:252`); `browser-native-tts` throws because it
@@ -82,12 +82,12 @@ Per-provider wire shape (all in the same file):
 The Doubao response is a run of **concatenated JSON objects with no delimiter**;
 it is split by `splitConcatenatedJsonObjects` (`lib/audio/json-stream.ts`) rather
 than a brace counter, because a `}` inside an error `message` would corrupt
-boundaries (`tts-providers.ts:1060-1065`). Codes `45000000`/`45000292` map to
+boundaries ([`tts-providers.ts:1060-1065`](lib/audio/tts-providers.ts#L1060-L1065)). Codes `45000000`/`45000292` map to
 `TTSRateLimitError` (`:1078`); `20000000` terminates the stream.
 
 ### 1.4 Audio format and duration contract
 
-`measureAudioDuration(bytes, format?)` (`lib/audio/audio-duration.ts:210`) is the
+`measureAudioDuration(bytes, format?)` ([`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210)) is the
 whole contract in one function. Magic-byte sniff first (`sniffFormat`, `:190`) —
 the `format` hint from `Content-Type` is only trusted when the bytes are
 unrecognisable, because `getAudioResponseFormat` defaults to `mp3` on a missing
@@ -99,19 +99,19 @@ skip ID3v2 (`:105`), parse the first frame header, prefer a Xing/Info frame coun
 excluded (`:183`). Anything else returns `null` and the caller persists the audio
 with `duration` undefined.
 
-The only production caller is `lib/hooks/use-scene-generator.ts:472`, which
+The only production caller is [`lib/hooks/use-scene-generator.ts:472`](lib/hooks/use-scene-generator.ts#L472), which
 stores `duration` on the `AudioFileRecord` at TTS time. This is why the export
 compiler's `TimingProbe` can be synchronous.
 
 Reference-audio validation for Qwen voice enrolment is stricter and separate:
-`validateReferenceAudio` (`lib/audio/wav-validate.ts:26`) requires PCM format 1,
+`validateReferenceAudio` ([`lib/audio/wav-validate.ts:26`](lib/audio/wav-validate.ts#L26)) requires PCM format 1,
 mono, exactly 24 000 Hz, 16-bit, consistent `byteRate`/`blockAlign`, no trailing
 bytes, and 1–60 s duration; anything else throws
 `InvalidReferenceAudioError` (`:12`).
 
 ### 1.5 Voice resolution
 
-- `resolveNarratorVoiceBinding` (`lib/audio/voice-resolver.ts:42`) prefers a
+- `resolveNarratorVoiceBinding` ([`lib/audio/voice-resolver.ts:42`](lib/audio/voice-resolver.ts#L42)) prefers a
   persisted narrator binding, falling back to the global voice, and runs both
   through `resolveTTSModelForVoice`.
 - `resolveAgentVoice` (`:86`) walks candidates in priority order — persisted
@@ -119,7 +119,7 @@ bytes, and 1–60 s duration; anything else throws
   its provider is still in `enabledProviders`, then a deterministic index pick,
   then `null` (the caller must skip TTS rather than silently defaulting to
   browser-native).
-- Server-side pinning is the authority: `resolveTTSModel` (`lib/server/provider-config.ts:805`).
+- Server-side pinning is the authority: `resolveTTSModel` ([`lib/server/provider-config.ts:805`](lib/server/provider-config.ts#L805)).
   A managed provider's `${PREFIX}_MODELS` first entry wins over the client model;
   a client model outside the pin list throws `TTSModelNotAllowedError` (`:789`,
   HTTP 400). For `qwen-tts` it also self-heals a persisted "VC model + catalog
@@ -131,7 +131,7 @@ bytes, and 1–60 s duration; anything else throws
 
 ### 1.6 Text chunking
 
-`splitLongSpeechActions(actions, providerId)` (`lib/audio/tts-utils.ts:82`) is a
+`splitLongSpeechActions(actions, providerId)` ([`lib/audio/tts-utils.ts:82`](lib/audio/tts-utils.ts#L82)) is a
 no-op unless the provider has an entry in `TTS_MAX_TEXT_LENGTH` — today only
 `glm-tts: 1024` (`:12`). When it fires, the speech action is replaced by
 `${id}_tts_${n}` sub-actions, each with its own audio file (explicitly *not*
@@ -154,7 +154,7 @@ flowchart TD
 
 ### 1.7 ASR
 
-`transcribeAudio(config, audioBuffer)` (`lib/audio/asr-providers.ts:164`)
+`transcribeAudio(config, audioBuffer)` ([`lib/audio/asr-providers.ts:164`](lib/audio/asr-providers.ts#L164))
 dispatches: `openai-whisper` (`:176`), `browser-native` throws (`:179`),
 `qwen-asr` (`:182`), `azure-asr` (`:185`), and `funasr-asr`/`lemonade-asr` share
 one WAV-only OpenAI-compatible multipart implementation
@@ -165,21 +165,21 @@ to `transcribeCustomOpenAICompatibleASR` (`:200`).
 
 ### 2.1 Provider registries and dispatch
 
-`IMAGE_PROVIDERS` (`lib/media/image-providers.ts:33`) and
+`IMAGE_PROVIDERS` ([`lib/media/image-providers.ts:33`](lib/media/image-providers.ts#L33)) and
 `generateImage(config, options)` (`:191`) cover eight ids
-(`lib/media/types.ts:73`): `seedream`, `openai-image`, `qwen-image`,
+([`lib/media/types.ts:73`](lib/media/types.ts#L73)): `seedream`, `openai-image`, `qwen-image`,
 `nano-banana`, `minimax-image`, `grok-image`, `comfyui-image`, `lemonade`.
 `testImageConnectivity` (`:163`) mirrors the same switch. `VIDEO_PROVIDERS`
-(`lib/media/video-providers.ts:22`) covers `seedance`, `kling`, `veo`,
-`minimax-video`, `grok-video`, `happyhorse` (`lib/media/types.ts:194`).
+([`lib/media/video-providers.ts:22`](lib/media/video-providers.ts#L22)) covers `seedance`, `kling`, `veo`,
+`minimax-video`, `grok-video`, `happyhorse` ([`lib/media/types.ts:194`](lib/media/types.ts#L194)).
 
 Dimension helpers live beside the registry: `aspectRatioToDimensions`
-(`image-providers.ts:217`) and `applyMinPixelFloor` (`:231`), which scales a
+([`image-providers.ts:217`](lib/media/image-providers.ts#L217)) and `applyMinPixelFloor` ([`:231`](lib/media/image-providers.ts#L231)), which scales a
 width/height pair up to a minimum pixel area while rounding both edges up to a
 multiple of 8.
 
 `comfyui-image` deliberately declares `models: []`
-(`image-providers.ts:144`); real selectable "models" are workflow **files**
+([`image-providers.ts:144`](lib/media/image-providers.ts#L144)); real selectable "models" are workflow **files**
 discovered at runtime, so a placeholder model id would resolve to a dead path.
 
 ### 2.2 ComfyUI workflow discovery and the adapter
@@ -196,7 +196,7 @@ route and the adapter:
 - `filenameToDisplayName` (`:31`) strips the extension and a leading
   `comfyui[-_]`, then title-cases.
 
-`loadWorkflow` (`lib/media/adapters/comfyui-image-adapter.ts:105`) enforces
+`loadWorkflow` ([`lib/media/adapters/comfyui-image-adapter.ts:105`](lib/media/adapters/comfyui-image-adapter.ts#L105)) enforces
 three-layer defence on the client-controlled `config.model` (which flows from the
 `x-image-model` request header): the basename/traversal check (`:132`), live
 directory allowlist membership (`:136`), and a post-`path.join`
@@ -220,7 +220,7 @@ warns and falls back to workflow defaults. Timeouts: `GENERATION_TIMEOUT_MS =
 ### 2.3 Orchestration and asset storage
 
 `generateMediaForOutlines(outlines, stageId, abortSignal)`
-(`lib/media/media-orchestrator.ts:41`) gathers every `mediaGenerations` entry
+([`lib/media/media-orchestrator.ts:41`](lib/media/media-orchestrator.ts#L41)) gathers every `mediaGenerations` entry
 across outlines, filters by `imageGenerationEnabled` / `videoGenerationEnabled`,
 skips tasks already `done`/`failed`, enqueues them, then processes **serially**
 (`:69-73` — "image/video APIs have limited concurrency").
@@ -235,14 +235,14 @@ skips tasks already `done`/`failed`, enqueues them, then processes **serially**
 Non-retryable failures (those carrying an `errorCode`) are persisted as an empty
 placeholder row with `error`/`errorCode` so they survive a refresh (`:248-264`).
 
-`runPolledTask` (`lib/media/polled-task.ts:31`) is the shared submit→poll loop
+`runPolledTask` ([`lib/media/polled-task.ts:31`](lib/media/polled-task.ts#L31)) is the shared submit→poll loop
 used by the async video providers and by the client-side render poller: a
 `submit()` returning `{status:'submitted', taskId}`, then `poll(taskId)` every
 `intervalMs` up to `maxAttempts`, with a `formatTimeout` hook.
 
 ### 2.4 `proxy-media-cache.ts` — the outbound-fetch memory
 
-`fetchProxiedMediaUrl(url, init?)` (`lib/media/proxy-media-cache.ts:234`) is the
+`fetchProxiedMediaUrl(url, init?)` ([`lib/media/proxy-media-cache.ts:234`](lib/media/proxy-media-cache.ts#L234)) is the
 only sanctioned way to POST `/api/proxy-media`. It provides three things:
 
 - **Permanent verdicts.** A non-retryable 4xx is recorded in `permanentFailures`
@@ -264,27 +264,27 @@ only sanctioned way to POST `/api/proxy-media`. It provides three things:
 
 ### 2.5 Byte resolution
 
-`resolveAudioBlob(audioId)` (`lib/media/resolve-audio-bytes.ts:15`) is
+`resolveAudioBlob(audioId)` ([`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15)) is
 pool-first, Dexie-fallback, and treats a zero-byte row as "no bytes" so the
 caller keeps the reference retryable rather than playing silence. The media
 counterpart is `resolveStoredBytes` (`lib/media/resolve-stored-bytes.ts`), whose
 option flags (`resolutionGating`, `compatRowCdnFallback`, `taskUrlFallback`,
-`fetchPolicy`) are exercised by `lib/video-export-app/collect.ts:171`.
+`fetchPolicy`) are exercised by [`lib/video-export-app/collect.ts:171`](lib/video-export-app/collect.ts#L171).
 
 ## 3. `lib/web-search` — nine backends, one entry point
 
-`searchWeb(params)` (`lib/web-search/index.ts:15`) switches over
-`WebSearchProviderId` (`lib/web-search/types.ts:8`): `tavily`, `exa`, `bocha`,
+`searchWeb(params)` ([`lib/web-search/index.ts:15`](lib/web-search/index.ts#L15)) switches over
+`WebSearchProviderId` ([`lib/web-search/types.ts:8`](lib/web-search/types.ts#L8)): `tavily`, `exa`, `bocha`,
 `brave`, `baidu`, `claude`, `minimax`, `doubao`, `searxng`. The `default` branch
 uses an `exhaustive: never` assignment (`:78`) so adding an id without a case is
 a compile error. `AbortSignal` is threaded through as a conditional spread
 (`abortOptions`, `:36`).
 
-`WebSearchProviderConfig` (`types.ts:31`) carries `requiresApiKey`,
+`WebSearchProviderConfig` ([`types.ts:31`](lib/web-search/types.ts#L31)) carries `requiresApiKey`,
 `requiresBaseUrl` ("self-hosted instances need an explicit base URL"),
 `defaultBaseUrl`, and `endpointPath`. `WEB_SEARCH_PROVIDERS` lives at
-`lib/web-search/constants.ts:10`. `formatSearchResultsAsContext` is re-exported
-from `lib/web-search/format.ts` through `index.ts:13`.
+[`lib/web-search/constants.ts:10`](lib/web-search/constants.ts#L10). `formatSearchResultsAsContext` is re-exported
+from `lib/web-search/format.ts` through [`index.ts:13`](lib/web-search/index.ts#L13).
 
 ## 4. API routes in scope
 

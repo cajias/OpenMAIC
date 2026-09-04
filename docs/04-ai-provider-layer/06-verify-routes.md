@@ -8,19 +8,19 @@ issues upstream, the status mapping, and how a failure reaches the settings UI.
 `app/api/provider/probe-models/route.ts`, `lib/server/model-fetch.ts`,
 `lib/server/api-response.ts`, `lib/media/adapters/openai-image-adapter.ts`,
 `components/settings/{provider-config-panel,model-edit-dialog,image-settings,video-settings,pdf-settings,utils}.*`;
-[../appendix/research/ai-provider-layer/03-flows.md](../appendix/research/ai-provider-layer/03-flows.md).
+[../appendix/research/ai-provider-layer/03-flows.md](docs/appendix/research/ai-provider-layer/03-flows.md).
 
 ## The five routes
 
 | Route | Verifies | Probe issued | UI caller |
 | --- | --- | --- | --- |
-| `POST /api/verify-model` | An LLM `provider:model` + credentials actually answer | One `callLLM` with `prompt: 'Say "OK" if you can hear me.'`, `maxOutputTokens: 64`, thinking forced off | `provider-config-panel.tsx:136`, `model-edit-dialog.tsx:73` |
-| `POST /api/provider/probe-models` | A base URL exposes an OpenAI-style `/models` list | ordered candidate `GET`s with `redirect: 'manual'`, 15 s timeout | `provider-config-panel.tsx:173` |
-| `POST /api/verify-image-provider` | Image provider credentials | per-adapter `test*Connectivity`; e.g. OpenAI Image does `GET {baseUrl}/models/{model}` | `image-settings.tsx:123` |
-| `POST /api/verify-video-provider` | Video provider credentials | per-adapter `testVideoConnectivity` | `video-settings.tsx:85` |
-| `POST /api/verify-pdf-provider` | PDF/extraction provider credentials | three branches: AliDocMind AK/SK sign, MinerU Cloud bearer probe, self-hosted root `GET` | `pdf-settings.tsx:78` |
+| `POST /api/verify-model` | An LLM `provider:model` + credentials actually answer | One `callLLM` with `prompt: 'Say "OK" if you can hear me.'`, `maxOutputTokens: 64`, thinking forced off | [`provider-config-panel.tsx:136`](components/settings/provider-config-panel.tsx#L136), [`model-edit-dialog.tsx:73`](components/settings/model-edit-dialog.tsx#L73) |
+| `POST /api/provider/probe-models` | A base URL exposes an OpenAI-style `/models` list | ordered candidate `GET`s with `redirect: 'manual'`, 15 s timeout | [`provider-config-panel.tsx:173`](components/settings/provider-config-panel.tsx#L173) |
+| `POST /api/verify-image-provider` | Image provider credentials | per-adapter `test*Connectivity`; e.g. OpenAI Image does `GET {baseUrl}/models/{model}` | [`image-settings.tsx:123`](components/settings/image-settings.tsx#L123) |
+| `POST /api/verify-video-provider` | Video provider credentials | per-adapter `testVideoConnectivity` | [`video-settings.tsx:85`](components/settings/video-settings.tsx#L85) |
+| `POST /api/verify-pdf-provider` | PDF/extraction provider credentials | three branches: AliDocMind AK/SK sign, MinerU Cloud bearer probe, self-hosted root `GET` | [`pdf-settings.tsx:78`](components/settings/pdf-settings.tsx#L78) |
 
-There is **no** verify route for TTS, ASR or web search. `asr-settings.tsx:165` tests ASR by
+There is **no** verify route for TTS, ASR or web search. [`asr-settings.tsx:165`](components/settings/asr-settings.tsx#L165) tests ASR by
 posting a real clip to `/api/transcription`; TTS is exercised by generating a sample through
 `/api/generate/tts`. Anything a `verify-*` route would have centralised — the force-disable check,
 the managed-credential discard — is duplicated inside those production routes instead.
@@ -70,17 +70,17 @@ sequenceDiagram
 
 ### Deliberate: no `stage`
 
-`resolveModel` is called with no `stage` (`app/api/verify-model/route.ts:22`), so `getStageRoute`
+`resolveModel` is called with no `stage` ([`app/api/verify-model/route.ts:22`](app/api/verify-model/route.ts#L22)), so `getStageRoute`
 returns `undefined`, `routed` is false, and the user's posted `apiKey` / `baseUrl` /
 `providerType` are honoured. A stage route cannot shadow the model the user is trying to test. The
 managed/unmanaged rule still applies, so testing a managed provider tests the **operator's** key,
 not whatever the user typed — which is consistent with the UI hiding those inputs
-(`components/settings/provider-config-panel.tsx:222`).
+([`components/settings/provider-config-panel.tsx:222`](components/settings/provider-config-panel.tsx#L222)).
 
 ### Deliberate: thinking forced off
 
 `{ mode: 'disabled', enabled: false }` is passed as the fourth `callLLM` argument (`:47`). Because
-`callLLM` resolves `thinking ?? getGlobalThinkingConfig()` (`lib/ai/llm.ts:342`), an explicit
+`callLLM` resolves `thinking ?? getGlobalThinkingConfig()` ([`lib/ai/llm.ts:342`](lib/ai/llm.ts#L342)), an explicit
 config wins over `LLM_THINKING_DISABLED`; and because the value is `disabled`,
 `getCompatThinkingBodyParams` emits the model's disable shape rather than nothing at all. A verify
 probe therefore also exercises the thinking-disable path for compatible providers.
@@ -102,8 +102,8 @@ Two things stand out:
 
 1. **A resolution failure is 401 and an authentication failure is 500** — the inverse of what a
    caller would expect. The UI does not read the status for this route (it branches on
-   `data.success`, `provider-config-panel.tsx:153`), so the mismatch is invisible in practice.
-2. **`verify-model` deliberately does not use `llmApiError`** (`lib/server/llm-error-response.ts:63`),
+   `data.success`, [`provider-config-panel.tsx:153`](components/settings/provider-config-panel.tsx#L153)), so the mismatch is invisible in practice.
+2. **`verify-model` deliberately does not use `llmApiError`** ([`lib/server/llm-error-response.ts:63`](lib/server/llm-error-response.ts#L63)),
    the helper that maps SDK errors to sanitised codes for the generation routes. It string-matches
    `error.message` instead, and the `else` branch at `:71` returns the raw provider message —
    which for some gateways includes the request URL. This is the one place in the layer where an
@@ -112,7 +112,7 @@ Two things stand out:
 ### Classification is substring matching, not status inspection
 
 `error.message.includes('401')` (`:60`) matches any message containing the literal `401`,
-including a model id like `qwen3-401b`. `statusFromError` in `lib/server/llm-error-response.ts:24`
+including a model id like `qwen3-401b`. `statusFromError` in [`lib/server/llm-error-response.ts:24`](lib/server/llm-error-response.ts#L24)
 does the structural walk (`APICallError.statusCode`, then `RetryError.lastError` and `errors[]`,
 then generic `statusCode`/`status`/`status_code`, then `cause`, with a `seen` set for cyclic error
 graphs) and is not used here.
@@ -148,7 +148,7 @@ sequenceDiagram
 
 ### The candidate ladder
 
-`buildModelsUrlCandidates` (`lib/server/model-fetch.ts:68`), ported from cc-switch:
+`buildModelsUrlCandidates` ([`lib/server/model-fetch.ts:68`](lib/server/model-fetch.ts#L68)), ported from cc-switch:
 
 1. A `modelsUrlOverride` short-circuits to that single candidate (`:73`).
 2. If the base URL ends in a version segment (`/v1`, `.../paas/v4`): `{base}/models`, plus
@@ -166,11 +166,11 @@ endpoint found (tried: …)')` (`:152`).
 
 ### The 404 is a protocol, not an error
 
-`app/api/provider/probe-models/route.ts:54`–`:57` re-emits a `ModelFetchError` 404 as HTTP 404 with
+[`app/api/provider/probe-models/route.ts:54`](app/api/provider/probe-models/route.ts#L54)–[`:57`](app/api/provider/probe-models/route.ts#L57) re-emits a `ModelFetchError` 404 as HTTP 404 with
 the comment "signal the UI (via 404) to use manual model entry". The UI honours it at
-`components/settings/provider-config-panel.tsx:188`. That is why the Volcengine Ark token plan
+[`components/settings/provider-config-panel.tsx:188`](components/settings/provider-config-panel.tsx#L188). That is why the Volcengine Ark token plan
 ships a curated model list instead of probing — the plan endpoint 404s on `/models`, documented at
-`lib/config/token-plan-presets.ts:134`.
+[`lib/config/token-plan-presets.ts:134`](lib/config/token-plan-presets.ts#L134).
 
 ### Non-chat filtering
 
@@ -192,15 +192,15 @@ provider registry and probe function:
 | SSRF | client base URL, production only (`:57`) | same (`:52`) |
 | Missing key | 400 `MISSING_API_KEY` when `provider.requiresApiKey` (`:68`) | 400 unconditionally when no key (`:62`) |
 | Missing model | 400 `MISSING_MODEL`, skipped for workflow providers with no catalog (`:75`) | 400 `MISSING_MODEL` (`:67`) |
-| Probe | `testImageConnectivity` (`lib/media/image-providers.ts:163`) — 8-way switch | `testVideoConnectivity` |
+| Probe | `testImageConnectivity` ([`lib/media/image-providers.ts:163`](lib/media/image-providers.ts#L163)) — 8-way switch | `testVideoConnectivity` |
 | Probe failed | 500 `UPSTREAM_ERROR` with `result.message` (`:91`) | 500 `UPSTREAM_ERROR` (`:83`) |
 | Route ceiling | `export const maxDuration = 30` (`:37`), with the reason in the comment at `:34`–`:36` | none declared |
 
 A representative probe: `testOpenAIImageConnectivity`
-(`lib/media/adapters/openai-image-adapter.ts:26`) does a `GET {baseUrl}/models/{model}` with
+([`lib/media/adapters/openai-image-adapter.ts:26`](lib/media/adapters/openai-image-adapter.ts#L26)) does a `GET {baseUrl}/models/{model}` with
 `redirect: 'manual'` and classifies 401/403 as auth failure, 404 as "model not found", anything
 else non-OK as an API error. It never generates an image — the route docstring at
-`verify-image-provider/route.ts:4` says "without generating images".
+[`verify-image-provider/route.ts:4`](app/api/verify-image-provider/route.ts#L4) says "without generating images".
 
 `verify-pdf-provider` is the strictest about credential separation, with three branches
 (`app/api/verify-pdf-provider/route.ts`):
@@ -223,26 +223,26 @@ render a message string. But they do not read the same field.
 
 | Caller | Success message | Failure message | Correct? |
 | --- | --- | --- | --- |
-| `provider-config-panel.tsx:153` | `t('settings.connectionSuccess')` | `data.error \|\| t('settings.connectionFailed')` | yes — `apiError` sets `error` |
-| `model-edit-dialog.tsx:90` | same | `data.error \|\| …` | yes |
-| `pdf-settings.tsx:92` | same | `` `${t('settings.connectionFailed')}: ${data.error}` `` | yes |
-| `image-settings.tsx:133` | `t('settings.imageConnectivitySuccess')` | `` `${t('settings.imageConnectivityFailed')}: ${data.message}` `` | **no** |
-| `video-settings.tsx:95` | `t('settings.videoConnectivitySuccess')` | `` `${t('settings.videoConnectivityFailed')}: ${data.message}` `` | **no** |
+| [`provider-config-panel.tsx:153`](components/settings/provider-config-panel.tsx#L153) | `t('settings.connectionSuccess')` | `data.error \|\| t('settings.connectionFailed')` | yes — `apiError` sets `error` |
+| [`model-edit-dialog.tsx:90`](components/settings/model-edit-dialog.tsx#L90) | same | `data.error \|\| …` | yes |
+| [`pdf-settings.tsx:92`](components/settings/pdf-settings.tsx#L92) | same | `` `${t('settings.connectionFailed')}: ${data.error}` `` | yes |
+| [`image-settings.tsx:133`](components/settings/image-settings.tsx#L133) | `t('settings.imageConnectivitySuccess')` | `` `${t('settings.imageConnectivityFailed')}: ${data.message}` `` | **no** |
+| [`video-settings.tsx:95`](components/settings/video-settings.tsx#L95) | `t('settings.videoConnectivitySuccess')` | `` `${t('settings.videoConnectivityFailed')}: ${data.message}` `` | **no** |
 
 `ApiErrorBody` is `{ success: false; errorCode; error; details? }`
-(`lib/server/api-response.ts:44`) — there is no `message` field on the error envelope. `message`
+([`lib/server/api-response.ts:44`](lib/server/api-response.ts#L44)) — there is no `message` field on the error envelope. `message`
 exists only on the *success* envelope, because `apiSuccess({ message: result.message })` puts it
-there (`verify-image-provider/route.ts:94`). So the image and video panels render
+there ([`verify-image-provider/route.ts:94`](app/api/verify-image-provider/route.ts#L94)). So the image and video panels render
 `"Image connectivity failed: undefined"` for every failure, discarding the diagnostic the route
 went to the trouble of producing. The provider, model and PDF panels read `error` and are correct.
 
 The `probe-models` caller is the only one that branches on HTTP status rather than the envelope
-(`provider-config-panel.tsx:179`–`:197`), which it must, because 404 there means "no model list"
+([`provider-config-panel.tsx:179`](components/settings/provider-config-panel.tsx#L179)–[`:197`](components/settings/provider-config-panel.tsx#L197)), which it must, because 404 there means "no model list"
 rather than "failure".
 
 ## Open questions
 
-- `image-settings.tsx:138` and `video-settings.tsx:100` read a field the error envelope never
+- [`image-settings.tsx:138`](components/settings/image-settings.tsx#L138) and [`video-settings.tsx:100`](components/settings/video-settings.tsx#L100) read a field the error envelope never
   carries. This is a one-word fix (`data.message` → `data.error`) and has no test coverage on
   either side.
 - There is no verify route for TTS, ASR or web search, so the force-disable and managed-credential

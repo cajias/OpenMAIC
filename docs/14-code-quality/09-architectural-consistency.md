@@ -2,7 +2,7 @@
 
 Where the intended layering is *machine-enforced* versus merely conventional, and the
 six places where the convention has drifted and nothing rejects it. Interpretation, not
-measurement: read [01-method.md](./01-method.md) first for what a static pass can and
+measurement: read [01-method.md](docs/14-code-quality/01-method.md) first for what a static pass can and
 cannot conclude.
 
 **Sources read directly:** `eslint.config.mjs` (670 lines, the only ESLint config in the
@@ -31,7 +31,7 @@ flowchart TD
 The distinction is not academic in this repository. `eslint.config.mjs` is *flat* config,
 where a later block that sets the same rule key **replaces** that rule's options rather
 than merging them. The config says so five times in its own comments
-(`eslint.config.mjs:8-12,192-194,584-588,635-638,656`), because the failure mode is
+([`eslint.config.mjs:8-12,192-194,584-588,635-638,656`](eslint.config.mjs#L8-L12)), because the failure mode is
 silent: adding one new `no-restricted-syntax` block for a new module drops the module
 boundary of every earlier block whose files it also matches. Ten blocks set
 `no-restricted-syntax` (`grep -c "'no-restricted-syntax'" eslint.config.mjs` → 10, at
@@ -41,7 +41,7 @@ boundary of every earlier block whose files it also matches. Ten blocks set
 
 Eight rows below. **Seven are module or package boundaries; row 7 is not a boundary at all**
 — it is a repo-wide single-entry-point rule that happens to be enforced by the same rule
-families. [`../02-container-view/04-logical-layering.md`](../02-container-view/04-logical-layering.md)
+families. [`../02-container-view/04-logical-layering.md`](docs/02-container-view/04-logical-layering.md)
 counts the same eight rows and phrases it as "seven module walls plus one repo-wide rule
 that is not a wall". Both are the same eight rows; the numbers differ only in what gets
 called a wall.
@@ -58,7 +58,7 @@ called a wall.
 | 8 | PBL v2 kernel operations must not import `operations/runtime`; runtime may depend on the kernel, never the reverse | `lib/pbl/v2/operations/kernel/**` | `:539-574` | no |
 
 Wall 7 is the one with a written provenance: issue #1003 is cited in the comment
-(`eslint.config.mjs:5,580-582`), and the drift it describes is specific — five direct
+([`eslint.config.mjs:5,580-582`](eslint.config.mjs#L5)), and the drift it describes is specific — five direct
 `streamText` calls in the PBL v2 runtime, which meant zero usage records for the busiest
 traffic in the product plus three different meanings for one thinking config. The rule
 exists because the boundary already failed once.
@@ -89,11 +89,11 @@ flowchart LR
   U1 -->|"no lint script in<br/>render-service/package.json"| unlinted
 ```
 
-`eslint.config.mjs:30-57` globally ignores `render-service/**` (`:56`), `e2e/**`
+[`eslint.config.mjs:30-57`](eslint.config.mjs#L30-L57) globally ignores `render-service/**` ([`:56`](eslint.config.mjs#L56)), `e2e/**`
 (`:53`) and the three third-party/vendored package trees (`:37-39`), on the stated
 reasoning that render-service is "linted/typechecked under `render-service/`". Its
 `package.json` has four scripts — `dev`, `start`, `typecheck`, `test` — and none of them
-is a lint (`render-service/package.json:10-15`). So `render-service/src` is typechecked
+is a lint ([`render-service/package.json:10-15`](render-service/package.json#L10-L15)). So `render-service/src` is typechecked
 and tested but linted by nothing, in either tree.
 
 ## The six violations that survive
@@ -104,7 +104,7 @@ tree today actually crosses.
 ### 1. `lib/**` imports from `components/**` — five static sites, eight in total
 
 The domain layer reaching into the UI layer inverts the dependency direction that
-[`../02-container-view/04-logical-layering.md`](../02-container-view/04-logical-layering.md)
+[`../02-container-view/04-logical-layering.md`](docs/02-container-view/04-logical-layering.md)
 describes.
 
 **Two numbers, two scopes, and they must not be confused.** This section counts
@@ -112,30 +112,30 @@ describes.
 `grep -rn --include='*.ts' --include='*.tsx' -E "from '(@/components|\.\./components)" lib`
 → **5**. The layering page counts *every* module-reference form including dynamic
 `import()` → **8 sites over six files**, of which 7 are `lib/ → components/` and 1 is
-`lib/ → app/`. The extra three are all in `lib/edit/preload-editor.ts:35-37`, a chunk
+`lib/ → app/`. The extra three are all in [`lib/edit/preload-editor.ts:35-37`](lib/edit/preload-editor.ts#L35-L37), a chunk
 preloader whose whole job is to warm modules it does not otherwise depend on — deliberate,
 and argued as such there. The five static sites are:
 
 | Site | Imports | Severity |
 | --- | --- | --- |
-| `lib/chat/action-translations.ts:1` | `Badge` from `@/components/ui/badge` | a domain module importing a rendered React component |
-| `lib/edit/noop-surface.tsx:4` | `SceneRenderer` from `@/components/stage/scene-renderer` | same, and the file is a `.tsx` living in `lib/` |
-| `lib/hooks/use-home-discovery.tsx:41` | `NewFolderDialog` from `@/components/discovery/folder-dialogs` | a hook that mounts a dialog |
-| `lib/edit/content-validation.ts:4` | `ELEMENT_BOUND` from `@/components/edit/ActionsBar/cue-meta` | a *constant* that belongs in `lib/`, not the reverse dependency it looks like |
-| `lib/hooks/use-discussion-tts.ts:17` | `type AudioIndicatorState` from `@/components/roundtable/audio-indicator` | type-only — erased at build, weakest of the five |
+| [`lib/chat/action-translations.ts:1`](lib/chat/action-translations.ts#L1) | `Badge` from `@/components/ui/badge` | a domain module importing a rendered React component |
+| [`lib/edit/noop-surface.tsx:4`](lib/edit/noop-surface.tsx#L4) | `SceneRenderer` from `@/components/stage/scene-renderer` | same, and the file is a `.tsx` living in `lib/` |
+| [`lib/hooks/use-home-discovery.tsx:41`](lib/hooks/use-home-discovery.tsx#L41) | `NewFolderDialog` from `@/components/discovery/folder-dialogs` | a hook that mounts a dialog |
+| [`lib/edit/content-validation.ts:4`](lib/edit/content-validation.ts#L4) | `ELEMENT_BOUND` from `@/components/edit/ActionsBar/cue-meta` | a *constant* that belongs in `lib/`, not the reverse dependency it looks like |
+| [`lib/hooks/use-discussion-tts.ts:17`](lib/hooks/use-discussion-tts.ts#L17) | `type AudioIndicatorState` from `@/components/roundtable/audio-indicator` | type-only — erased at build, weakest of the five |
 
 The inverse direction is clean for *static* specifiers: `grep -rn "from '@/app/" lib` → 0
 (the one `lib/ → app/` site the layering page counts is the dynamic
-`import('@/app/editor-fonts')` at `lib/edit/preload-editor.ts:35`),
+`import('@/app/editor-fonts')` at [`lib/edit/preload-editor.ts:35`](lib/edit/preload-editor.ts#L35)),
 `grep -rn "from '@/lib/server" components` → 0, and `packages/@openmaic/{dsl,importer,editor}/src`
 contain zero `'@/` strings despite having no rule that would say so.
 
 ### 2. Transcription bypasses wall 7, and `UsageKind` has a variant nothing writes
 
 Wall 7 names exactly two SDK exports, `generateText` and `streamText`
-(`eslint.config.mjs:626`). `lib/audio/asr-providers.ts:149` imports
+([`eslint.config.mjs:626`](eslint.config.mjs#L626)). [`lib/audio/asr-providers.ts:149`](lib/audio/asr-providers.ts#L149) imports
 `experimental_transcribe as transcribe` from the same package and calls it at `:406`;
-`lib/document/extractors/local-media.ts:511` drives it per chunk. Neither path records
+[`lib/document/extractors/local-media.ts:511`](lib/document/extractors/local-media.ts#L511) drives it per chunk. Neither path records
 usage. The consequence is visible in the type:
 
 ```mermaid
@@ -187,9 +187,9 @@ Eight `lib/**` modules outside `lib/server/` import a `node:` built-in
 `lib/audio/qwen-voice-clone-registration.ts`, `lib/chat/pi/tools/native-whiteboard.ts`,
 `lib/document/extractors/local-media.ts`, `lib/persistence/server-auth.ts`,
 `lib/rag/chunking/document.ts`, `lib/rag/ingest/document.ts`. Several document the hazard
-in a comment rather than in a rule — `lib/ai/thinking-context.ts:8` ("This module uses
-`node:async_hooks` which is server-only"), `lib/ai/providers.ts:60`,
-`lib/media/comfyui-workflows.ts:60,68`. No `server-only` package import guards any of
+in a comment rather than in a rule — [`lib/ai/thinking-context.ts:8`](lib/ai/thinking-context.ts#L8) ("This module uses
+`node:async_hooks` which is server-only"), [`lib/ai/providers.ts:60`](lib/ai/providers.ts#L60),
+[`lib/media/comfyui-workflows.ts:60,68`](lib/media/comfyui-workflows.ts#L60). No `server-only` package import guards any of
 them; the failure surfaces as a bundler error, at build time, in whichever unrelated
 client module happens to pull the chain in.
 
@@ -222,22 +222,22 @@ Recorded so a future reader knows these axes were looked at rather than skipped.
 | `dsl` / `importer` / `editor` → `@/…` | `grep -rn "'@/" packages/@openmaic/{dsl,importer,editor}/src` | 0 |
 | `process.env` read in `components/**` | `grep -rn "process\.env\." components` | 0 |
 | A `'use client'` file importing `@/lib/server` | brace-free regex pass over `app`, `components`, `lib` | 0 |
-| Banned SDK exports outside the entry point | `grep -rn "from 'ai'" app components lib packages/@openmaic render-service/src` | 34 hits; only `lib/ai/llm.ts:7` imports `generateText` / `streamText`. Every other hit is a type-only import or a non-banned value export — `jsonSchema`, `stepCountIs`, `tool` (`lib/agent/runtime/stream-fn.ts:28-30`, `lib/pbl/v2/agents/{instructor,planner}.ts`), `wrapLanguageModel` / `extractReasoningMiddleware` (`lib/ai/providers.ts:34`), `APICallError` / `RetryError` (`lib/server/llm-error-response.ts:1`) and `experimental_transcribe` (`lib/audio/asr-providers.ts:149`, the §2 gap) |
+| Banned SDK exports outside the entry point | `grep -rn "from 'ai'" app components lib packages/@openmaic render-service/src` | 34 hits; only [`lib/ai/llm.ts:7`](lib/ai/llm.ts#L7) imports `generateText` / `streamText`. Every other hit is a type-only import or a non-banned value export — `jsonSchema`, `stepCountIs`, `tool` ([`lib/agent/runtime/stream-fn.ts:28-30`](lib/agent/runtime/stream-fn.ts#L28-L30), `lib/pbl/v2/agents/{instructor,planner}.ts`), `wrapLanguageModel` / `extractReasoningMiddleware` ([`lib/ai/providers.ts:34`](lib/ai/providers.ts#L34)), `APICallError` / `RetryError` ([`lib/server/llm-error-response.ts:1`](lib/server/llm-error-response.ts#L1)) and `experimental_transcribe` ([`lib/audio/asr-providers.ts:149`](lib/audio/asr-providers.ts#L149), the §2 gap) |
 
 ## Open questions
 
 - Whether walls 1–5 and 8 would still fire today is unverifiable here: asserting it
   requires running ESLint, and `node_modules` is absent
-  ([01-method.md](./01-method.md)). The two pinned walls are pinned precisely because
+  ([01-method.md](docs/14-code-quality/01-method.md)). The two pinned walls are pinned precisely because
   that question came up before.
 - Whether `render-service` being unlinted is deliberate or an oversight. The ignore
-  comment (`eslint.config.mjs:54-55`) claims it is "linted/typechecked under
+  comment ([`eslint.config.mjs:54-55`](eslint.config.mjs#L54-L55)) claims it is "linted/typechecked under
   `render-service/`", which is half true — the typecheck exists, the lint does not.
 - Whether `'asr'` in `UsageKind` is intended future work or a leftover. Nothing in the
   tree distinguishes the two.
 
 ---
 
-Next: [10-duplication-and-dead-code.md](./10-duplication-and-dead-code.md) — what is
+Next: [10-duplication-and-dead-code.md](docs/14-code-quality/10-duplication-and-dead-code.md) — what is
 duplicated and what is unreachable, each with a confidence level.
-Back to [index.md](./index.md) · set root [../README.md](../README.md).
+Back to [index.md](docs/14-code-quality/index.md) · set root [../README.md](docs/README.md).

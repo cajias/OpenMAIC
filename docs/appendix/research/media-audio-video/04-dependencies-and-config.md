@@ -11,38 +11,38 @@ Versions from the root `package.json` (`:70-167`) and
 | --- | --- | --- | --- |
 | `zod` | `^4.3.5` | `lib/video-export/ir.ts`, `passes/emit.ts` | The IR is authored in zod and the TS types inferred from it; `emitManifest` re-parses before writing. |
 | `dexie` | `^4.2.1` | `lib/utils/database.ts` consumed by `timeline-deps.ts`, `collect.ts`, `media-orchestrator.ts` | `audioFiles` / `mediaFiles` tables. |
-| `jszip` | `^3.10.1` | `lib/video-export-app/package-zip.ts:58` | Dynamically imported, `DEFLATE`. |
-| `file-saver` | `^2.0.5` | `use-export-video.ts:16`, `lib/store/video-render.ts:20` | `saveAs` for the ZIP / MP4. |
-| `katex` | `^0.16.33` | `scripts/generate-video-export-katex.mjs:11` (build-time only) | Source of the 20 vendored WOFF2 faces + the export CSS. |
-| `ipaddr.js` | `^2.5.0` | `lib/server/ssrf-guard.ts:9` | Address classification (`range() !== 'unicast'`, IPv4-mapped IPv6 unwrapping). |
-| `sonner` | `^2.0.7` | `use-export-video.ts`, `lib/store/video-render.ts:21` | Global toast singleton so progress survives an unmounted menu. |
-| `zustand` | `^5.0.10` | `lib/store/video-render.ts:19`, media-generation store | Render lifecycle + media task state. |
+| `jszip` | `^3.10.1` | [`lib/video-export-app/package-zip.ts:58`](lib/video-export-app/package-zip.ts#L58) | Dynamically imported, `DEFLATE`. |
+| `file-saver` | `^2.0.5` | [`use-export-video.ts:16`](lib/video-export-app/use-export-video.ts#L16), [`lib/store/video-render.ts:20`](lib/store/video-render.ts#L20) | `saveAs` for the ZIP / MP4. |
+| `katex` | `^0.16.33` | [`scripts/generate-video-export-katex.mjs:11`](scripts/generate-video-export-katex.mjs#L11) (build-time only) | Source of the 20 vendored WOFF2 faces + the export CSS. |
+| `ipaddr.js` | `^2.5.0` | [`lib/server/ssrf-guard.ts:9`](lib/server/ssrf-guard.ts#L9) | Address classification (`range() !== 'unicast'`, IPv4-mapped IPv6 unwrapping). |
+| `sonner` | `^2.0.7` | `use-export-video.ts`, [`lib/store/video-render.ts:21`](lib/store/video-render.ts#L21) | Global toast singleton so progress survives an unmounted menu. |
+| `zustand` | `^5.0.10` | [`lib/store/video-render.ts:19`](lib/store/video-render.ts#L19), media-generation store | Render lifecycle + media task state. |
 | `motion` | `^12.27.5` | `components/whiteboard/*` | Whiteboard open/clear animations. Explicitly forbidden inside `lib/video-export/**`. |
 | `@openmaic/dsl` | `workspace:*` | choreography, compiler, whiteboard fold, render-service preview | `Action`/`Scene`/`PPTElement` types, `FIRE_AND_FORGET_ACTIONS`, `isActionType`, `validateScene`, `enumerateAssetManifest`, `validateRuntimeRecord`. |
-| `@openmaic/renderer` | `workspace:*` | `collect.ts:23` (`slideToPng`), `timeline-deps.ts:39` (`measureSlideElementGeometry`) | Slide snapshot + off-screen geometry measurement. |
-| `@openmaic/storage` | `workspace:*` | `lib/whiteboard/runtime/store.ts:2` | `RuntimeStore`, `RuntimeAppendConflictError`. |
-| `@hyperframes/producer` | `^0.7.107` | `render-service/src/render-executor.ts:7`, `chunk-executor.ts:12` | `createRenderJob`/`executeRenderJob` and the `/distributed` `plan`/`renderChunk`/`assemble` primitives. |
-| `hono` + `@hono/node-server` | `^4.6.14` / `^1.13.7` | `render-service/src/main.ts:28-30` | The service's HTTP layer. |
-| `fflate` | `^0.8.2` | `render-service/src/unzip.ts:22` | Worker-offloaded async unzip with a synchronous per-entry `filter`. |
-| `puppeteer-core` | `^25.6.0` | `render-service/src/preview-renderer.ts:16` | Chromium control for `/preview`. |
-| `parse5` | `^8.0.1` | `preview-renderer.ts:7` | Injects into the parsed `<head>` without importing app code. |
-| `esbuild` | pinned `0.28.1` (+ `overrides`) | `preview-renderer.ts:6` | Builds the slide client bundle (`buildSlideClientBundle`, warmed at boot in `main.ts:504`). |
+| `@openmaic/renderer` | `workspace:*` | [`collect.ts:23`](lib/video-export-app/collect.ts#L23) (`slideToPng`), [`timeline-deps.ts:39`](lib/video-export-app/timeline-deps.ts#L39) (`measureSlideElementGeometry`) | Slide snapshot + off-screen geometry measurement. |
+| `@openmaic/storage` | `workspace:*` | [`lib/whiteboard/runtime/store.ts:2`](lib/whiteboard/runtime/store.ts#L2) | `RuntimeStore`, `RuntimeAppendConflictError`. |
+| `@hyperframes/producer` | `^0.7.107` | [`render-service/src/render-executor.ts:7`](render-service/src/render-executor.ts#L7), [`chunk-executor.ts:12`](render-service/src/chunk-executor.ts#L12) | `createRenderJob`/`executeRenderJob` and the `/distributed` `plan`/`renderChunk`/`assemble` primitives. |
+| `hono` + `@hono/node-server` | `^4.6.14` / `^1.13.7` | [`render-service/src/main.ts:28-30`](render-service/src/main.ts#L28-L30) | The service's HTTP layer. |
+| `fflate` | `^0.8.2` | [`render-service/src/unzip.ts:22`](render-service/src/unzip.ts#L22) | Worker-offloaded async unzip with a synchronous per-entry `filter`. |
+| `puppeteer-core` | `^25.6.0` | [`render-service/src/preview-renderer.ts:16`](render-service/src/preview-renderer.ts#L16) | Chromium control for `/preview`. |
+| `parse5` | `^8.0.1` | [`preview-renderer.ts:7`](render-service/src/preview-renderer.ts#L7) | Injects into the parsed `<head>` without importing app code. |
+| `esbuild` | pinned `0.28.1` (+ `overrides`) | [`preview-renderer.ts:6`](render-service/src/preview-renderer.ts#L6) | Builds the slide client bundle (`buildSlideClientBundle`, warmed at boot in [`main.ts:504`](render-service/src/main.ts#L504)). |
 | `tsx` | `^4.19.2` | `render-service` entrypoint | The container runs TypeScript directly — no build step. |
 | `echarts`, `shiki`, `motion`, `react`, `react-dom`, `tailwindcss` | see file | `render-service/package.json` | Duplicated in the service so the preview renderer can server-render real scene content. |
 
 GSAP is **not** an npm dependency of the app: it is a committed file at
 `public/vendor/gsap.min.js` (71.2 KiB), fetched by `loadGsapSource()`
-(`package-zip.ts:34`) and written into the ZIP at `project.gsapVendorPath`.
+([`package-zip.ts:34`](lib/video-export-app/package-zip.ts#L34)) and written into the ZIP at `project.gsapVendorPath`.
 
 ### 1.2 SaaS / self-hosted APIs
 
 | Kind | Providers | Registry |
 | --- | --- | --- |
-| TTS | OpenAI, Azure Speech, GLM (BigModel), Qwen (DashScope), VoxCPM2 (self-hosted, 3 backends), Doubao/Volcengine Seed-TTS 2.0, ElevenLabs, MiniMax, Lemonade (self-hosted) | `lib/audio/constants.ts:119` |
-| ASR | OpenAI Whisper, Qwen ASR (DashScope), Azure Fast Transcription, FunASR (self-hosted), Lemonade (self-hosted) | `lib/audio/constants.ts:1078` |
-| Image | Seedream (Volcengine Ark), OpenAI Image, Qwen Image (DashScope), Nano Banana (Gemini), MiniMax Image, Grok Image (xAI), ComfyUI (self-hosted), Lemonade (self-hosted) | `lib/media/image-providers.ts:33` |
-| Video | Seedance, Kling, Veo, MiniMax Video, Grok Video, HappyHorse | `lib/media/video-providers.ts:22` |
-| Web search | Tavily, Exa, Bocha, Brave, Baidu, Claude, MiniMax, Doubao, SearXNG (self-hosted) | `lib/web-search/constants.ts:10` |
+| TTS | OpenAI, Azure Speech, GLM (BigModel), Qwen (DashScope), VoxCPM2 (self-hosted, 3 backends), Doubao/Volcengine Seed-TTS 2.0, ElevenLabs, MiniMax, Lemonade (self-hosted) | [`lib/audio/constants.ts:119`](lib/audio/constants.ts#L119) |
+| ASR | OpenAI Whisper, Qwen ASR (DashScope), Azure Fast Transcription, FunASR (self-hosted), Lemonade (self-hosted) | [`lib/audio/constants.ts:1078`](lib/audio/constants.ts#L1078) |
+| Image | Seedream (Volcengine Ark), OpenAI Image, Qwen Image (DashScope), Nano Banana (Gemini), MiniMax Image, Grok Image (xAI), ComfyUI (self-hosted), Lemonade (self-hosted) | [`lib/media/image-providers.ts:33`](lib/media/image-providers.ts#L33) |
+| Video | Seedance, Kling, Veo, MiniMax Video, Grok Video, HappyHorse | [`lib/media/video-providers.ts:22`](lib/media/video-providers.ts#L22) |
+| Web search | Tavily, Exa, Bocha, Brave, Baidu, Claude, MiniMax, Doubao, SearXNG (self-hosted) | [`lib/web-search/constants.ts:10`](lib/web-search/constants.ts#L10) |
 
 ### 1.3 Binary tools (render container only)
 
@@ -51,14 +51,14 @@ snapshot (`DEBIAN_SNAPSHOT=20260731T162426Z`, `:18`):
 
 | Tool | Version arg | Why |
 | --- | --- | --- |
-| `chromium-headless-shell` + `chromium-common` | `151.0.7922.71-1~deb12u1` | Producer's BeginFrame capture needs the **old headless shell**; regular Chromium exposes the resolver path but then rejects `HeadlessExperimental.beginFrame` and silently falls back to screenshots (`Dockerfile:5-7`). |
+| `chromium-headless-shell` + `chromium-common` | `151.0.7922.71-1~deb12u1` | Producer's BeginFrame capture needs the **old headless shell**; regular Chromium exposes the resolver path but then rejects `HeadlessExperimental.beginFrame` and silently falls back to screenshots ([`Dockerfile:5-7`](render-service/Dockerfile#L5-L7)). |
 | `ffmpeg` | `7:5.1.9-0+deb12u1` | Encoding. |
 | `iptables` | `1.8.9-2` | The entrypoint's egress lockdown. |
 | `fonts-liberation`, `fonts-noto-core`, `fonts-noto-color-emoji`, `fonts-noto-cjk` | pinned | Text rendering inside headless Chrome. |
 
 Base image is Debian bookworm-slim (`node:22.22.2-bookworm-slim`, digest-pinned),
 **not** Alpine, because provisioning Chromium on glibc is far simpler than on musl
-(`Dockerfile:3-7`).
+([`Dockerfile:3-7`](render-service/Dockerfile#L3-L7)).
 
 ### 1.4 Prebuilt asset dependencies
 
@@ -95,7 +95,7 @@ flowchart TD
   SSRF --> CALL
 ```
 
-Env prefixes (`provider-config.ts:97-154`):
+Env prefixes ([`provider-config.ts:97-154`](lib/server/provider-config.ts#L97-L154)):
 
 | Section | Prefixes |
 | --- | --- |
@@ -107,7 +107,7 @@ Env prefixes (`provider-config.ts:97-154`):
 
 So e.g. `TTS_AZURE_API_KEY`, `TTS_AZURE_BASE_URL`, `TTS_QWEN_MODELS`,
 `TTS_ELEVENLABS_ENABLED=false`. The `_ENABLED` vars can only *disable* — they
-never force-enable a provider without credentials (`provider-config.ts:167-174`).
+never force-enable a provider without credentials ([`provider-config.ts:167-174`](lib/server/provider-config.ts#L167-L174)).
 The `_MODELS` first entry is the managed pin used by `resolveTTSModel` (`:805`),
 `resolveASRModel` (`:884`), `resolveImageModel` (`:960`), `resolveVideoModel`
 (`:1019`) and `resolveWebSearchModel` (`:1074`).
@@ -118,48 +118,48 @@ The `_MODELS` first entry is the managed pin used by `resolveTTSModel` (`:805`),
 
 | Variable | Required | Effect | Evidence |
 | --- | --- | --- | --- |
-| `TTS_REQUEST_TIMEOUT_MS` | no | Per-request TTS provider timeout; default 30 000 ms. Non-finite / ≤0 falls back to the default. | `lib/audio/tts-providers.ts:152-158` |
-| `TTS_QWEN_VOICE_CLONE_MODEL` | no | Server-only override of the Qwen VC model; never exposed to clients. | `lib/server/provider-config.ts:786` |
-| `ALLOW_LOCAL_NETWORKS` | no | `'true'`/`'1'` short-circuits the entire SSRF check — needed for self-hosted gateways and split-horizon DNS. | `lib/server/ssrf-guard.ts:266-269` |
-| `RENDER_SERVICE_URL` | no | Presence is the on/off switch for one-click MP4. Deliberately **not** SSRF-guarded. Trailing slashes stripped. | `lib/server/render-service.ts:15-18`, `:25-35` |
-| `TRUST_PROXY_HEADERS` | no | Only `'true'` makes the app honor `x-forwarded-for` / `x-real-ip` when deriving the render identity; otherwise every caller becomes `'direct'`. | `app/api/export-video/render/route.ts:34` |
-| `NEXT_PUBLIC_ENABLE_VIDEO_EXPORT` | no | Client feature flag for the export UI. | `lib/config/feature-flags.ts:122` |
-| `NEXT_PUBLIC_VIDEO_EXPORT_CTA_DESTINATION` | no | Informational destination printed on exported Quiz/PBL covers. Empty or `'off'` disables it silently; an invalid value logs one warning and disables it. | `lib/video-export-app/build-export-zip.ts:51-64` |
-| `NEXT_PUBLIC_PERSISTENCE` | no | Read by the whiteboard legacy importer (`!== '1'` participates in a guard). | `lib/whiteboard/runtime/legacy-import.ts:45` |
-| `NODE_ENV` | — | Gates the SSRF check on the transcription route's client base URL. | `app/api/transcription/route.ts:57` |
-| `SEARXNG_BASE_URL` | for SearXNG | The only accepted source of a SearXNG base URL; client input is dropped. | `app/api/web-search/route.ts:98`, `:212` |
-| `TAVILY_API_KEY`, `EXA_API_KEY`, `BAIDU_API_KEY`, `BOCHA_API_KEY`, `BRAVE_API_KEY`, `WEB_SEARCH_CLAUDE_API_KEY`, `WEB_SEARCH_MINIMAX_API_KEY`, `WEB_SEARCH_DOUBAO_API_KEY` | per provider | Named verbatim in the route's `MISSING_API_KEY` message. | `app/api/web-search/route.ts:196-217` |
+| `TTS_REQUEST_TIMEOUT_MS` | no | Per-request TTS provider timeout; default 30 000 ms. Non-finite / ≤0 falls back to the default. | [`lib/audio/tts-providers.ts:152-158`](lib/audio/tts-providers.ts#L152-L158) |
+| `TTS_QWEN_VOICE_CLONE_MODEL` | no | Server-only override of the Qwen VC model; never exposed to clients. | [`lib/server/provider-config.ts:786`](lib/server/provider-config.ts#L786) |
+| `ALLOW_LOCAL_NETWORKS` | no | `'true'`/`'1'` short-circuits the entire SSRF check — needed for self-hosted gateways and split-horizon DNS. | [`lib/server/ssrf-guard.ts:266-269`](lib/server/ssrf-guard.ts#L266-L269) |
+| `RENDER_SERVICE_URL` | no | Presence is the on/off switch for one-click MP4. Deliberately **not** SSRF-guarded. Trailing slashes stripped. | [`lib/server/render-service.ts:15-18`](lib/server/render-service.ts#L15-L18), [`:25-35`](lib/server/render-service.ts#L25-L35) |
+| `TRUST_PROXY_HEADERS` | no | Only `'true'` makes the app honor `x-forwarded-for` / `x-real-ip` when deriving the render identity; otherwise every caller becomes `'direct'`. | [`app/api/export-video/render/route.ts:34`](app/api/export-video/render/route.ts#L34) |
+| `NEXT_PUBLIC_ENABLE_VIDEO_EXPORT` | no | Client feature flag for the export UI. | [`lib/config/feature-flags.ts:122`](lib/config/feature-flags.ts#L122) |
+| `NEXT_PUBLIC_VIDEO_EXPORT_CTA_DESTINATION` | no | Informational destination printed on exported Quiz/PBL covers. Empty or `'off'` disables it silently; an invalid value logs one warning and disables it. | [`lib/video-export-app/build-export-zip.ts:51-64`](lib/video-export-app/build-export-zip.ts#L51-L64) |
+| `NEXT_PUBLIC_PERSISTENCE` | no | Read by the whiteboard legacy importer (`!== '1'` participates in a guard). | [`lib/whiteboard/runtime/legacy-import.ts:45`](lib/whiteboard/runtime/legacy-import.ts#L45) |
+| `NODE_ENV` | — | Gates the SSRF check on the transcription route's client base URL. | [`app/api/transcription/route.ts:57`](app/api/transcription/route.ts#L57) |
+| `SEARXNG_BASE_URL` | for SearXNG | The only accepted source of a SearXNG base URL; client input is dropped. | [`app/api/web-search/route.ts:98`](app/api/web-search/route.ts#L98), [`:212`](app/api/web-search/route.ts#L212) |
+| `TAVILY_API_KEY`, `EXA_API_KEY`, `BAIDU_API_KEY`, `BOCHA_API_KEY`, `BRAVE_API_KEY`, `WEB_SEARCH_CLAUDE_API_KEY`, `WEB_SEARCH_MINIMAX_API_KEY`, `WEB_SEARCH_DOUBAO_API_KEY` | per provider | Named verbatim in the route's `MISSING_API_KEY` message. | [`app/api/web-search/route.ts:196-217`](app/api/web-search/route.ts#L196-L217) |
 
 ### 3.2 Render service process
 
 | Variable | Default | Effect | Evidence |
 | --- | --- | --- | --- |
-| `PORT` | 9000 | Listen port. | `render-service/src/config.ts:47` |
-| `RENDER_RESOURCE_PROFILE` | `standard` | `standard` or `low-memory`; anything else throws at import. Fixes concurrency, workers, preview pixel limits, chunk fan-out, and the memory floor. | `resource-profile.ts:107-115` |
-| `RENDER_MAX_CONCURRENCY`, `RENDER_MAX_CONCURRENT_EXTRACTIONS`, `PRODUCER_MAX_WORKERS`, `PRODUCER_LOW_MEMORY_MODE`, `PRODUCER_FORCE_SCREENSHOT`, `PRODUCER_BROWSER_GPU_MODE`, `PRODUCER_ENABLE_BROWSER_POOL`, `PRODUCER_EXPECTED_CHROMIUM_MAJOR`, `RENDER_REQUIRE_BEGINFRAME` | profile-derived | **Not free knobs.** `assertCompatibleEnvironment` throws if a value conflicts with the profile, and otherwise *writes* the required value into `process.env`. | `resource-profile.ts:60-105` |
-| `PRODUCER_HEADLESS_SHELL_PATH` | `/usr/bin/chromium-headless-shell` (Dockerfile) | Must exist when the profile requests BeginFrame, or startup throws. | `resource-profile.ts:156-165` |
-| `RENDER_CHUNK_EXECUTION` | `false` | Opt into the local plan→chunk→assemble path. | `config.ts:60` |
-| `RENDER_CHUNK_COUNT`, `RENDER_CHUNK_WORKERS`, `RENDER_MAX_PARALLEL_CHUNKS`, `RENDER_CHUNK_SIZE_FRAMES`, `RENDER_TARGET_CHUNK_FRAMES` | 1 / profile / 1 / 0 / 0 | Chunk fan-out; workers and parallel chunks go through `boundedIntEnv` and **throw** above the profile ceiling. | `config.ts:61-75` |
-| `RENDER_MAX_JOBS_PER_USER` | 1 (compose sets 0) | Per-identity active-job cap; 0 disables the guard. | `config.ts:79` |
-| `RENDER_MAX_QUEUE` | 20 | Global in-system cap (`pending + queued + running`). | `config.ts:81` |
-| `RENDER_JOB_TTL_MS` | 1 800 000 | Finished job record + artifact lifetime before the sweeper reaps. | `config.ts:83` |
-| `RENDER_JOB_DEADLINE_MS` | 2 700 000 | Hard per-job wall clock; exceeded → `deadline_exceeded`. | `config.ts:88` |
-| `RENDER_PREVIEW_TIMEOUT_MS` | 20 000 | Synchronous preview deadline → HTTP 504. | `config.ts:90` |
-| `RENDER_PREVIEW_MAX_IN_FLIGHT` | 8 | Total admitted previews. | `config.ts:92` |
-| `RENDER_PREVIEW_MAX_PER_USER` | 2 | Per-owner preview cap; 0 disables. | `config.ts:94` |
-| `RENDER_PREVIEW_MAX_JSON_BYTES` | 33 554 432 (32 MiB) | Preview JSON ceiling → 413. | `config.ts:96` |
-| `PRODUCER_TMP_PROJECT_DIR` | `/tmp/openmaic-renders` | Scratch root; `main.ts:519` creates it before accepting work. | `config.ts:98` |
-| `RENDER_MAX_UPLOAD_BYTES` | 314 572 800 (300 MiB) | Compressed upload ceiling. | `config.ts:102` |
-| `RENDER_MAX_ENTRIES` | 5000 | Archive entry count ceiling. | `config.ts:104` |
-| `RENDER_MAX_ENTRY_BYTES` | 209 715 200 (200 MiB) | Per-entry expanded ceiling. | `config.ts:106` |
-| `RENDER_MAX_EXPANDED_BYTES` | 536 870 912 (512 MiB) | Total expanded ceiling. | `config.ts:108` |
-| `RENDER_MAX_COMPRESSION_RATIO` | 200 | Per-entry expanded:compressed ratio ceiling. | `config.ts:110` |
-| `RENDER_EGRESS_LOCKDOWN` | `true` | `true` → install iptables rules or **exit non-zero**. `false` → start unisolated with a warning. | `docker-entrypoint.sh:51-67` |
-| `RENDER_HOME` | `/app` | Resets `HOME` before `setpriv` so producer font caches don't resolve to `/root/.cache` and EACCES. | `docker-entrypoint.sh:27` |
-| `RENDER_SERVICE_NO_LISTEN` | unset | `'true'` suppresses `main()` so tests can import `createApp`. | `main.ts:541` |
-| `HF_STATIC_DEDUP` | compose sets `false` | Producer's static verification budget is exhausted by long slide exports and dedup is disabled anyway. | `docker-compose.yml:110` |
-| `PRODUCER_PUPPETEER_PROTOCOL_TIMEOUT_MS` | compose sets 900 000 | CDP headroom for long compositions. | `docker-compose.yml:106` |
-| `RENDER_SERVICE_MEMORY_LIMIT` | `8g` | Compose-level `mem_limit`; the `standard` profile requires 8 GiB, `low-memory` 4 GiB. | `docker-compose.yml:127` |
+| `PORT` | 9000 | Listen port. | [`render-service/src/config.ts:47`](render-service/src/config.ts#L47) |
+| `RENDER_RESOURCE_PROFILE` | `standard` | `standard` or `low-memory`; anything else throws at import. Fixes concurrency, workers, preview pixel limits, chunk fan-out, and the memory floor. | [`resource-profile.ts:107-115`](render-service/src/resource-profile.ts#L107-L115) |
+| `RENDER_MAX_CONCURRENCY`, `RENDER_MAX_CONCURRENT_EXTRACTIONS`, `PRODUCER_MAX_WORKERS`, `PRODUCER_LOW_MEMORY_MODE`, `PRODUCER_FORCE_SCREENSHOT`, `PRODUCER_BROWSER_GPU_MODE`, `PRODUCER_ENABLE_BROWSER_POOL`, `PRODUCER_EXPECTED_CHROMIUM_MAJOR`, `RENDER_REQUIRE_BEGINFRAME` | profile-derived | **Not free knobs.** `assertCompatibleEnvironment` throws if a value conflicts with the profile, and otherwise *writes* the required value into `process.env`. | [`resource-profile.ts:60-105`](render-service/src/resource-profile.ts#L60-L105) |
+| `PRODUCER_HEADLESS_SHELL_PATH` | `/usr/bin/chromium-headless-shell` (Dockerfile) | Must exist when the profile requests BeginFrame, or startup throws. | [`resource-profile.ts:156-165`](render-service/src/resource-profile.ts#L156-L165) |
+| `RENDER_CHUNK_EXECUTION` | `false` | Opt into the local plan→chunk→assemble path. | [`config.ts:60`](render-service/src/config.ts#L60) |
+| `RENDER_CHUNK_COUNT`, `RENDER_CHUNK_WORKERS`, `RENDER_MAX_PARALLEL_CHUNKS`, `RENDER_CHUNK_SIZE_FRAMES`, `RENDER_TARGET_CHUNK_FRAMES` | 1 / profile / 1 / 0 / 0 | Chunk fan-out; workers and parallel chunks go through `boundedIntEnv` and **throw** above the profile ceiling. | [`config.ts:61-75`](render-service/src/config.ts#L61-L75) |
+| `RENDER_MAX_JOBS_PER_USER` | 1 (compose sets 0) | Per-identity active-job cap; 0 disables the guard. | [`config.ts:79`](render-service/src/config.ts#L79) |
+| `RENDER_MAX_QUEUE` | 20 | Global in-system cap (`pending + queued + running`). | [`config.ts:81`](render-service/src/config.ts#L81) |
+| `RENDER_JOB_TTL_MS` | 1 800 000 | Finished job record + artifact lifetime before the sweeper reaps. | [`config.ts:83`](render-service/src/config.ts#L83) |
+| `RENDER_JOB_DEADLINE_MS` | 2 700 000 | Hard per-job wall clock; exceeded → `deadline_exceeded`. | [`config.ts:88`](render-service/src/config.ts#L88) |
+| `RENDER_PREVIEW_TIMEOUT_MS` | 20 000 | Synchronous preview deadline → HTTP 504. | [`config.ts:90`](render-service/src/config.ts#L90) |
+| `RENDER_PREVIEW_MAX_IN_FLIGHT` | 8 | Total admitted previews. | [`config.ts:92`](render-service/src/config.ts#L92) |
+| `RENDER_PREVIEW_MAX_PER_USER` | 2 | Per-owner preview cap; 0 disables. | [`config.ts:94`](render-service/src/config.ts#L94) |
+| `RENDER_PREVIEW_MAX_JSON_BYTES` | 33 554 432 (32 MiB) | Preview JSON ceiling → 413. | [`config.ts:96`](render-service/src/config.ts#L96) |
+| `PRODUCER_TMP_PROJECT_DIR` | `/tmp/openmaic-renders` | Scratch root; [`main.ts:519`](render-service/src/main.ts#L519) creates it before accepting work. | [`config.ts:98`](render-service/src/config.ts#L98) |
+| `RENDER_MAX_UPLOAD_BYTES` | 314 572 800 (300 MiB) | Compressed upload ceiling. | [`config.ts:102`](render-service/src/config.ts#L102) |
+| `RENDER_MAX_ENTRIES` | 5000 | Archive entry count ceiling. | [`config.ts:104`](render-service/src/config.ts#L104) |
+| `RENDER_MAX_ENTRY_BYTES` | 209 715 200 (200 MiB) | Per-entry expanded ceiling. | [`config.ts:106`](render-service/src/config.ts#L106) |
+| `RENDER_MAX_EXPANDED_BYTES` | 536 870 912 (512 MiB) | Total expanded ceiling. | [`config.ts:108`](render-service/src/config.ts#L108) |
+| `RENDER_MAX_COMPRESSION_RATIO` | 200 | Per-entry expanded:compressed ratio ceiling. | [`config.ts:110`](render-service/src/config.ts#L110) |
+| `RENDER_EGRESS_LOCKDOWN` | `true` | `true` → install iptables rules or **exit non-zero**. `false` → start unisolated with a warning. | [`docker-entrypoint.sh:51-67`](render-service/docker-entrypoint.sh#L51-L67) |
+| `RENDER_HOME` | `/app` | Resets `HOME` before `setpriv` so producer font caches don't resolve to `/root/.cache` and EACCES. | [`docker-entrypoint.sh:27`](render-service/docker-entrypoint.sh#L27) |
+| `RENDER_SERVICE_NO_LISTEN` | unset | `'true'` suppresses `main()` so tests can import `createApp`. | [`main.ts:541`](render-service/src/main.ts#L541) |
+| `HF_STATIC_DEDUP` | compose sets `false` | Producer's static verification budget is exhausted by long slide exports and dedup is disabled anyway. | [`docker-compose.yml:110`](docker-compose.yml#L110) |
+| `PRODUCER_PUPPETEER_PROTOCOL_TIMEOUT_MS` | compose sets 900 000 | CDP headroom for long compositions. | [`docker-compose.yml:106`](docker-compose.yml#L106) |
+| `RENDER_SERVICE_MEMORY_LIMIT` | `8g` | Compose-level `mem_limit`; the `standard` profile requires 8 GiB, `low-memory` 4 GiB. | [`docker-compose.yml:127`](docker-compose.yml#L127) |
 
 ## 4. Deployment topology
 

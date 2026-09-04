@@ -16,7 +16,7 @@ root on branch `main` at `c2c9553a`.
 | …of which are **backend-equivalence** contract suites | **9** | the 12 above minus `pg-agent-session-contract-helpers.ts` and `pg-document-contract-helpers.ts` (helpers, not suites) and `pg-schema-contract.test.ts` (a single-backend DDL restatement) |
 | PostgreSQL tables declared | 20 | `/usr/bin/grep -rhoE "CREATE TABLE IF NOT EXISTS [a-z_]+" packages/@openmaic/storage/src lib/persistence \| sed 's/.*EXISTS //' \| sort -u \| wc -l` |
 | Named exports from the package barrel | 159 | `/usr/bin/grep -cE "^  [A-Za-z]" packages/@openmaic/storage/src/index.ts` |
-| Subpath exports in `package.json` | 16 | `packages/@openmaic/storage/package.json:9-74` (counted by hand) |
+| Subpath exports in `package.json` | 16 | [`packages/@openmaic/storage/package.json:9-74`](packages/@openmaic/storage/package.json#L9-L74) (counted by hand) |
 | `lib/persistence/` | 1783 lines, 13 files | `git ls-files lib/persistence \| xargs wc -l \| tail -1` and `\| wc -l` |
 | `lib/document-store/` | 1354 lines, 10 files | `git ls-files lib/document-store \| xargs wc -l \| tail -1` and `\| wc -l` |
 | `lib/store/` | 6692 lines | `git ls-files lib/store \| xargs wc -l \| tail -1` |
@@ -28,7 +28,7 @@ root on branch `main` at `c2c9553a`.
 | Leaf keys per app locale (`en-US`) | 1801 | `node -e "const f=require('./lib/i18n/locales/en-US.json');let n=0;(function w(o){for(const v of Object.values(o)){if(v&&typeof v==='object')w(v);else n++}})(f);console.log(n)"` |
 | `SettingsState` fields | 91 | `sed -n '81,426p' lib/store/settings.ts \| /usr/bin/grep -cE "^  [a-zA-Z]+\??:"` |
 | Setter actions in the settings store | **42** | `/usr/bin/grep -oE "^[[:space:]]+set[A-Z][A-Za-z0-9_]*" lib/store/settings.ts \| /usr/bin/grep -oE "set[A-Z][A-Za-z0-9_]*" \| sort -u \| wc -l`. The two-indent grep returns 84 because every setter is written twice — once in the `SettingsState` type at indent 2, once in the implementation at indent 8 |
-| Settings persist version | 4 | `lib/store/settings.ts:48` |
+| Settings persist version | 4 | [`lib/store/settings.ts:48`](lib/store/settings.ts#L48) |
 | `createInitialSessionState()` keys (workbench) | 31 | `sed -n '512,559p' lib/workbench/session-store.ts \| /usr/bin/grep -cE "^    [a-zA-Z]+:"` |
 | `foldEvent` body length | 840 lines (`:913`–`:1752`) | `/usr/bin/grep -n "^export function foldEvent" lib/workbench/session-store.ts` and `:1754` for `foldEvents` |
 | Distinct string literals matched inside `foldEvent` | 45 | `sed -n '913,1752p' lib/workbench/session-store.ts \| /usr/bin/grep -oE "'[a-z_]+'" \| sort -u \| wc -l` |
@@ -37,7 +37,7 @@ root on branch `main` at `c2c9553a`.
 | `console.warn`/`error`/`info` in the same set | 16 | same command with `console\.` |
 | `as Record<string, unknown>` casts in `settings.ts` | 22 | `/usr/bin/grep -c "as Record<string, unknown>" lib/store/settings.ts` |
 | `as unknown as DocumentFolderStore` casts in the folder routes | 5 (2 + 2 + 1) | `/usr/bin/grep -rc "as unknown as DocumentFolderStore" app/api/folders/route.ts 'app/api/folders/[id]/route.ts' app/api/folders/members/route.ts` |
-| Dexie schema version | 17 (13 deliberately skipped) | `lib/utils/database.ts:300,524-527,562` |
+| Dexie schema version | 17 (13 deliberately skipped) | [`lib/utils/database.ts:300,524-527,562`](lib/utils/database.ts#L300) |
 
 ```mermaid
 flowchart LR
@@ -67,11 +67,11 @@ equivalence suites: `pg-agent-session-contract-helpers.ts` and
 `pg-document-contract-helpers.ts` are helpers, and `pg-schema-contract.test.ts`
 pins one backend's DDL. The package header states the rule: `KVStore` ships a
 browser and an HTTP backend "proven equivalent by one shared contract suite"
-(`packages/@openmaic/storage/src/index.ts:10-12`). There are also HTTP conformance
+([`packages/@openmaic/storage/src/index.ts:10-12`](packages/@openmaic/storage/src/index.ts#L10-L12)). There are also HTTP conformance
 servers (`test/http-conformance-server.ts`, `test/kv-conformance-server.ts`) and a
 `pg-schema-contract.test.ts` that pins the DDL so a deployment provisioning tables
 with its own migration tooling stays byte-compatible with `ensure*Schema`
-(`material/pg.ts:9-13`, `skill/pg.ts:8-11`).
+([`material/pg.ts:9-13`](packages/@openmaic/storage/src/material/pg.ts#L9-L13), [`skill/pg.ts:8-11`](packages/@openmaic/storage/src/skill/pg.ts#L8-L11)).
 
 ```mermaid
 flowchart TD
@@ -124,40 +124,40 @@ flowchart TD
 
 **S2 — Failure semantics are encoded in types, not conventions.**
 `Outcome<T>`'s payload is a `#`-private field whose only reader demands a
-`KeyState` (`lib/store/kv-persist.ts:65-96`), so no call site can look at a result
+`KeyState` ([`lib/store/kv-persist.ts:65-96`](lib/store/kv-persist.ts#L65-L96)), so no call site can look at a result
 without feeding the state machine. `DeviceSafeKVStore`'s brand
-(`kv/types.ts:40-42`) makes handing a networked store the `device` scope a
+([`kv/types.ts:40-42`](packages/@openmaic/storage/src/kv/types.ts#L40-L42)) makes handing a networked store the `device` scope a
 compile error, and the deliberate absence of a `(KVStore, KVScope)` overload
-(`zustand/persist.ts:56-58`) prevents the guard being handed straight back.
+([`zustand/persist.ts:56-58`](packages/@openmaic/storage/src/zustand/persist.ts#L56-L58)) prevents the guard being handed straight back.
 `AssetPrincipal.key` is required for the same class of reason
-(`asset/types.ts:30-37`).
+([`asset/types.ts:30-37`](packages/@openmaic/storage/src/asset/types.ts#L30-L37)).
 
 **S3 — Invariants are written down where they are enforced, with the failure they
 prevent.** The lock-order rule between `document_stage_revision` and
 `document_scene_revision` names the deadlock code it avoids
-(`document/pg.ts:129-133`). `splitSqlStatements` exists because `split(';')` would
-carve plpgsql bodies apart (`document/pg.ts:228-233`). `lazyAssetByteStore`
+([`document/pg.ts:129-133`](packages/@openmaic/storage/src/document/pg.ts#L129-L133)). `splitSqlStatements` exists because `split(';')` would
+carve plpgsql bodies apart ([`document/pg.ts:228-233`](packages/@openmaic/storage/src/document/pg.ts#L228-L233)). `lazyAssetByteStore`
 explains that omitting `writeWith` produces a PostgreSQL-undetectable self-deadlock
-(`lib/persistence/asset-byte-store.ts:124-131`). The asset collector's header
+([`lib/persistence/asset-byte-store.ts:124-131`](lib/persistence/asset-byte-store.ts#L124-L131)). The asset collector's header
 pre-emptively asks not to add a distributed lock and says why
-(`asset-collector-schedule.ts:13-17`).
+([`asset-collector-schedule.ts:13-17`](lib/persistence/asset-collector-schedule.ts#L13-L17)).
 
-**S4 — Security posture is stated, not implied.** `lib/persistence/server-auth.ts:1-13`
+**S4 — Security posture is stated, not implied.** [`lib/persistence/server-auth.ts:1-13`](lib/persistence/server-auth.ts#L1-L13)
 is a 13-line disclaimer naming exactly what the dev token does not provide, and
-`.env.example:495-497` repeats it. `EXCLUDED_RENDERABLE_TYPES` is enforced at
-handler construction rather than documented (`asset/types.ts:104-122`). The URL
+[`.env.example:495-497`](.env.example#L495-L497) repeats it. `EXCLUDED_RENDERABLE_TYPES` is enforced at
+handler construction rather than documented ([`asset/types.ts:104-122`](packages/@openmaic/storage/src/asset/types.ts#L104-L122)). The URL
 trust gate refuses to widen from scraped pages
-(`agent-session/types.ts:569-575`).
+([`agent-session/types.ts:569-575`](packages/@openmaic/storage/src/agent-session/types.ts#L569-L575)).
 
 **S5 — Degradation is chosen per-component.** Asset misconfiguration fails asset
-requests only (`route.ts:51-77`, `asset-byte-store.ts:87-99`); the owner-event
+requests only ([`route.ts:51-77`](app/api/persistence/[...path]/route.ts#L51-L77), [`asset-byte-store.ts:87-99`](lib/persistence/asset-byte-store.ts#L87-L99)); the owner-event
 projection returns `null` rather than vetoing the lifecycle write
-(`agent-session/types.ts:455-462`); the runtime deletion cascade is timeout-bounded
-and fail-soft (`lib/runtime/store.ts:86-94`); `listDocuments` tolerates a corrupt
-version stamp on one row (`document/types.ts:196-204`).
+([`agent-session/types.ts:455-462`](packages/@openmaic/storage/src/agent-session/types.ts#L455-L462)); the runtime deletion cascade is timeout-bounded
+and fail-soft ([`lib/runtime/store.ts:86-94`](lib/runtime/store.ts#L86-L94)); `listDocuments` tolerates a corrupt
+version stamp on one row ([`document/types.ts:196-204`](packages/@openmaic/storage/src/document/types.ts#L196-L204)).
 
 **S6 — Total resets instead of remembered field lists.**
-`createInitialSessionState()` (`lib/workbench/session-store.ts:511`) returns the
+`createInitialSessionState()` ([`lib/workbench/session-store.ts:511`](lib/workbench/session-store.ts#L511)) returns the
 complete session state as one object, typed so a new fold field fails to compile
 if unset, with a companion test walking the live store's keys. Its comment records
 the same bug arriving three times before the invariant was made structural
@@ -166,12 +166,12 @@ the same bug arriving three times before the invariant was made structural
 ## Real fragility
 
 **F1 — `account`-scoped KV is not actually shared across devices in any shipped
-mode.** `lib/store/settings.ts:1-8` and `lib/store/user-profile.ts:1-7` both
+mode.** [`lib/store/settings.ts:1-8`](lib/store/settings.ts#L1-L8) and [`lib/store/user-profile.ts:1-7`](lib/store/user-profile.ts#L1-L7) both
 describe `account` as "the thing a second device should not have to be told again"
 / "exactly the data a server-backed deployment is expected to carry across their
 devices", but `HttpAccountKV` and `HttpKVStore` appear nowhere outside the package
 (`/usr/bin/grep -rn "HttpAccountKV|HttpKVStore" lib app components tests` → no
-output), and `resolveKv` (`kv-persist.ts:470-474`) can only produce a
+output), and `resolveKv` ([`kv-persist.ts:470-474`](lib/store/kv-persist.ts#L470-L474)) can only produce a
 `BrowserKVStore`. There is no server-side KV handler either: `src/server/` has
 `asset.ts`, `document.ts`, `index.ts`, `read-json.ts`, `reference.ts` and no
 `kv.ts`. So the whole scope axis is currently aspirational, and prose in two
@@ -180,19 +180,19 @@ runtime bug.
 
 **F2 — `NEXT_PUBLIC_PERSISTENCE_TOKEN` in a public bundle plus a
 client-supplied `x-learner-key` means server mode has no isolation at all.** This
-is documented (`server-auth.ts:1-13`) and all asset writes are funnelled to one
-`'shared'` principal on purpose (`server-auth.ts:26,53`), but it means the
+is documented ([`server-auth.ts:1-13`](lib/persistence/server-auth.ts#L1-L13)) and all asset writes are funnelled to one
+`'shared'` principal on purpose ([`server-auth.ts:26,53`](lib/persistence/server-auth.ts#L26)), but it means the
 `AssetPrincipal` partitioning the package went out of its way to make mandatory is
 collapsed to a single partition in the only server deployment the repo ships.
 Documents get a *different* identity (the server-resolved `anon:` cookie owner,
-`route.ts:109-112`), so the same request carries two unrelated notions of "who".
+[`route.ts:109-112`](app/api/persistence/[...path]/route.ts#L109-L112)), so the same request carries two unrelated notions of "who".
 Severity: high if anyone treats server mode as multi-user; the code says not to.
 
 **F3 — The access-code token has no server-side expiry.**
-`createAccessToken` embeds `Date.now()` (`lib/server/access-token.ts:4-8`) but
+`createAccessToken` embeds `Date.now()` ([`lib/server/access-token.ts:4-8`](lib/server/access-token.ts#L4-L8)) but
 neither `verifyAccessToken` (`:11-25`) nor the Edge `verifyToken`
-(`middleware.ts:18-44`) checks it. Validity is bounded only by the cookie's
-7-day `maxAge` (`verify/route.ts:36`), which a client controls. Rotating
+([`middleware.ts:18-44`](middleware.ts#L18-L44)) checks it. Validity is bounded only by the cookie's
+7-day `maxAge` ([`verify/route.ts:36`](app/api/access-code/verify/route.ts#L36)), which a client controls. Rotating
 `ACCESS_CODE` does invalidate every token (it is the HMAC key), which is the real
 revocation lever. Severity: medium — the gate is documented as a shared password,
 not authentication.
@@ -200,13 +200,13 @@ not authentication.
 **F4 — `settings.ts` is a 2248-line store with 91 state fields, 42 setters, and 22
 `as Record<string, unknown>` escapes.** The escapes exist because the persist
 `migrate` ladder must read fields that no longer exist on the type
-(`settings.ts:2039-2055,2103-2124`) — legitimate, but it means the migration path
+([`settings.ts:2039-2055,2103-2124`](lib/store/settings.ts#L2039-L2055)) — legitimate, but it means the migration path
 is largely untyped. The unconditional normalisation in `merge`
 (`:2213-2235`) runs seven `ensureBuiltIn*` passes plus `pruneThinkingConfigs` on
 every rehydrate, so per-provider defaults are re-derived on each page load rather
 than at migration time. Severity: medium (maintainability).
 
-**F5 — `foldEvent` is a single 840-line function** (`session-store.ts:913-1752`)
+**F5 — `foldEvent` is a single 840-line function** ([`session-store.ts:913-1752`](lib/workbench/session-store.ts#L913-L1752))
 matching 45 distinct string literals. It is pure and covered, and its purity is
 load-bearing for `Last-Event-ID` resumption, but a new event type touches one
 enormous switch. Severity: low-medium (maintainability, not correctness).
@@ -219,12 +219,12 @@ Every piece has a stated reason (`:107-117,238-270`), and the lock-ordering
 comment (`:1336-1338`) names the cycle it avoids, but the resulting state space is
 large enough that the module's own comments describe the cutover's automatic
 legacy adoption as having been *removed* for exactly this reason
-(`kv-persist.ts:501-511` makes the same call for KV). Severity: medium.
+([`kv-persist.ts:501-511`](lib/store/kv-persist.ts#L501-L511) makes the same call for KV). Severity: medium.
 
 **F7 — `as unknown as DocumentFolderStore` in all three folder routes** (5
 occurrences). `getOwnerScopedDocumentStore(ownerId)` returns a
 `DocumentStore`-typed value that is really an `OwnerBoundDocumentStore`
-implementing both interfaces (`owner-bound-document-store.ts:58-59,176`), so the
+implementing both interfaces ([`owner-bound-document-store.ts:58-59,176`](lib/persistence/owner-bound-document-store.ts#L58-L59)), so the
 cast is sound today — but it is checked by nothing. `createOwnerBoundDocumentStore`
 already returns `DocumentStore & DocumentFolderStore`; the accessor's return type
 is what narrows it away. Severity: low (a typing gap, one signature away from
@@ -232,27 +232,27 @@ fixed).
 
 **F8 — Two independent revision/generation mechanisms with similar names.**
 `document_stage_revision` / `document_scene_revision` (server, trigger-maintained,
-`document/pg.ts:157-167`) and the KV `device` `document-storage-generation`
-(browser, bumped by `clearDatabase`, `storage-generation.ts:3`) both guard against
+[`document/pg.ts:157-167`](packages/@openmaic/storage/src/document/pg.ts#L157-L167)) and the KV `device` `document-storage-generation`
+(browser, bumped by `clearDatabase`, [`storage-generation.ts:3`](lib/document-store/storage-generation.ts#L3)) both guard against
 writes landing after something changed underneath, but they are unrelated and
 neither comment cross-references the other. Severity: low (confusion risk).
 
 **F9 — `check:i18n-keys` covers 12 files and not the other 10.** The script reads
-only `lib/i18n/locales` (`scripts/check-i18n-keys.mjs:4`); `workbench-locales/` is
-held to shape by a vitest test instead (`lib/i18n/workbench.ts:12-16`). Two
+only `lib/i18n/locales` ([`scripts/check-i18n-keys.mjs:4`](scripts/check-i18n-keys.mjs#L4)); `workbench-locales/` is
+held to shape by a vitest test instead ([`lib/i18n/workbench.ts:12-16`](lib/i18n/workbench.ts#L12-L16)). Two
 enforcement mechanisms for one contract means a contributor can satisfy
 `pnpm check:i18n-keys` and still ship a broken workbench overlay unless they also
 run the unit suite. Neither mechanism detects an untranslated (copy-pasted
 English) value. Severity: low.
 
 **F10 — Schema provisioning is spread across five call sites with an ordering
-dependency.** `server-provider.ts:43-47` provisions runtime/document/stage-meta/
-owner-material/asset; `lib/server/agent-runtime/store.ts:47`,
-`session-materials.ts:51` and `user-skill-store.ts:53` each provision their own on
+dependency.** [`server-provider.ts:43-47`](lib/persistence/server-provider.ts#L43-L47) provisions runtime/document/stage-meta/
+owner-material/asset; [`lib/server/agent-runtime/store.ts:47`](lib/server/agent-runtime/store.ts#L47),
+[`session-materials.ts:51`](lib/server/agent-runtime/session-materials.ts#L51) and [`user-skill-store.ts:53`](lib/server/agent-runtime/user-skill-store.ts#L53) each provision their own on
 first use. `agent_session_materials.session_id` has an FK to `agent_sessions(id)`,
-and `material/pg.ts:13-15` states that the host "must provision
+and [`material/pg.ts:13-15`](packages/@openmaic/storage/src/material/pg.ts#L13-L15) states that the host "must provision
 `ensureAgentSessionSchema` before this one".
-`lib/server/agent-runtime/session-materials.ts:48-50` acknowledges the dependency
+[`lib/server/agent-runtime/session-materials.ts:48-50`](lib/server/agent-runtime/session-materials.ts#L48-L50) acknowledges the dependency
 in a comment and relies on `getAgentSessionStore` having run first — the ordering
 is enforced only by which module happens to be touched first, not by code.
 Severity: medium.

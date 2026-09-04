@@ -6,14 +6,14 @@ IR into one `index.html` driven by a single paused GSAP timeline; an **impure**
 browser shell supplies real bytes and packages a ZIP. This file is the first
 stage — the IR contract, the synchronous dependency-injection boundary, and the
 nine passes one at a time. The emitter and the ZIP build continue in
-[`./06b-video-export-emitter.md`](./06b-video-export-emitter.md).
+[`./06b-video-export-emitter.md`](docs/09-media-and-export/06b-video-export-emitter.md).
 
 **Sources:** `lib/video-export/{compile,ir,deps,interactive-static}.ts`,
 `lib/video-export/passes/{normalize,probe,timeline,visuals,interactive,reflow,geometry,assets,emit}.ts`,
 `lib/video-export/legacy/read.ts`, `lib/choreography/{timing,timeline}.ts`;
-[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md),
-[`../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md`](../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md),
-[`../appendix/research/media-audio-video/03b-flows-video-export.md`](../appendix/research/media-audio-video/03b-flows-video-export.md).
+[`../appendix/research/media-audio-video/02d-interfaces-choreography-ir.md`](docs/appendix/research/media-audio-video/02d-interfaces-choreography-ir.md),
+[`../appendix/research/media-audio-video/02e-interfaces-passes-emitter.md`](docs/appendix/research/media-audio-video/02e-interfaces-passes-emitter.md),
+[`../appendix/research/media-audio-video/03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md).
 
 ## 1. The IR is the contract
 
@@ -42,7 +42,7 @@ and one catch-all:
 Thirteen stable diagnostic codes (`DiagnosticCodeSchema`, `:80`) turn the emitted
 manifest into an export report. `VideoTimelineCompileError` (`:424`) is the *only*
 structural throw in the whole compiler, and it fires for exactly one condition:
-zero scenes (`passes/normalize.ts:94-96`).
+zero scenes ([`passes/normalize.ts:94-96`](lib/video-export/passes/normalize.ts#L94-L96)).
 
 ```mermaid
 classDiagram
@@ -186,7 +186,7 @@ flowchart TD
 
 ### Pass 0 — `resolveAvailableVideos` (before the passes)
 
-`compile.ts:137` pre-resolves which `play_video` actions have available media,
+[`compile.ts:137`](lib/video-export/compile.ts#L137) pre-resolves which `play_video` actions have available media,
 into a `Set<Action>` **keyed by object identity, not `action.id`**. The 10-line
 comment (`:126-136`) explains why: the DSL does not enforce stage-wide action-id
 uniqueness, so two scenes could share an id and an id-keyed set would produce a
@@ -198,7 +198,7 @@ because asset planning runs *after* the timeline is laid out.
 
 Ordering: `sort((a, b) => (a.order ?? a.inputIndex) - (b.order ?? b.inputIndex))`
 tie-broken by input index so equal `order` values stay stable
-(`normalize.ts:100-105`). Validation drops rather than throws;
+([`normalize.ts:100-105`](lib/video-export/passes/normalize.ts#L100-L105)). Validation drops rather than throws;
 `missingRequiredField` (`:29`) is a small, explicit table:
 
 | Action types | Required field |
@@ -214,7 +214,7 @@ dropped.
 
 ### Pass 2 — `probe`
 
-`buildTimelineOptions(probe, config, isVideoAvailable)` (`probe.ts:31`) adapts the
+`buildTimelineOptions(probe, config, isVideoAvailable)` ([`probe.ts:31`](lib/video-export/passes/probe.ts#L31)) adapts the
 injected `TimingProbe` into choreography's `ResolveTimelineOptions`. It makes two
 deliberate departures from the live runtime:
 
@@ -227,10 +227,10 @@ deliberate departures from the live runtime:
 ### Pass 3 — `timeline`
 
 Timing only. Calls `resolveActionTimeline` (see
-[`./02-audio-pipeline.md`](./02-audio-pipeline.md) §5), buckets each segment into
+[`./02-audio-pipeline.md`](docs/09-media-and-export/02-audio-pipeline.md) §5), buckets each segment into
 the scene's `narration` / `effects` / `videos` / `markers`, derives one subtitle
 cue per non-empty speech, then splits those cues into line-sized cues via
-`splitCues` (`timeline.ts:143`). The **IR carries the split track**, so the
+`splitCues` ([`timeline.ts:143`](lib/video-export/passes/timeline.ts#L143)). The **IR carries the split track**, so the
 burned-in overlay and the sidecar SRT/VTT cannot diverge.
 
 It also sets `TimelineResult.ttsEnabled` — true when *any* narration had stored
@@ -240,13 +240,13 @@ Effect `params` merge descriptor defaults with authored overrides (`effectParams
 `:66`).
 
 `VideoSegment.durationSource` is a four-value label — `stored` / `capped` /
-`zero` / `skipped` (`ir.ts:281`) — so a consumer cannot mistake the five-minute
-cap for a real clip length (`timeline.ts:237-244`).
+`zero` / `skipped` ([`ir.ts:281`](lib/video-export/ir.ts#L281)) — so a consumer cannot mistake the five-minute
+cap for a real clip length ([`timeline.ts:237-244`](lib/video-export/passes/timeline.ts#L237-L244)).
 
 ### Pass 4 — `visuals`
 
 Turns authored quiz and PBL data into whole-scene static covers.
-`prepareQuizQuestionList(scene)` (`visuals.ts:65`) is the **only** path from
+`prepareQuizQuestionList(scene)` ([`visuals.ts:65`](lib/video-export/passes/visuals.ts#L65)) is the **only** path from
 authored quiz data into the IR, and it is a projection, not a copy: answer keys,
 analysis text, points and learner state are structurally unrepresentable in the
 IR. Scroll timing constants (`:90-95`): `QUIZ_TRANSITION_MS = 600`,
@@ -261,16 +261,16 @@ header forbids writers from importing it (`:1-6`).
 ### Pass 5 — `interactive`
 
 `applyInteractiveHtml(timelineScenes, sourceScenes, source?)`
-(`interactive.ts:24`). Success promotes `base.kind` to `'interactive-html'` with
-`readyTimeoutMs = 8000` and `settleMs = 250` from `interactive-static.ts:4-7`.
+([`interactive.ts:24`](lib/video-export/passes/interactive.ts#L24)). Success promotes `base.kind` to `'interactive-html'` with
+`readyTimeoutMs = 8000` and `settleMs = 250` from [`interactive-static.ts:4-7`](lib/video-export/interactive-static.ts#L4-L7).
 Failure maps to one of three diagnostic codes via `failureCode` (`:11`), over the
-four `InteractiveHtmlFailure` values (`interactive-static.ts:13`):
+four `InteractiveHtmlFailure` values ([`interactive-static.ts:13`](lib/video-export/interactive-static.ts#L13)):
 `missing-html`, `packaging-failed`, `unresolved-resource`, `too-large`.
 
 ### Pass 6 — `reflow`
 
 `reflowQuizTimelines(scenes, subtitles, totalDurationMs, extensionsMs)`
-(`reflow.ts:31`). A compiler-added quiz tail extends its scene and shifts every
+([`reflow.ts:31`](lib/video-export/passes/reflow.ts#L31)). A compiler-added quiz tail extends its scene and shifts every
 *later* absolute timestamp — including subtitle cues and the interactive bases
 prepared by pass 5. **Authored intra-scene timing is untouched.** This is the only
 pass that rewrites absolute time, which is why it runs after every pass that can
@@ -278,7 +278,7 @@ add duration and before the passes that only resolve references.
 
 ### Pass 7 — `geometry`
 
-`applyGeometry(timelineScenes, sourceScenes, geometryProbe?)` (`geometry.ts:84`),
+`applyGeometry(timelineScenes, sourceScenes, geometryProbe?)` ([`geometry.ts:84`](lib/video-export/passes/geometry.ts#L84)),
 with `resolveEffectGeometry` (`:32`) and `resolveVideoPlacement` (`:59`) exported
 for direct testing. It prefers the *measured* content box, but a **rotated**
 element deliberately falls back to the authored box (`:59-68`) so the single
@@ -287,7 +287,7 @@ downstream `rotate` transform is not applied twice. A miss yields
 
 ### Pass 8 — `assets`
 
-`planAssets(sourceScenes, timelineScenes, assetSource)` (`assets.ts:112`) walks
+`planAssets(sourceScenes, timelineScenes, assetSource)` ([`assets.ts:112`](lib/video-export/passes/assets.ts#L112)) walks
 the IR and produces the `AssetPlan` — the list of files the ZIP must contain.
 
 Two design decisions, both in `AssetPlanner` (`:56`):
@@ -311,22 +311,22 @@ collision:
 | `audio` | `audio/<slug>/speech-NNN.<ext>` | `:160` |
 | `video` | `media/<sanitizeFilenamePart(elementId)>.<ext>` | `:208-213` |
 
-Those four are the only kinds any pass plans: `AssetKindSchema` (`ir.ts:333`) also
-declares `'image'` and `'poster'`, handled in `collect.ts:367-380` but planned
+Those four are the only kinds any pass plans: `AssetKindSchema` ([`ir.ts:333`](lib/video-export/ir.ts#L333)) also
+declares `'image'` and `'poster'`, handled in [`collect.ts:367-380`](lib/video-export-app/collect.ts#L367-L380) but planned
 nowhere.
 
 `missing-audio` is recorded only when a narration segment **has text** but no asset (`:147-156`).
 
 ### Pass 9 — `markUnsupported`
 
-Inline in `compile.ts:87`. For any scene still `supported: false`, it forces
+Inline in [`compile.ts:87`](lib/video-export/compile.ts#L87). For any scene still `supported: false`, it forces
 `base.kind = 'placeholder'` with a reason, **prepends a whole-scene
 `unsupported-scene` marker spanning `startMs`..`durationMs`** (`:106-114`), and
 records a warn diagnostic. Nothing is dropped: an unrenderable scene still
 occupies its slice of the timeline.
 
-Finally `compile.ts:194-202` concatenates the seven diagnostic arrays in pass
-order, and `emitManifest` (`passes/emit.ts:28`) re-parses the IR through
+Finally [`compile.ts:194-202`](lib/video-export/compile.ts#L194-L202) concatenates the seven diagnostic arrays in pass
+order, and `emitManifest` ([`passes/emit.ts:28`](lib/video-export/passes/emit.ts#L28)) re-parses the IR through
 `VideoTimelineSchema` and then `VideoExportManifestSchema` (which adds
 `runtimeDiagnostics: []`) — so a malformed IR fails at the compiler, not in the
 renderer.
@@ -334,18 +334,18 @@ renderer.
 ## 4. Where the pipeline continues
 
 The emitter, the byte-collection/ZIP build, and the full degradation catalogue are
-in [`./06b-video-export-emitter.md`](./06b-video-export-emitter.md). The MP4 leg —
+in [`./06b-video-export-emitter.md`](docs/09-media-and-export/06b-video-export-emitter.md). The MP4 leg —
 handover to the isolated container, job lifecycle and the degrade rule — is in
-[`./07-render-service.md`](./07-render-service.md) and
-[`./07b-render-service-lifecycle.md`](./07b-render-service-lifecycle.md).
+[`./07-render-service.md`](docs/09-media-and-export/07-render-service.md) and
+[`./07b-render-service-lifecycle.md`](docs/09-media-and-export/07b-render-service-lifecycle.md).
 
 ## Open questions
 
-- `BaseSegmentSchema` includes `{ kind: 'visual-segments' }` (`ir.ts:119`) but no
+- `BaseSegmentSchema` includes `{ kind: 'visual-segments' }` ([`ir.ts:119`](lib/video-export/ir.ts#L119)) but no
   pass was observed producing it — `timeline` sets `slide-snapshot` or
   `placeholder`, `interactive` sets `interactive-html`, and `visuals` adds to
   `scene.visuals` rather than replacing `base`. Possibly dead.
-- The quiz scroll constants (`visuals.ts:90-95`) are hand-tuned pixels-per-second
+- The quiz scroll constants ([`visuals.ts:90-95`](lib/video-export/passes/visuals.ts#L90-L95)) are hand-tuned pixels-per-second
   at 720p. `tests/video-export/cover-card-layout.browser.test.ts` measures cover
   layout in a real browser; whether anything asserts the scroll *timing* was not
   checked.

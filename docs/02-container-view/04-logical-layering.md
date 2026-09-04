@@ -10,8 +10,8 @@ enforces it is cited.
 `next.config.ts`, plus a scan over every `.ts`/`.tsx`/`.mjs` tracked in `app/`,
 `components/`, `lib/`, `configs/`, `types/` and `packages/@openmaic/*` for
 `@/…`-alias and bare-specifier module references.
-Evidence: [quality-testing-ci-deps/01b](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[dsl-renderer-editor/00](../appendix/research/dsl-renderer-editor/00-overview.md).
+Evidence: [quality-testing-ci-deps/01b](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[dsl-renderer-editor/00](docs/appendix/research/dsl-renderer-editor/00-overview.md).
 
 ## The intended direction
 
@@ -74,7 +74,7 @@ reach for domain logic directly. There is no service layer between
 ## The eight violations, cited
 
 The unit is the **import site**: eight of them, spread over six files. The
-diagram below collapses `preload-editor.ts:36-37` into one edge and the table
+diagram below collapses [`preload-editor.ts:36-37`](lib/edit/preload-editor.ts#L36-L37) into one edge and the table
 collapses `:35-37` into one row, so neither has eight entries.
 
 ```mermaid
@@ -98,12 +98,12 @@ flowchart LR
 
 | Site | Imports | Character |
 | --- | --- | --- |
-| `lib/chat/action-translations.ts:1` | `Badge` from `@/components/ui/badge` | A `lib/` module renders a UI primitive. The hardest of the eight to justify |
-| `lib/edit/content-validation.ts:4` | `ELEMENT_BOUND` from `@/components/edit/ActionsBar/cue-meta` | A constant living in a component file; the fix is to move the constant down, not to move the import |
-| `lib/edit/noop-surface.tsx:4` | `SceneRenderer` from `@/components/stage/scene-renderer` | A `.tsx` file in `lib/` returning a component — arguably this module belongs in `components/` |
-| `lib/edit/preload-editor.ts:35-37` | dynamic `import()` of `@/app/editor-fonts`, `@/components/edit/surfaces/slide`, `@/components/edit/surfaces/quiz` | Deliberate: a preloader's whole job is to warm chunks it does not otherwise depend on. Inferred: the inversion is the point, and the honest fix is a registry the surfaces push into |
-| `lib/hooks/use-discussion-tts.ts:17` | `import type { AudioIndicatorState }` | Type-only, so it erases at build time. Still an inverted *source* dependency |
-| `lib/hooks/use-home-discovery.tsx:41` | `NewFolderDialog` | A hook that owns a dialog; same shape as `noop-surface.tsx` |
+| [`lib/chat/action-translations.ts:1`](lib/chat/action-translations.ts#L1) | `Badge` from `@/components/ui/badge` | A `lib/` module renders a UI primitive. The hardest of the eight to justify |
+| [`lib/edit/content-validation.ts:4`](lib/edit/content-validation.ts#L4) | `ELEMENT_BOUND` from `@/components/edit/ActionsBar/cue-meta` | A constant living in a component file; the fix is to move the constant down, not to move the import |
+| [`lib/edit/noop-surface.tsx:4`](lib/edit/noop-surface.tsx#L4) | `SceneRenderer` from `@/components/stage/scene-renderer` | A `.tsx` file in `lib/` returning a component — arguably this module belongs in `components/` |
+| [`lib/edit/preload-editor.ts:35-37`](lib/edit/preload-editor.ts#L35-L37) | dynamic `import()` of `@/app/editor-fonts`, `@/components/edit/surfaces/slide`, `@/components/edit/surfaces/quiz` | Deliberate: a preloader's whole job is to warm chunks it does not otherwise depend on. Inferred: the inversion is the point, and the honest fix is a registry the surfaces push into |
+| [`lib/hooks/use-discussion-tts.ts:17`](lib/hooks/use-discussion-tts.ts#L17) | `import type { AudioIndicatorState }` | Type-only, so it erases at build time. Still an inverted *source* dependency |
+| [`lib/hooks/use-home-discovery.tsx:41`](lib/hooks/use-home-discovery.tsx#L41) | `NewFolderDialog` | A hook that owns a dialog; same shape as `noop-surface.tsx` |
 
 Seven of the eight sites — five of the six offending files — are in `lib/edit/`
 and `lib/hooks/`, the two directories where "domain logic" and "React surface"
@@ -122,7 +122,7 @@ spread into each block.
 
 | Wall | Scope | Rule | Cited at |
 | --- | --- | --- | --- |
-| `@openmaic/renderer` may not reference `@/…` | whole package | any `Literal` or `TemplateElement` starting `@/` | `eslint.config.mjs:97-115` |
+| `@openmaic/renderer` may not reference `@/…` | whole package | any `Literal` or `TemplateElement` starting `@/` | [`eslint.config.mjs:97-115`](eslint.config.mjs#L97-L115) |
 | `@openmaic/storage` may not reference `@/…` | whole package | same | `:122-140` |
 | `@openmaic/generation`: allowlisted specifiers only | whole package + its tests | only `@openmaic/dsl`, `jsonrepair`, `katex`, `nanoid`, `partial-json`, `node:*`, relatives; **no** `import()`, **no** `require()` | `:146-191`, tests at `:195-242` |
 | `lib/choreography` stays pure | directory | only `@openmaic/dsl`, `zod`, in-folder `./…`; no React / DOM / GSAP / motion | `:254-329` |
@@ -165,7 +165,7 @@ each `src/` tree: **`@openmaic/dsl` has zero external module imports** — not o
 line in `packages/@openmaic/dsl/src` imports anything that is not a relative
 sibling. `@openmaic/editor` is the only package that depends on another
 first-party package beyond `dsl`, and `INTERNAL_DEPENDENTS` in
-`scripts/openmaic-packages.mjs:37-43` records exactly that graph as data the
+[`scripts/openmaic-packages.mjs:37-43`](scripts/openmaic-packages.mjs#L37-L43) records exactly that graph as data the
 version gate reads.
 
 Every one of the 492 source files across the six packages was scanned for a
@@ -181,14 +181,14 @@ are reached from exactly three lines in the whole repository:
 
 | Import site | Specifier | Note |
 | --- | --- | --- |
-| `lib/export/use-export-pptx.ts:4` | `pptxgenjs` | vendored fork, `packages/pptxgenjs` |
-| `lib/export/latex-to-omml.ts:1` | `temml` | upstream npm package, not vendored |
-| `lib/export/latex-to-omml.ts:2` | `mathml2omml` | vendored fork, `packages/mathml2omml` |
+| [`lib/export/use-export-pptx.ts:4`](lib/export/use-export-pptx.ts#L4) | `pptxgenjs` | vendored fork, `packages/pptxgenjs` |
+| [`lib/export/latex-to-omml.ts:1`](lib/export/latex-to-omml.ts#L1) | `temml` | upstream npm package, not vendored |
+| [`lib/export/latex-to-omml.ts:2`](lib/export/latex-to-omml.ts#L2) | `mathml2omml` | vendored fork, `packages/mathml2omml` |
 
 Both are `transpilePackages` entries alongside `@openmaic/importer`
-(`next.config.ts:15`) and both are `globalIgnores`d by ESLint as "third-party /
-vendored packages (not our code)" (`eslint.config.mjs:36-39`). Detail on the
-forks is in [05-workspace-packages.md](./05-workspace-packages.md).
+([`next.config.ts:15`](next.config.ts#L15)) and both are `globalIgnores`d by ESLint as "third-party /
+vendored packages (not our code)" ([`eslint.config.mjs:36-39`](eslint.config.mjs#L36-L39)). Detail on the
+forks is in [05-workspace-packages.md](docs/02-container-view/05-workspace-packages.md).
 
 ## `configs/` and `types/`
 
@@ -219,52 +219,52 @@ main-topic files that cite the directory path, from
 | `lib/` directory | Files | Lines | Docs | Owning topic |
 | --- | --- | --- | --- | --- |
 | `server/` | 92 | 22 073 | 129 | spread across 03, 04, 05, 06, 09, 10, 12 — it is not one subsystem |
-| `pbl/` | 37 | 9 599 | 27 | [08 §PBL v2](../08-classroom-runtime/08-pbl-v2.md) |
-| `workbench/` | 48 | 8 192 | 33 | [05](../05-agent-runtime/index.md) client half |
-| `audio/` | 27 | 7 218 | 26 | [09 §TTS/ASR](../09-media-and-export/01-tts-adapters.md) |
-| `media/` | 39 | 6 772 | 28 | [09](../09-media-and-export/index.md) |
-| `store/` | 20 | 6 692 | 40 | [10 §client state](../10-persistence-and-state/03-client-state-stores.md) |
-| `utils/` | 20 | 6 480 | 36 | [10 §chat storage](../10-persistence-and-state/05-chat-storage-and-cutover.md) + [09](../09-media-and-export/index.md) |
-| `chat/` | 20 | 6 025 | 28 | [05 §client/server split](../05-agent-runtime/02-client-server-split.md), [08 §roundtable](../08-classroom-runtime/05-roundtable-agents.md) |
-| `video-export/` | 29 | 5 014 | 30 | [09 §video pipeline](../09-media-and-export/06-video-export-pipeline.md) |
-| `export/` | 23 | 4 872 | 22 | [07 §pptx](../07-dsl-renderer-editor/07-export-pptx.md), [07 §html](../07-dsl-renderer-editor/08-export-html.md) |
-| `ai/` | 8 | 3 851 | 35 | [04](../04-ai-provider-layer/index.md) |
-| `hooks/` | 16 | 3 852 | 34 | [06 §progress](../06-generation-pipeline/08-progress-reporting.md), [08](../08-classroom-runtime/index.md) |
-| `orchestration/` | 17 | 3 477 | 10 | [05 §orchestration registry](../05-agent-runtime/06-orchestration-registry.md) |
-| `document/` | 24 | 3 168 | 19 | [06 §ingestion](../06-generation-pipeline/02-document-ingestion.md) |
-| `edit/` | 24 | 2 417 | 15 | [07 §AI edit ops](../07-dsl-renderer-editor/05-ai-edit-operations.md) |
-| `video-export-app/` | 12 | 2 205 | 16 | [09 §emitter](../09-media-and-export/06b-video-export-emitter.md) |
-| `web-search/` | 14 | 1 694 | 11 | [09 §transcription and search](../09-media-and-export/05-transcription-and-search.md) |
+| `pbl/` | 37 | 9 599 | 27 | [08 §PBL v2](docs/08-classroom-runtime/08-pbl-v2.md) |
+| `workbench/` | 48 | 8 192 | 33 | [05](docs/05-agent-runtime/index.md) client half |
+| `audio/` | 27 | 7 218 | 26 | [09 §TTS/ASR](docs/09-media-and-export/01-tts-adapters.md) |
+| `media/` | 39 | 6 772 | 28 | [09](docs/09-media-and-export/index.md) |
+| `store/` | 20 | 6 692 | 40 | [10 §client state](docs/10-persistence-and-state/03-client-state-stores.md) |
+| `utils/` | 20 | 6 480 | 36 | [10 §chat storage](docs/10-persistence-and-state/05-chat-storage-and-cutover.md) + [09](docs/09-media-and-export/index.md) |
+| `chat/` | 20 | 6 025 | 28 | [05 §client/server split](docs/05-agent-runtime/02-client-server-split.md), [08 §roundtable](docs/08-classroom-runtime/05-roundtable-agents.md) |
+| `video-export/` | 29 | 5 014 | 30 | [09 §video pipeline](docs/09-media-and-export/06-video-export-pipeline.md) |
+| `export/` | 23 | 4 872 | 22 | [07 §pptx](docs/07-dsl-renderer-editor/07-export-pptx.md), [07 §html](docs/07-dsl-renderer-editor/08-export-html.md) |
+| `ai/` | 8 | 3 851 | 35 | [04](docs/04-ai-provider-layer/index.md) |
+| `hooks/` | 16 | 3 852 | 34 | [06 §progress](docs/06-generation-pipeline/08-progress-reporting.md), [08](docs/08-classroom-runtime/index.md) |
+| `orchestration/` | 17 | 3 477 | 10 | [05 §orchestration registry](docs/05-agent-runtime/06-orchestration-registry.md) |
+| `document/` | 24 | 3 168 | 19 | [06 §ingestion](docs/06-generation-pipeline/02-document-ingestion.md) |
+| `edit/` | 24 | 2 417 | 15 | [07 §AI edit ops](docs/07-dsl-renderer-editor/05-ai-edit-operations.md) |
+| `video-export-app/` | 12 | 2 205 | 16 | [09 §emitter](docs/09-media-and-export/06b-video-export-emitter.md) |
+| `web-search/` | 14 | 1 694 | 11 | [09 §transcription and search](docs/09-media-and-export/05-transcription-and-search.md) |
 | `types/` | 12 | 1 687 | 13 | wherever the type is used; no owning topic of its own |
-| `persistence/` | 13 | 1 783 | 44 | [10 §storage abstraction](../10-persistence-and-state/01-storage-abstraction.md) |
-| `playback/` | 8 | 1 651 | 29 | [08 §state machine](../08-classroom-runtime/02-playback-state-machine.md) |
-| `pdf/` | 6 | 1 604 | 13 | [06 §ingestion](../06-generation-pipeline/02-document-ingestion.md) |
-| `agent/` | 9 | 1 479 | 17 | [05 §client/server split](../05-agent-runtime/02-client-server-split.md) |
-| `whiteboard/` | 7 | 1 470 | 12 | [09 §whiteboard](../09-media-and-export/03-whiteboard.md) |
-| `document-store/` | 10 | 1 354 | 13 | [10 §storage abstraction](../10-persistence-and-state/01-storage-abstraction.md) |
-| `quiz/` | 5 | 1 314 | 4 | [06 §quiz and grading](../06-generation-pipeline/09-quiz-and-grading.md) — thin; `runtime.ts` alone is 22 KB |
-| `prosemirror/` | 16 | 1 152 | 3 | [07 §editor](../07-dsl-renderer-editor/04-editor-prosemirror.md) — thin, and 9 of its files are byte-identical to `@openmaic/editor` ([14/10](../14-code-quality/10-duplication-and-dead-code.md)) |
-| `choreography/` | 8 | 1 147 | 21 | [08 §choreography](../08-classroom-runtime/03-choreography.md) |
-| `classroom/` | 6 | 1 024 | 9 | [08](../08-classroom-runtime/index.md) |
-| `api/` | 9 | 1 799 | 10 | [03 §API conventions](../03-app-and-api/06-api-layer-conventions.md) |
-| `action/` | 1 | 902 | 27 | [07 §DSL schema](../07-dsl-renderer-editor/01-dsl-schema.md), [08](../08-classroom-runtime/index.md) |
-| `i18n/` | 5 | 824 | 7 | [10 §i18n](../10-persistence-and-state/07-i18n.md) |
-| `rag/` | 9 | 810 | 4 | [06 §ingestion](../06-generation-pipeline/02-document-ingestion.md) — thin |
-| `buffer/` | 1 | 749 | 13 | [08 §buffering](../08-classroom-runtime/04-buffering-and-prefetch.md) |
-| `import/` | 2 | 688 | 9 | [07 §importer](../07-dsl-renderer-editor/06-importer-pptx-to-dsl.md) |
-| `config/` | 3 | 661 | 38 | [15 §configuration](../15-cross-cutting/06-configuration.md) |
-| `runtime/` | 4 | 373 | 10 | [10 §storage abstraction](../10-persistence-and-state/01-storage-abstraction.md) |
-| `contexts/` | 2 | 257 | 2 | [03 §providers](../03-app-and-api/02-layout-and-providers.md), [10/01b](../10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md) — thin |
-| `media-parse/` | 4 | 236 | 2 | [06 §ingestion](../06-generation-pipeline/02-document-ingestion.md) — thin |
-| `prompts/` | 3 | 235 | 4 | [06 §prompt architecture](../06-generation-pipeline/06-prompt-architecture.md) — thin |
-| `agent-runtime/` | 2 | 175 | 9 | [05](../05-agent-runtime/index.md); isomorphic lifecycle constants only |
-| `brand/` | 2 | 79 | 5 | [03 §providers](../03-app-and-api/02-layout-and-providers.md) — the provider nothing mounts |
-| `usage/` | 1 | 66 | 4 | [04 §usage accounting](../04-ai-provider-layer/07-usage-accounting.md) |
-| `constants/` | 2 | 56 | 5 | [06](../06-generation-pipeline/index.md) |
-| `live/` | 1 | 54 | 2 | [10](../10-persistence-and-state/index.md); one file, `apiRenameStage`. The name is misleading — see [glossary](../glossary.md) |
-| `storage/` | 1 | 32 | 9 | [10/01b](../10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md) — **not** `@openmaic/storage` |
-| `interactive/` | 1 | 29 | 2 | [08 §interactive sandbox](../08-classroom-runtime/09-interactive-scene-sandbox.md) — one file, `logical-viewport.ts` |
-| `logger.ts` (loose file) | 1 | — | — | [15 §observability](../15-cross-cutting/08-observability.md) |
+| `persistence/` | 13 | 1 783 | 44 | [10 §storage abstraction](docs/10-persistence-and-state/01-storage-abstraction.md) |
+| `playback/` | 8 | 1 651 | 29 | [08 §state machine](docs/08-classroom-runtime/02-playback-state-machine.md) |
+| `pdf/` | 6 | 1 604 | 13 | [06 §ingestion](docs/06-generation-pipeline/02-document-ingestion.md) |
+| `agent/` | 9 | 1 479 | 17 | [05 §client/server split](docs/05-agent-runtime/02-client-server-split.md) |
+| `whiteboard/` | 7 | 1 470 | 12 | [09 §whiteboard](docs/09-media-and-export/03-whiteboard.md) |
+| `document-store/` | 10 | 1 354 | 13 | [10 §storage abstraction](docs/10-persistence-and-state/01-storage-abstraction.md) |
+| `quiz/` | 5 | 1 314 | 4 | [06 §quiz and grading](docs/06-generation-pipeline/09-quiz-and-grading.md) — thin; `runtime.ts` alone is 22 KB |
+| `prosemirror/` | 16 | 1 152 | 3 | [07 §editor](docs/07-dsl-renderer-editor/04-editor-prosemirror.md) — thin, and 9 of its files are byte-identical to `@openmaic/editor` ([14/10](docs/14-code-quality/10-duplication-and-dead-code.md)) |
+| `choreography/` | 8 | 1 147 | 21 | [08 §choreography](docs/08-classroom-runtime/03-choreography.md) |
+| `classroom/` | 6 | 1 024 | 9 | [08](docs/08-classroom-runtime/index.md) |
+| `api/` | 9 | 1 799 | 10 | [03 §API conventions](docs/03-app-and-api/06-api-layer-conventions.md) |
+| `action/` | 1 | 902 | 27 | [07 §DSL schema](docs/07-dsl-renderer-editor/01-dsl-schema.md), [08](docs/08-classroom-runtime/index.md) |
+| `i18n/` | 5 | 824 | 7 | [10 §i18n](docs/10-persistence-and-state/07-i18n.md) |
+| `rag/` | 9 | 810 | 4 | [06 §ingestion](docs/06-generation-pipeline/02-document-ingestion.md) — thin |
+| `buffer/` | 1 | 749 | 13 | [08 §buffering](docs/08-classroom-runtime/04-buffering-and-prefetch.md) |
+| `import/` | 2 | 688 | 9 | [07 §importer](docs/07-dsl-renderer-editor/06-importer-pptx-to-dsl.md) |
+| `config/` | 3 | 661 | 38 | [15 §configuration](docs/15-cross-cutting/06-configuration.md) |
+| `runtime/` | 4 | 373 | 10 | [10 §storage abstraction](docs/10-persistence-and-state/01-storage-abstraction.md) |
+| `contexts/` | 2 | 257 | 2 | [03 §providers](docs/03-app-and-api/02-layout-and-providers.md), [10/01b](docs/10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md) — thin |
+| `media-parse/` | 4 | 236 | 2 | [06 §ingestion](docs/06-generation-pipeline/02-document-ingestion.md) — thin |
+| `prompts/` | 3 | 235 | 4 | [06 §prompt architecture](docs/06-generation-pipeline/06-prompt-architecture.md) — thin |
+| `agent-runtime/` | 2 | 175 | 9 | [05](docs/05-agent-runtime/index.md); isomorphic lifecycle constants only |
+| `brand/` | 2 | 79 | 5 | [03 §providers](docs/03-app-and-api/02-layout-and-providers.md) — the provider nothing mounts |
+| `usage/` | 1 | 66 | 4 | [04 §usage accounting](docs/04-ai-provider-layer/07-usage-accounting.md) |
+| `constants/` | 2 | 56 | 5 | [06](docs/06-generation-pipeline/index.md) |
+| `live/` | 1 | 54 | 2 | [10](docs/10-persistence-and-state/index.md); one file, `apiRenameStage`. The name is misleading — see [glossary](docs/glossary.md) |
+| `storage/` | 1 | 32 | 9 | [10/01b](docs/10-persistence-and-state/01b-adjacent-modules-and-name-collisions.md) — **not** `@openmaic/storage` |
+| `interactive/` | 1 | 29 | 2 | [08 §interactive sandbox](docs/08-classroom-runtime/09-interactive-scene-sandbox.md) — one file, `logical-viewport.ts` |
+| `logger.ts` (loose file) | 1 | — | — | [15 §observability](docs/15-cross-cutting/08-observability.md) |
 
 ```mermaid
 flowchart LR
@@ -314,20 +314,20 @@ the layer graph:
    `@openmaic/renderer` and `@openmaic/editor`, selected at runtime by
    `NEXT_PUBLIC_MAIC_PLAYBACK_RENDERER_ENABLED` and
    `NEXT_PUBLIC_MAIC_EDITOR_RENDERER_ENABLED`
-   (`lib/config/feature-flags.ts:55-66`). Four of the seven `lib/ → components/`
+   ([`lib/config/feature-flags.ts:55-66`](lib/config/feature-flags.ts#L55-L66)). Four of the seven `lib/ → components/`
    import sites originate in `lib/edit/`, the legacy half.
 2. **A duplicated generation orchestrator.** `lib/hooks/use-scene-generator.ts`
    (browser) and `lib/server/classroom-generation.ts` (headless) implement the
    same pipeline over the same primitives with different retry wiring and
    different partial-failure semantics
-   ([generation-pipeline](../appendix/research/generation-pipeline/00-overview.md)).
+   ([generation-pipeline](docs/appendix/research/generation-pipeline/00-overview.md)).
 
 ## Open questions
 
 - No lint wall exists for `lib/server/` even though it is the sharpest boundary
-  in the tree ([03-server-client-boundary.md](./03-server-client-boundary.md)).
+  in the tree ([03-server-client-boundary.md](docs/02-container-view/03-server-client-boundary.md)).
   Whether that is an oversight or a deliberate scoping decision is not recorded.
-- `render-service/**` is `globalIgnores`d by ESLint (`eslint.config.mjs:56`) and
+- `render-service/**` is `globalIgnores`d by ESLint ([`eslint.config.mjs:56`](eslint.config.mjs#L56)) and
   excluded from the root `tsconfig.json`, so the layering rules above do not
   apply to it at all. It has its own `tsconfig.json` and `typecheck` script but
   no ESLint config was found in `render-service/`.

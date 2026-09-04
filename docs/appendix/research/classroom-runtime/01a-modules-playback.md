@@ -5,15 +5,15 @@ scene sandbox).
 
 ## 1. Classroom load — `lib/classroom/`
 
-### `load-classroom.ts:111` `runClassroomLoad`
+### [`load-classroom.ts:111`](lib/classroom/load-classroom.ts#L111) `runClassroomLoad`
 
 A fully dependency-injected load pipeline: `RunClassroomLoadArgs`
-(`load-classroom.ts:56`) has 19 members, 16 of them injected functions. Order of
+([`load-classroom.ts:56`](lib/classroom/load-classroom.ts#L56)) has 19 members, 16 of them injected functions. Order of
 operations:
 
 1. `loadFromStorage(classroomId, loadToken)` — IndexedDB first.
 2. If the store still has no stage, `fetchClassroom` →
-   `GET /api/classroom?id=…` (`load-classroom.ts:261`) and
+   `GET /api/classroom?id=…` ([`load-classroom.ts:261`](lib/classroom/load-classroom.ts#L261)) and
    `applyFallbackScenes`.
 3. `loadRestoredMediaTasks` — metadata-only read of `db.mediaFiles`
    (`:359`), split into eager `tasks` and `deferred` records.
@@ -83,11 +83,11 @@ sidecar simply did not answer. `resolveStageFallbackAccess` (`:58`) defaults to
 
 ### Route duplication (real defect)
 
-`ClassroomSurface.tsx:4` claims it is "the classroom, wherever it is mounted",
-and `WorkspaceClassroomPane.tsx:168` uses it. But
-`app/classroom/[id]/page.tsx:28` still carries its **own copy** of the load body
+[`ClassroomSurface.tsx:4`](components/classroom/ClassroomSurface.tsx#L4) claims it is "the classroom, wherever it is mounted",
+and [`WorkspaceClassroomPane.tsx:168`](components/workbench/workspace/WorkspaceClassroomPane.tsx#L168) uses it. But
+[`app/classroom/[id]/page.tsx:28`](app/classroom/[id]/page.tsx#L28) still carries its **own copy** of the load body
 and does *not* import `ClassroomSurface`. The copies have already diverged: the
-route lacks the `notFound` terminal state (`ClassroomSurface.tsx:90`), the
+route lacks the `notFound` terminal state ([`ClassroomSurface.tsx:90`](components/classroom/ClassroomSurface.tsx#L90)), the
 `useCanvasStore.resetCanvasState()` call (`:184`), the
 `outlineProducer === 'server-job'` guard (`:239`) and
 `shouldResumeClassroomGeneration` (`:225`).
@@ -98,7 +98,7 @@ The state machine. 902 lines, one class, no React.
 
 ### States and transitions
 
-`EngineMode = 'idle' | 'playing' | 'paused' | 'live'` (`types.ts:18`).
+`EngineMode = 'idle' | 'playing' | 'paused' | 'live'` ([`types.ts:18`](lib/playback/types.ts#L18)).
 
 ```mermaid
 stateDiagram-v2
@@ -126,10 +126,10 @@ There is no single clock. Whichever of four mechanisms is live owns the advance:
 
 | Owner | Set up at | Advances by |
 | --- | --- | --- |
-| Pre-generated audio (`AudioPlayer`) | `engine.ts:589` `audioPlayer.onEnded(...)` | the player's end callback → `processNext` |
-| Browser-native TTS | `engine.ts:829` `utterance.onend` | per *sentence chunk*, then `playBrowserTTSChunk` recursion |
-| Reading timer (no audio) | `engine.ts:601` `scheduleReadingTimer` | `setTimeout(estimateSpeechDurationMs(text, {speed}))` |
-| `ActionEngine.execute` await | `engine.ts:735` | the action's own `delay()` |
+| Pre-generated audio (`AudioPlayer`) | [`engine.ts:589`](lib/playback/engine.ts#L589) `audioPlayer.onEnded(...)` | the player's end callback → `processNext` |
+| Browser-native TTS | [`engine.ts:829`](lib/playback/engine.ts#L829) `utterance.onend` | per *sentence chunk*, then `playBrowserTTSChunk` recursion |
+| Reading timer (no audio) | [`engine.ts:601`](lib/playback/engine.ts#L601) `scheduleReadingTimer` | `setTimeout(estimateSpeechDurationMs(text, {speed}))` |
+| `ActionEngine.execute` await | [`engine.ts:735`](lib/playback/engine.ts#L735) | the action's own `delay()` |
 
 Spotlight/laser do not advance a clock at all — they fire and `queueMicrotask`
 straight to `processNext` (`:672`), with the microtask explicitly there to avoid
@@ -157,7 +157,7 @@ stack overflow on long runs of consecutive effects.
 
 `invalidatePlaybackGeneration()` (`:493`) bumps a counter; every async
 continuation starts with `if (!this.isCurrentGeneration(generation)) return;`.
-There are 19 guard call sites, from `engine.ts:198` to `:838` (the name occurs 20
+There are 19 guard call sites, from [`engine.ts:198`](lib/playback/engine.ts#L198) to `:838` (the name occurs 20
 times in the file; the twentieth is the method's own declaration at `:498`). This is what makes
 `pause`, `stop`, `jumpToAction` and `handleUserInterrupt` safe against in-flight
 promises.
@@ -180,13 +180,13 @@ mutated. `WHITEBOARD_ACTION_TYPES` (`:25`) is the replay set.
 
 | Store | Scope | Key | Written by |
 | --- | --- | --- | --- |
-| `sessionStorage` | per tab, per scene | `openmaic:playback-action-resume:<stageId>` (`action-resume.ts:20`) | `saveActionResumePosition` on every `onProgress` |
-| KV `device` scope | per device, per stage | `playback-cursor:<stageId>` (`cursor.ts:36`) | `saveCursor`, debounced 1 s (`PlaybackChromeRoot.tsx:330`) |
+| `sessionStorage` | per tab, per scene | `openmaic:playback-action-resume:<stageId>` ([`action-resume.ts:20`](lib/playback/action-resume.ts#L20)) | `saveActionResumePosition` on every `onProgress` |
+| KV `device` scope | per device, per stage | `playback-cursor:<stageId>` ([`cursor.ts:36`](lib/playback/cursor.ts#L36)) | `saveCursor`, debounced 1 s ([`PlaybackChromeRoot.tsx:330`](components/edit/PlaybackChromeRoot.tsx#L330)) |
 
-`sessionStorage` wins: `PlaybackChromeRoot.tsx:690` only consults the KV cursor
+`sessionStorage` wins: [`PlaybackChromeRoot.tsx:690`](components/edit/PlaybackChromeRoot.tsx#L690) only consults the KV cursor
 when the session position is absent. Both are validated against live actions —
-the stored `actionId`/`actionType` must still match (`action-resume.ts:97`).
-Consumed-discussion state is **deliberately not persisted** (`cursor.ts:99`,
+the stored `actionId`/`actionType` must still match ([`action-resume.ts:97`](lib/playback/action-resume.ts#L97)).
+Consumed-discussion state is **deliberately not persisted** ([`cursor.ts:99`](lib/playback/cursor.ts#L99),
 citing #869: a re-shown discussion card auto-skips, so durability buys nothing).
 
 ## 3. Choreography spec — `lib/choreography/`
@@ -194,7 +194,7 @@ citing #869: a re-shown discussion card auto-skips, so durability buys nothing).
 The single source of truth shared with the video exporter. Machine-enforced pure:
 eslint blocks `@/…` paths, non-sibling imports, dynamic `import()`, `require()`,
 and any React/DOM/GSAP/framer-motion reference inside `lib/choreography/**`
-(`eslint.config.mjs:255-323`).
+([`eslint.config.mjs:255-323`](eslint.config.mjs#L255-L323)).
 
 | Module | Exports | Note |
 | --- | --- | --- |
@@ -203,33 +203,33 @@ and any React/DOM/GSAP/framer-motion reference inside `lib/choreography/**`
 | `timeline.ts` | `resolveActionTimeline`, `IMPLICIT_WB_OPEN`, `TimelineSegment` | Index-domain → wall-clock expansion |
 | `descriptors/` | `DESCRIPTORS`, `getDescriptor`, `spotlightV1`, `laserV1`, `AnimationDescriptorSchema` | zod-authored schema; TS types inferred from it |
 
-### `estimateSpeechDurationMs` (`timing.ts:113`)
+### `estimateSpeechDurationMs` ([`timing.ts:113`](lib/choreography/timing.ts#L113))
 
 CJK detected when `>30 %` of characters match
 `/[一-鿿㐀-䶿぀-ゟ゠-ヿ가-힯]/`; then `150 ms/char`, else `240 ms/word`
 (≈250 WPM); floored at `2000 ms`; then divided by playback speed. The engine's own
-`CJK_LANG_THRESHOLD = 0.3` (`engine.ts:60`) is a *separate* constant used only to
+`CJK_LANG_THRESHOLD = 0.3` ([`engine.ts:60`](lib/playback/engine.ts#L60)) is a *separate* constant used only to
 pick `zh-CN` vs `en-US` for a browser voice — same number, different purpose, two
 declarations.
 
 ### `resolveActionTimeline` semantics worth knowing
 
 - Models the *implicit* whiteboard open: a `wb_*` mutation on a closed board is
-  preceded by a synthetic `IMPLICIT_WB_OPEN` segment (`timeline.ts:319`), because
-  `ActionEngine.execute` awaits `ensureWhiteboardOpen` (`lib/action/engine.ts:229`).
+  preceded by a synthetic `IMPLICIT_WB_OPEN` segment ([`timeline.ts:319`](lib/choreography/timeline.ts#L319)), because
+  `ActionEngine.execute` awaits `ensureWhiteboardOpen` ([`lib/action/engine.ts:229`](lib/action/engine.ts#L229)).
 - `play_video` with an unresolved duration **throws by default**
-  (`timeline.ts:172`) rather than silently emitting a zero-length segment.
+  ([`timeline.ts:172`](lib/choreography/timeline.ts#L172)) rather than silently emitting a zero-length segment.
 - `clampFireAndForgetLifetimes` (`:368`) corrects effect lifetimes both ways: cut
   short at a scene boundary/completion, *extended* when a later effect resets the
-  single shared `ActionEngine.effectTimer` (`lib/action/engine.ts:308`).
+  single shared `ActionEngine.effectTimer` ([`lib/action/engine.ts:308`](lib/action/engine.ts#L308)).
 
 ### Descriptors are a mirror, not a source
 
-`DESCRIPTORS` is consumed **only** by `lib/video-export/passes/timeline.ts:67`
+`DESCRIPTORS` is consumed **only** by [`lib/video-export/passes/timeline.ts:67`](lib/video-export/passes/timeline.ts#L67)
 and by `tests/lib/choreography/descriptors.test.ts`. The app's own overlays
 (`packages/@openmaic/renderer/src/effects/SpotlightOverlay.tsx`,
 `LaserOverlay.tsx`) still hold their animation values in `motion/react` props.
-The descriptor files say so honestly — `spotlight.ts:8` "values captured verbatim
+The descriptor files say so honestly — [`spotlight.ts:8`](lib/choreography/descriptors/spotlight.ts#L8) "values captured verbatim
 from the `SpotlightOverlay` effect component" — but nothing mechanically keeps
 them in step.
 
@@ -263,7 +263,7 @@ segment.
 This is the mechanism that keeps the bubble text on screen while its audio plays.
 `shouldHoldAfterReveal()` returns `{ holding, segmentDone }`
 (`StreamBufferCallbacks.shouldHoldAfterReveal`, `:144`); the implementation is
-`useDiscussionTTS.shouldHold` (`use-discussion-tts.ts:469`), where
+`useDiscussionTTS.shouldHold` ([`use-discussion-tts.ts:469`](lib/hooks/use-discussion-tts.ts#L469)), where
 `segmentDone` is a monotonic counter of finished audio segments. The buffer
 snapshots that counter when it starts holding (`:574`) and releases when either
 `holding` goes false **or** the counter moves (`:520`) — which is what lets it
@@ -307,7 +307,7 @@ Two other details a reader will trip over:
 bubble, the text/voice input, the toolbar and the presentation overlay.
 
 Agent cast: `agentsToParticipants(selectedAgentIds, t)`
-(`lib/orchestration/registry/store.ts:280`) resolves the selected ids from the
+([`lib/orchestration/registry/store.ts:280`](lib/orchestration/registry/store.ts#L280)) resolves the selected ids from the
 registry, sorts teacher-first then by `priority` desc, and — if no agent declares
 `role === 'teacher'` — promotes the highest-priority agent into the teacher seat
 (`:298`). So there is always exactly one teacher on the left; everyone else is a
@@ -315,7 +315,7 @@ student on the right.
 
 Turn-taking is *not* decided here. The engine surfaces a `discussion` action as a
 `ProactiveCard`; the director behind `POST /api/chat`
-(`components/chat/use-chat-sessions.ts:1307`) decides which agent speaks; the
+([`components/chat/use-chat-sessions.ts:1307`](components/chat/use-chat-sessions.ts#L1307)) decides which agent speaks; the
 roundtable only reflects `speakingAgentId` / `thinkingState` / `liveSpeech`.
 
 Learner interruption paths, all funnelled through the same
@@ -323,18 +323,18 @@ Learner interruption paths, all funnelled through the same
 
 | Trigger | Roundtable handler | Effect |
 | --- | --- | --- |
-| `T` key or bubble tap | `handleToggleInput` (`:414`) → `onInputActivate` | `PlaybackChromeRoot.tsx:1656` pauses the live buffer + TTS **and** `engine.pause()` |
+| `T` key or bubble tap | `handleToggleInput` (`:414`) → `onInputActivate` | [`PlaybackChromeRoot.tsx:1656`](components/edit/PlaybackChromeRoot.tsx#L1656) pauses the live buffer + TTS **and** `engine.pause()` |
 | `V` key | `handleToggleVoice` (`:427`) | ASR via `useAudioRecorder`; transcription calls `onMessageSend` |
 | Send | `handleSendMessage` (`:403`) | local user bubble for 3 s, then `onMessageSend`, then a send cooldown until the agent bubble appears |
 | `Space` during live flow | `:473` | `onDiscussionPause` / `onDiscussionResume` — buffer-level, *not* engine-level |
 | `Escape` | `:455` | closes panels and cancels in-flight ASR |
 
-`Space` is arbitrated between two listeners: `PlaybackChromeRoot.tsx:1337`
+`Space` is arbitrated between two listeners: [`PlaybackChromeRoot.tsx:1337`](components/edit/PlaybackChromeRoot.tsx#L1337)
 explicitly breaks out of its own `Space` handler while
 `chatSessionType === 'qa' | 'discussion'` so the roundtable owns it during a live
 session and the engine owns it otherwise.
 
-### `computePlaybackView` — `lib/playback/derived-state.ts:77`
+### `computePlaybackView` — [`lib/playback/derived-state.ts:77`](lib/playback/derived-state.ts#L77)
 
 Pure reduction of 13 raw state fields into one `PlaybackView`
 (`phase`, `sourceText`, `bubbleRole`, `activeRole`, `buttonState`,

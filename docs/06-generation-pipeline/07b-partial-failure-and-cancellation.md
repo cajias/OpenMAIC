@@ -1,16 +1,16 @@
 # Partial Failure, Abort and Epoch Guarding
 
 Part 2 of the concurrency walkthrough. Fan-out shape and the four retry layers are in
-[`./07-concurrency-and-retry.md`](./07-concurrency-and-retry.md). This half answers the
+[`./07-concurrency-and-retry.md`](docs/06-generation-pipeline/07-concurrency-and-retry.md). This half answers the
 operational question: **what happens when one scene of twenty fails**, and what happens
 when the user walks away mid-run.
 
-**Sources:** `lib/hooks/use-scene-generator.ts:627-1053`,
-`lib/server/classroom-generation.ts:558-664`,
-`packages/@openmaic/generation/src/generation-retry.ts:27-52`, `:189-229`,
-`app/api/generate/scene-outlines-stream/route.ts:504-640`, `lib/store/stage.ts`;
-evidence: [`05-failure-modes.md`](../appendix/research/generation-pipeline/05-failure-modes.md),
-[`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
+**Sources:** [`lib/hooks/use-scene-generator.ts:627-1053`](lib/hooks/use-scene-generator.ts#L627-L1053),
+[`lib/server/classroom-generation.ts:558-664`](lib/server/classroom-generation.ts#L558-L664),
+[`packages/@openmaic/generation/src/generation-retry.ts:27-52`](packages/@openmaic/generation/src/generation-retry.ts#L27-L52), [`:189-229`](packages/@openmaic/generation/src/generation-retry.ts#L189-L229),
+[`app/api/generate/scene-outlines-stream/route.ts:504-640`](app/api/generate/scene-outlines-stream/route.ts#L504-L640), `lib/store/stage.ts`;
+evidence: [`05-failure-modes.md`](docs/appendix/research/generation-pipeline/05-failure-modes.md),
+[`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
 
 ## Partial failure in the browser loop
 
@@ -35,7 +35,7 @@ stateDiagram-v2
   Completed --> [*]
 ```
 
-The exact difference between the two modes, at `use-scene-generator.ts:776-794`:
+The exact difference between the two modes, at [`use-scene-generator.ts:776-794`](lib/hooks/use-scene-generator.ts#L776-L794):
 
 | | Serial (`PARALLEL_SCENE_CONCURRENCY` unset) | Parallel (`> 1`, `pending.length > 1`) |
 | --- | --- | --- |
@@ -122,7 +122,7 @@ flowchart TD
 
 ## Partial failure in the headless job
 
-Different semantics, same primitives (`lib/server/classroom-generation.ts:558-657`):
+Different semantics, same primitives ([`lib/server/classroom-generation.ts:558-657`](lib/server/classroom-generation.ts#L558-L657)):
 
 | Failure | Behaviour |
 | --- | --- |
@@ -181,11 +181,11 @@ The abort signal is threaded end to end:
 
 | Point | Mechanism |
 | --- | --- |
-| Browser `fetch` | one `AbortController` per run, its `signal` passed to every `fetch` (`use-scene-generator.ts:640-641`) |
-| Inside `withGenerationRetry` | `throwIfAborted` at loop top, post-operation, and before each sleep (`generation-retry.ts:189`, `:193`, `:207`, `:214`, `:228`) — plus `defaultSleep` rejecting on abort (`:34-37`) |
-| Route to provider | `abortSignal: req.signal` on the outline stream (`scene-outlines-stream/route.ts:504`, `:511`) |
+| Browser `fetch` | one `AbortController` per run, its `signal` passed to every `fetch` ([`use-scene-generator.ts:640-641`](lib/hooks/use-scene-generator.ts#L640-L641)) |
+| Inside `withGenerationRetry` | `throwIfAborted` at loop top, post-operation, and before each sleep ([`generation-retry.ts:189`](packages/@openmaic/generation/src/generation-retry.ts#L189), [`:193`](packages/@openmaic/generation/src/generation-retry.ts#L193), [`:207`](packages/@openmaic/generation/src/generation-retry.ts#L207), [`:214`](packages/@openmaic/generation/src/generation-retry.ts#L214), [`:228`](packages/@openmaic/generation/src/generation-retry.ts#L228)) — plus `defaultSleep` rejecting on abort ([`:34-37`](packages/@openmaic/generation/src/generation-retry.ts#L34-L37)) |
+| Route to provider | `abortSignal: req.signal` on the outline stream ([`scene-outlines-stream/route.ts:504`](app/api/generate/scene-outlines-stream/route.ts#L504), [`:511`](app/api/generate/scene-outlines-stream/route.ts#L511)) |
 | Inside the SSE loop | `req.signal?.aborted` checked per chunk (`:536`) **and** in the catch (`:636`), so a client disconnect does not burn a retry |
-| Loop exit | `isAbortError(err)` swallows the abort into `status: paused` rather than an error (`use-scene-generator.ts:887-889`) |
+| Loop exit | `isAbortError(err)` swallows the abort into `status: paused` rather than an error ([`use-scene-generator.ts:887-889`](lib/hooks/use-scene-generator.ts#L887-L889)) |
 
 `generateAndStoreTTS` and `fetchSceneContent`/`fetchSceneActions` all **rethrow** aborts
 rather than converting them to a failure result (`:188`, `:237`, `:540`) — the loop's own
@@ -193,7 +193,7 @@ catch is the single place an abort becomes a state change.
 
 `defaultSleep` is worth reading: it rejects immediately if the signal is already aborted,
 registers a `{ once: true }` abort listener that clears the timeout, and removes the listener
-on the normal path (`generation-retry.ts:27-46`). So a cancelled run never sits in a 16-second
+on the normal path ([`generation-retry.ts:27-46`](packages/@openmaic/generation/src/generation-retry.ts#L27-L46)). So a cancelled run never sits in a 16-second
 backoff.
 
 ## Epoch guarding
@@ -253,11 +253,11 @@ loop `/api/generate/tts` indefinitely.
 
 | Layer | Partial failure allowed? | What survives |
 | --- | --- | --- |
-| One document of a multi-document bundle | **No** — `Promise.all` (`app/generation-preview/page.tsx:340`) | nothing; the run reports a preparation error |
-| One page or one image inside a document | Yes | the rest of the document (`lib/pdf/pdf-providers.ts:308`, `:312`) |
+| One document of a multi-document bundle | **No** — `Promise.all` ([`app/generation-preview/page.tsx:340`](app/generation-preview/page.tsx#L340)) | nothing; the run reports a preparation error |
+| One page or one image inside a document | Yes | the rest of the document ([`lib/pdf/pdf-providers.ts:308`](lib/pdf/pdf-providers.ts#L308), [`:312`](lib/pdf/pdf-providers.ts#L312)) |
 | One outline in the stream | n/a — the whole stream retries, or errors | either all parsed outlines or none |
-| One element inside a slide | Yes | the rest of the slide (`scene-generator.ts:511`) |
-| One `latex` element | Yes | the rest of the slide (`scene-generator.ts:574`, `:591`) |
+| One element inside a slide | Yes | the rest of the slide ([`scene-generator.ts:511`](packages/@openmaic/generation/src/scene-generator.ts#L511)) |
+| One `latex` element | Yes | the rest of the slide ([`scene-generator.ts:574`](packages/@openmaic/generation/src/scene-generator.ts#L574), [`:591`](packages/@openmaic/generation/src/scene-generator.ts#L591)) |
 | One image with no mapping entry | Yes | the element is removed, the slide survives |
 | One vision image | Yes | a text description replaces the attachment |
 | One action | Yes | remaining actions, or the canned default list |
@@ -278,7 +278,7 @@ loop `/api/generate/tts` indefinitely.
   than the previous one.
 - **Why the outline stream retries without backoff** when a rate limit is the likeliest cause
   of an empty attempt. See
-  [`./03b-outline-streaming.md`](./03b-outline-streaming.md#whole-stream-retry).
+  [`./03b-outline-streaming.md`](docs/06-generation-pipeline/03b-outline-streaming.md#whole-stream-retry).
 - **Whether the one document that fails a bundle should be tolerated.** Every other layer in
-  the pipeline degrades; `Promise.allSettled` at `app/generation-preview/page.tsx:340` would
+  the pipeline degrades; `Promise.allSettled` at [`app/generation-preview/page.tsx:340`](app/generation-preview/page.tsx#L340) would
   make ingestion match.

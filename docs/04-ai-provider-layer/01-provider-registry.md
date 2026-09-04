@@ -3,17 +3,17 @@
 Every provider OpenMAIC can talk to, the transport it uses, and the exact ordered decision
 procedure `getModel()` follows to turn a `(providerId, modelId, apiKey, baseUrl, proxy)` tuple
 into a Vercel AI SDK `LanguageModel`. This is the "how do we speak to a vendor" half of the
-layer; "which vendor" is [./03-stage-routing.md](./03-stage-routing.md).
+layer; "which vendor" is [./03-stage-routing.md](docs/04-ai-provider-layer/03-stage-routing.md).
 
 **Sources:** `lib/ai/providers.ts`, `lib/types/provider.ts`, `lib/ai/azure.ts`,
 `lib/ai/reasoning-sse.ts`, `lib/ai/model-aliases.ts`, `package.json`;
-[../appendix/research/ai-provider-layer/01a-modules-catalog.md](../appendix/research/ai-provider-layer/01a-modules-catalog.md),
-[../appendix/research/ai-provider-layer/02-interfaces.md](../appendix/research/ai-provider-layer/02-interfaces.md).
+[../appendix/research/ai-provider-layer/01a-modules-catalog.md](docs/appendix/research/ai-provider-layer/01a-modules-catalog.md),
+[../appendix/research/ai-provider-layer/02-interfaces.md](docs/appendix/research/ai-provider-layer/02-interfaces.md).
 
 ## The abstraction, verbatim
 
 Five types carry the whole contract. All are in `lib/types/provider.ts` and re-exported from
-`lib/ai/providers.ts:67`.
+[`lib/ai/providers.ts:67`](lib/ai/providers.ts#L67).
 
 ```ts
 // lib/types/provider.ts:33
@@ -58,7 +58,7 @@ export interface ModelWithInfo {
 ```
 
 `ProviderId` is a union containing a template-literal member (`` `custom-${string}` ``), so
-`Record<ProviderId, ProviderConfig>` at `lib/ai/providers.ts:75` behaves as an index signature and
+`Record<ProviderId, ProviderConfig>` at [`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75) behaves as an index signature and
 does **not** force exhaustiveness over `BuiltInProviderId`. All 19 built-ins happen to be present;
 the type does not require it.
 
@@ -130,7 +130,7 @@ classDiagram
 ## The 19 providers
 
 Registry order is source order and is what the settings UI renders. Model counts and capability
-counts were computed by evaluating the literal at `lib/ai/providers.ts:75`.
+counts were computed by evaluating the literal at [`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75).
 
 | Key | Line | `type` | Key required | Models | `defaultBaseUrl` |
 | --- | --- | --- | --- | --- | --- |
@@ -157,17 +157,17 @@ counts were computed by evaluating the literal at `lib/ai/providers.ts:75`.
 Consequences worth internalising:
 
 - **14 of 19 providers share the `openai` transport.** `minimax` is served over the
-  *Anthropic*-compatible transport (`type: 'anthropic'`, `lib/ai/providers.ts:1043`), which is why
+  *Anthropic*-compatible transport (`type: 'anthropic'`, [`lib/ai/providers.ts:1043`](lib/ai/providers.ts#L1043)), which is why
   its base URL is force-suffixed to `…/anthropic/v1`.
-- **`azure` ships zero models by design** (`lib/ai/providers.ts:215`–`:226`): Azure addresses
+- **`azure` ships zero models by design** ([`lib/ai/providers.ts:215`](lib/ai/providers.ts#L215)–[`:226`](lib/ai/providers.ts#L226)): Azure addresses
   *deployment names*, not catalog model ids, and `supportsModelDiscovery: false` tells the
   settings UI not to offer probing. `modelInfo` is therefore `null` for Azure *unless* the operator
   declares per-model capabilities under `providers.azure.models[]` in `server-providers.yml`:
-  `getServerModelInfo()` (`lib/server/provider-config.ts:709`) then supplies the whole `ModelInfo`
-  through the merge at `lib/ai/providers.ts:2323`–`:2335`, and vision / thinking gating applies as
-  usual (see [./02b-capability-shapes-and-gating.md](./02b-capability-shapes-and-gating.md)).
+  `getServerModelInfo()` ([`lib/server/provider-config.ts:709`](lib/server/provider-config.ts#L709)) then supplies the whole `ModelInfo`
+  through the merge at [`lib/ai/providers.ts:2323`](lib/ai/providers.ts#L2323)–[`:2335`](lib/ai/providers.ts#L2335), and vision / thinking gating applies as
+  usual (see [./02b-capability-shapes-and-gating.md](docs/04-ai-provider-layer/02b-capability-shapes-and-gating.md)).
 - **Three providers are keyless** (`bedrock`, `ollama`, `lemonade`). `requiresApiKey: false` is
-  what lets `getModel()` skip the key check at `lib/ai/providers.ts:2054`;
+  what lets `getModel()` skip the key check at [`lib/ai/providers.ts:2054`](lib/ai/providers.ts#L2054);
   `isProviderKeyRequired()` (`:2025`) defaults to `true` for anything unknown.
 - **`atlascloud` is the only provider with `supportsModelDiscovery: true`** (`:227`); everyone
   else either has no flag (UI decides) or has it explicitly off.
@@ -187,7 +187,7 @@ input. The `label` values are i18n keys, not display text.
 
 ### Custom providers
 
-`ProviderId` admits `custom-<slug>`. `getProviderConfig()` (`lib/ai/providers.ts:1558`) checks the
+`ProviderId` admits `custom-<slug>`. `getProviderConfig()` ([`lib/ai/providers.ts:1558`](lib/ai/providers.ts#L1558)) checks the
 built-in map first, then — **only when `typeof window !== 'undefined'`** — parses
 `localStorage.getItem('providersConfig')` (`:1567`). Server-side there is no localStorage, so a
 `custom-*` id resolves to `null` and `getModel()` throws `Unknown provider: …` unless the caller
@@ -196,7 +196,7 @@ providers work because the browser sends `x-provider-type` alongside `x-model`.
 
 ## `getModel()` — the ordered decision procedure
 
-`getModel(config: ModelConfig): ModelWithInfo` at `lib/ai/providers.ts:2033`. Every step is a
+`getModel(config: ModelConfig): ModelWithInfo` at [`lib/ai/providers.ts:2033`](lib/ai/providers.ts#L2033). Every step is a
 guard or a branch; there is no configuration object and no registry of factories.
 
 ```mermaid
@@ -249,11 +249,11 @@ built-ins and only sends it for `custom-*` ids.
 ### Base URL precedence and the two normalizers
 
 `config.baseUrl` → `provider.defaultBaseUrl` → `undefined` (SDK default), computed once at
-`lib/ai/providers.ts:2062`. Two normalizers then run:
+[`lib/ai/providers.ts:2062`](lib/ai/providers.ts#L2062). Two normalizers then run:
 
 - `normalizeMiniMaxAnthropicBaseUrl` (`:1755`) applies **only** to `providerId === 'minimax'` and
   force-appends `/anthropic/v1` unless the URL already ends in `/anthropic/v1` or `/anthropic`.
-- `normalizeAzureBaseUrl` (`lib/ai/azure.ts:9`) runs only in the `azure` branch. It clears query
+- `normalizeAzureBaseUrl` ([`lib/ai/azure.ts:9`](lib/ai/azure.ts#L9)) runs only in the `azure` branch. It clears query
   and hash, strips a trailing `/chat/completions` or `/responses`, strips
   `/deployments/<name>`, and for `*.openai.azure.com` hosts strips a trailing `/v1` and defaults
   the path to `/openai` (the SDK adds `/v1` back for classic hosts but not for Azure AI Foundry
@@ -263,7 +263,7 @@ built-ins and only sends it for `custom-*` ids.
 
 The five `switch (providerType)` branches, the three predicates that shape the `openai` branch, the
 `compatFetch` request/response seam, and the SDK packages behind them are documented in
-[./01b-adapter-transports.md](./01b-adapter-transports.md).
+[./01b-adapter-transports.md](docs/04-ai-provider-layer/01b-adapter-transports.md).
 
 ## Model-string parsing
 
@@ -281,12 +281,12 @@ bare id with no colon silently defaults to `providerId: 'openai'` (`:2388`). The
 warning there is deliberate and commented (`:2384`–`:2387`): the path is reachable with
 request-controlled strings, which must not drive log volume or grow a dedupe set. Config-derived
 bare ids are warned about instead, once per unique id, by `warnBareModelIdDeprecation` (`:2359`)
-called from boot validation — see [./05-boot-validation.md](./05-boot-validation.md).
+called from boot validation — see [./05-boot-validation.md](docs/04-ai-provider-layer/05-boot-validation.md).
 
-`findModelById` (`lib/ai/model-aliases.ts:13`) resolves catalog lookups through
+`findModelById` ([`lib/ai/model-aliases.ts:13`](lib/ai/model-aliases.ts#L13)) resolves catalog lookups through
 `getCanonicalModelId`, so an alias never changes the id sent on the wire.
 `MODEL_ID_ALIASES` currently holds exactly one entry: `openai:gpt-5.6-sol → gpt-5.6`
-(`lib/ai/model-aliases.ts:1`).
+([`lib/ai/model-aliases.ts:1`](lib/ai/model-aliases.ts#L1)).
 
 ## Open questions
 

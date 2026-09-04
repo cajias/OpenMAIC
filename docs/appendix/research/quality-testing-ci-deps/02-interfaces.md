@@ -3,7 +3,7 @@
 Every signature below is copied verbatim from the cited file. Nothing here is
 paraphrased.
 
-Continued in `02b-interfaces-gate-contracts.md`, which covers
+Continued in [`02b-interfaces-gate-contracts.md`](docs/appendix/research/quality-testing-ci-deps/02b-interfaces-gate-contracts.md), which covers
 `scripts/openmaic-packages.mjs`, the sixteen gate CLIs, the CI↔test environment
 contract, and the Playwright fixture surface.
 
@@ -65,7 +65,7 @@ classDiagram
   WhiteboardEvalReport "1" *-- "many" ScenarioRunResult
 ```
 
-Source: `eval/whiteboard-layout/types.ts:6-72`. The nullable
+Source: [`eval/whiteboard-layout/types.ts:6-72`](eval/whiteboard-layout/types.ts#L6-L72). The nullable
 `score: VlmScore | null` at line 54 carries the comment "null when VLM scoring
 failed — screenshot is still preserved", which is the harness's whole
 degradation contract.
@@ -81,7 +81,7 @@ export async function scoreScreenshot(
 ```
 
 The rubric is a single 43-line template literal at
-`eval/whiteboard-layout/scorer.ts:17-59` scoring five dimensions 1-10 plus a
+[`eval/whiteboard-layout/scorer.ts:17-59`](eval/whiteboard-layout/scorer.ts#L17-L59) scoring five dimensions 1-10 plus a
 holistic `overall` and 1-5 `issues`. It is invoked with `temperature: 0` and
 `maxOutputTokens: 3000` (lines 86-87). Parsing is defensive in two stages: a
 `/\{[\s\S]*\}/` extraction, then `JSON.parse`, then a retry after stripping
@@ -123,7 +123,7 @@ export function endRate(samples: { isEnd: boolean; error?: string }[]): number
 
 `classifyDecision` delegates to the *production* parser
 `parseDirectorDecision` from `@/lib/orchestration/director-prompt`
-(`eval/orchestration/judge.ts:10`). That is the reason this harness needs no LLM
+([`eval/orchestration/judge.ts:10`](eval/orchestration/judge.ts#L10)). That is the reason this harness needs no LLM
 judge — the verdict is derived from the same code the product runs.
 
 ```ts
@@ -164,7 +164,7 @@ export interface EvalReport {
 ```
 
 `discriminates` is explicitly labelled informational; only `allPostFixPass`
-drives the exit code (`eval/orchestration/runner.ts:187`).
+drives the exit code ([`eval/orchestration/runner.ts:187`](eval/orchestration/runner.ts#L187)).
 
 ## Outline-language harness
 
@@ -283,7 +283,7 @@ export function renderSummaryTable(headers: string[], rows: string[][]): string[
 lines 7-8 says "Never introduces a hardcoded default model string — evals must
 be explicit about what they measure." `createRunDir` sanitises `:` and `/` in the
 model string to `-` and truncates the ISO timestamp to second precision
-(`eval/shared/run-dir.ts:11-12`).
+([`eval/shared/run-dir.ts:11-12`](eval/shared/run-dir.ts#L11-L12)).
 
 ## Threshold surface across the five harnesses
 
@@ -309,4 +309,4 @@ flowchart LR
   WB -->|"always 0"| EX
 ```
 
-Continue to `02b-interfaces-gate-contracts.md` for the gate-side interfaces.
+Continue to [`02b-interfaces-gate-contracts.md`](docs/appendix/research/quality-testing-ci-deps/02b-interfaces-gate-contracts.md) for the gate-side interfaces.

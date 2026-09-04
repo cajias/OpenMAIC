@@ -1,6 +1,6 @@
 # 06c — Measured metrics: scale, module size, dependency counts, gate inventory
 
-Continues `06-quality-and-metrics.md`. Same caveat applies: `node_modules` absent,
+Continues [`06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md). Same caveat applies: `node_modules` absent,
 so every figure is static.
 
 ## Where the mass is
@@ -176,33 +176,33 @@ flowchart LR
 
 | Gate | Enforced where | Blocking? |
 | --- | --- | --- |
-| Prettier `--check` | `ci.yml:128` via `ci-run-parallel.sh` | yes (excludes `*.md`, `*.yml`, `*.yaml`) |
-| ESLint (10 blocks, 7 boundary walls) | `ci.yml:129` | yes |
-| `tsc --noEmit` (root config, includes `tests/` + `eval/`) | `ci.yml:130` | yes |
-| `tsc` for generation (× 2 configs), storage (× 2), renderer, editor, dsl | `ci.yml:146,184` + `publish-packages.yml:223-225` | yes |
-| `tsc` for `render-service` | `ci.yml:216` | yes |
+| Prettier `--check` | [`ci.yml:128`](.github/workflows/ci.yml#L128) via `ci-run-parallel.sh` | yes (excludes `*.md`, `*.yml`, `*.yaml`) |
+| ESLint (10 blocks, 7 boundary walls) | [`ci.yml:129`](.github/workflows/ci.yml#L129) | yes |
+| `tsc --noEmit` (root config, includes `tests/` + `eval/`) | [`ci.yml:130`](.github/workflows/ci.yml#L130) | yes |
+| `tsc` for generation (× 2 configs), storage (× 2), renderer, editor, dsl | `ci.yml:146,184` + [`publish-packages.yml:223-225`](.github/workflows/publish-packages.yml#L223-L225) | yes |
+| `tsc` for `render-service` | [`ci.yml:216`](.github/workflows/ci.yml#L216) | yes |
 | `tsc` for `e2e/` | **nowhere** | no |
-| i18n leaf-key parity | `ci.yml:131` | yes |
-| Root Vitest (666 files — the root `tests/` suite only) | `ci.yml:137` | yes |
+| i18n leaf-key parity | [`ci.yml:131`](.github/workflows/ci.yml#L131) | yes |
+| Root Vitest (666 files — the root `tests/` suite only) | [`ci.yml:137`](.github/workflows/ci.yml#L137) | yes |
 | Package Vitest × 5 | `ci.yml:140,143,149,187` + release job | yes |
-| `render-service` Vitest | `ci.yml:220` | yes |
-| Playwright (15 specs) | `ci.yml:333` | yes |
+| `render-service` Vitest | [`ci.yml:220`](.github/workflows/ci.yml#L220) | yes |
+| Playwright (15 specs) | [`ci.yml:333`](.github/workflows/ci.yml#L333) | yes |
 | Two browser Vitest suites | `ci.yml:272,277` | yes |
-| Hyperframes lint × 7 samples | `ci.yml:289-311` | yes |
-| Node consumer smoke (generation) | `ci.yml:151-178` | yes |
-| Docker build of `render-service` | `ci.yml:223` | yes |
-| Parallel-runner self-test | `ci.yml:41-50` | yes |
+| Hyperframes lint × 7 samples | [`ci.yml:289-311`](.github/workflows/ci.yml#L289-L311) | yes |
+| Node consumer smoke (generation) | [`ci.yml:151-178`](.github/workflows/ci.yml#L151-L178) | yes |
+| Docker build of `render-service` | [`ci.yml:223`](.github/workflows/ci.yml#L223) | yes |
+| Parallel-runner self-test | [`ci.yml:41-50`](.github/workflows/ci.yml#L41-L50) | yes |
 | Package version bumps | `ci.yml:61,79` + `publish-packages.yml:115,375` | yes |
-| Internal dependency ranges | `ci.yml:89` | yes |
-| Node engine contract | `ci.yml:94` | yes |
-| Tracked-file-rewrite check | `ci.yml:107-121`, `publish-packages.yml:143-157,338-350` | yes |
-| PostgreSQL contract audit (3 of 6 suites) | `storage-pg-contract.yml:53-64` + release job | yes |
+| Internal dependency ranges | [`ci.yml:89`](.github/workflows/ci.yml#L89) | yes |
+| Node engine contract | [`ci.yml:94`](.github/workflows/ci.yml#L94) | yes |
+| Tracked-file-rewrite check | [`ci.yml:107-121`](.github/workflows/ci.yml#L107-L121), `publish-packages.yml:143-157,338-350` | yes |
+| PostgreSQL contract audit (3 of 6 suites) | [`storage-pg-contract.yml:53-64`](.github/workflows/storage-pg-contract.yml#L53-L64) + release job | yes |
 | Tarball digest verification (× 3) | `publish-packages.yml:179,184,274,373` | yes |
-| Tarball install smoke test | `publish-packages.yml:237` | yes |
-| First-parent-history check | `publish-packages.yml:284-296` | yes |
-| Green-`ci.yml`-for-this-SHA poll | `publish-packages.yml:301-331` | yes |
-| Docs site build | `docs-build.yml:36` (path-filtered) | yes |
-| ClawHub bash 3.2 compatibility | `publish-openmaic-skill.yml:56-112` | yes (PR only) |
+| Tarball install smoke test | [`publish-packages.yml:237`](.github/workflows/publish-packages.yml#L237) | yes |
+| First-parent-history check | [`publish-packages.yml:284-296`](.github/workflows/publish-packages.yml#L284-L296) | yes |
+| Green-`ci.yml`-for-this-SHA poll | [`publish-packages.yml:301-331`](.github/workflows/publish-packages.yml#L301-L331) | yes |
+| Docs site build | [`docs-build.yml:36`](.github/workflows/docs-build.yml#L36) (path-filtered) | yes |
+| ClawHub bash 3.2 compatibility | [`publish-openmaic-skill.yml:56-112`](.github/workflows/publish-openmaic-skill.yml#L56-L112) | yes (PR only) |
 | Coverage threshold | **nowhere** | no |
 | Licence scan | **nowhere** | no |
 | Dependency audit / SCA | **nowhere** | no |
@@ -214,4 +214,4 @@ runs inside `pnpm build` rather than as its own step, so it gates the `e2e` job'
 build and any Vercel/Docker build, but does not appear as a named check.
 
 Observations drawn from this table, ranked by consequence, are in
-`06b-quality-observations.md`.
+[`06b-quality-observations.md`](docs/appendix/research/quality-testing-ci-deps/06b-quality-observations.md).

@@ -58,7 +58,7 @@ export interface SpeechEstimateOptions {
 export function estimateSpeechDurationMs(text: string, opts?: SpeechEstimateOptions): number;
 ```
 
-Module-private constants that define the estimate (`timing.ts:83-95`):
+Module-private constants that define the estimate ([`timing.ts:83-95`](lib/choreography/timing.ts#L83-L95)):
 `CJK_REGEX = /[一-鿿㐀-䶿぀-ゟ゠-ヿ가-힯]/g`, `CJK_RATIO_THRESHOLD = 0.3`,
 `MIN_READING_MS = 2000`, `CJK_MS_PER_CHAR = 150`, `NON_CJK_MS_PER_WORD = 240`.
 
@@ -127,7 +127,7 @@ flowchart TD
   CLAMP --> OUT["TimelineSegment list in play order"]
 ```
 
-`clampFireAndForgetLifetimes` (`timeline.ts:368`) is the subtle one: an effect's
+`clampFireAndForgetLifetimes` ([`timeline.ts:368`](lib/choreography/timeline.ts#L368)) is the subtle one: an effect's
 visual `durationMs` is cut short at the next scene's start or at completion
 (because the app tears the engine down per scene), and *extended* when a later
 effect in the same scene resets `ActionEngine`'s single shared `effectTimer`
@@ -231,7 +231,7 @@ the getters `paused` / `disposed`.
 `sealLastText()` first (`:218`, `:224`, `:264`, `:288`) — that ordering is what
 makes `onSegmentSealed` fire with the *correct* `currentAgentId` (`:476`).
 
-## 6. Host handle — `components/edit/PlaybackChromeRoot.tsx:87`
+## 6. Host handle — [`components/edit/PlaybackChromeRoot.tsx:87`](components/edit/PlaybackChromeRoot.tsx#L87)
 
 ```ts
 export interface PlaybackChromeRootHandle {
@@ -241,5 +241,5 @@ export interface PlaybackChromeRootHandle {
 ```
 
 The only imperative escape hatch out of the playback chrome. `Stage` awaits it
-before flipping to edit mode (`components/stage.tsx:221`) because unmount cleanup
+before flipping to edit mode ([`components/stage.tsx:221`](components/stage.tsx#L221)) because unmount cleanup
 alone would be fire-and-forget and could not guarantee SSE was aborted first.

@@ -12,21 +12,21 @@ and the audio format/duration contract that the rest of the system depends on.
 `lib/audio/voice-resolver.ts`, `lib/audio/voice-catalog.ts`,
 `lib/server/provider-config.ts`,
 `lib/server/classroom-media-generation.ts`, `app/api/generate/tts/route.ts`;
-[`../appendix/research/media-audio-video/02a-interfaces-tts-asr.md`](../appendix/research/media-audio-video/02a-interfaces-tts-asr.md),
-[`../appendix/research/media-audio-video/01a-modules-audio-media.md`](../appendix/research/media-audio-video/01a-modules-audio-media.md).
+[`../appendix/research/media-audio-video/02a-interfaces-tts-asr.md`](docs/appendix/research/media-audio-video/02a-interfaces-tts-asr.md),
+[`../appendix/research/media-audio-video/01a-modules-audio-media.md`](docs/appendix/research/media-audio-video/01a-modules-audio-media.md).
 
 ## 1. The adapter contract
 
-Three types carry everything. `TTSProviderConfig` (`lib/audio/types.ts:113`) is
+Three types carry everything. `TTSProviderConfig` ([`lib/audio/types.ts:113`](lib/audio/types.ts#L113)) is
 static registry metadata; `TTSModelConfig` (`:151`) is one call; and
-`TTSGenerationResult` (`lib/audio/tts-providers.ts:111`) is
+`TTSGenerationResult` ([`lib/audio/tts-providers.ts:111`](lib/audio/tts-providers.ts#L111)) is
 `{ audio: Uint8Array; format: string }` — bytes plus a format label, nothing
 else. There is no streaming variant and no partial result.
 
 Provider ids are an *open* union: `TTSProviderId = BuiltInTTSProviderId |
-` `` `custom-tts-${string}` `` (`lib/audio/types.ts:94`). An id matching
+` `` `custom-tts-${string}` `` ([`lib/audio/types.ts:94`](lib/audio/types.ts#L94)). An id matching
 `custom-tts-*` falls through the dispatch switch to the OpenAI-compatible
-implementation (`tts-providers.ts:252`), which is how a self-hosted
+implementation ([`tts-providers.ts:252`](lib/audio/tts-providers.ts#L252)), which is how a self-hosted
 OpenAI-shaped endpoint is added without touching the registry.
 
 ```mermaid
@@ -97,17 +97,17 @@ classDiagram
 ```
 
 Two policy flags change behaviour elsewhere: `excludeFromAgentVoiceCatalog`
-(`types.ts:127`) drops a provider from the agent-facing voice catalogue —
-`qwen-tts` sets it (`constants.ts:351`) — and `requiresRegisteredVoice`
-(`types.ts:134`) marks a provider whose only synthesizable voices are its
+([`types.ts:127`](lib/audio/types.ts#L127)) drops a provider from the agent-facing voice catalogue —
+`qwen-tts` sets it ([`constants.ts:351`](lib/audio/constants.ts#L351)) — and `requiresRegisteredVoice`
+([`types.ts:134`](lib/audio/types.ts#L134)) marks a provider whose only synthesizable voices are its
 registered ones. Its one consumer is `buildVoiceCatalog`
-(`lib/audio/voice-catalog.ts:120`, reasoning at `:94-98`): the flag keeps a
+([`lib/audio/voice-catalog.ts:120`](lib/audio/voice-catalog.ts#L120), reasoning at [`:94-98`](lib/audio/voice-catalog.ts#L94-L98)): the flag keeps a
 clone-kind registered voice in the catalogue even when the deployment cannot
 synthesize clones (`supportsClone` false).
 
 ## 2. Dispatch, bounding, cancellation
 
-`generateTTS` (`tts-providers.ts:207`) does exactly four things before the
+`generateTTS` ([`tts-providers.ts:207`](lib/audio/tts-providers.ts#L207)) does exactly four things before the
 switch: look up the registry entry, reject a missing key when
 `requiresApiKey`, build the combined signal, and dispatch.
 
@@ -173,7 +173,7 @@ flowchart TD
 All nine server-side implementations live in the same file. `browser-native-tts`
 has no server implementation at all — it throws (`:246`) and the
 `PlaybackEngine` handles it with `SpeechSynthesisUtterance`
-(see [`./02-audio-pipeline.md`](./02-audio-pipeline.md)).
+(see [`./02-audio-pipeline.md`](docs/09-media-and-export/02-audio-pipeline.md)).
 
 | Provider | Fn | Endpoint / payload shape | Returned `format` |
 | --- | --- | --- | --- |
@@ -192,7 +192,7 @@ Two provider quirks are load-bearing:
 - **Doubao returns concatenated JSON objects with no delimiter.** It is split by
   `splitConcatenatedJsonObjects` (`lib/audio/json-stream.ts`) rather than a naive
   brace counter, because a `}` inside an error `message` would corrupt object
-  boundaries (`tts-providers.ts:1060-1065`). Codes `45000000` / `45000292` map to
+  boundaries ([`tts-providers.ts:1060-1065`](lib/audio/tts-providers.ts#L1060-L1065)). Codes `45000000` / `45000292` map to
   `TTSRateLimitError` (`:1078`); `20000000` terminates the stream.
 - **`getAudioResponseFormat` defaults to `mp3` on an unrecognised or absent
   `content-type`** (`:438-446`) and can also return `flac`, `ogg` or `webm` —
@@ -201,8 +201,8 @@ Two provider quirks are load-bearing:
 `speedRange` is declared per provider but only ElevenLabs clamps server-side.
 Azure, Qwen, Doubao and MiniMax convert `speed` into provider-specific rate units
 with no range check. `qwen-tts` declares **no** `speedRange` at all
-(`constants.ts:341-708`); the route independently forces `speed: 1` for clone
-voices (`app/api/generate/tts/route.ts:129`).
+([`constants.ts:341-708`](lib/audio/constants.ts#L341-L708)); the route independently forces `speed: 1` for clone
+voices ([`app/api/generate/tts/route.ts:129`](app/api/generate/tts/route.ts#L129)).
 
 ## 4. Voice and model pinning
 
@@ -211,16 +211,16 @@ once optimistically on the client, once authoritatively on the server.
 
 | Symbol | Location | Behaviour |
 | --- | --- | --- |
-| `DEFAULT_QWEN_TTS_VOICE_CLONE_MODEL` | `constants.ts:82` | `'qwen3-tts-vc-2026-01-22'` |
-| `isQwenVoiceCloneModel` | `constants.ts:86` | `/-tts-vc(?:-\|$)/iu` on the model id, or an exact match with the operator-configured VC model |
-| `isQwenCatalogVoice` | `constants.ts:94` | voice id present in `TTS_PROVIDERS['qwen-tts'].voices` |
-| `isQwenCloneVoice` | `constants.ts:99` | any Qwen voice id *not* in the catalog — local storage is deliberately not an authority |
-| `resolveTTSModelForVoice` | `constants.ts:107` | client half: a clone voice forces the VC model; a catalog voice never gets one |
-| `getManuallySelectableTTSModels` | `constants.ts:1404` | filters the VC model out of manual pickers — it is only ever *derived* |
-| `isKnownTTSProviderId` | `constants.ts:1379` | two branches: `Object.hasOwn(TTS_PROVIDERS, id)` — deliberately not `in`, so prototype keys (`toString`) cannot pass — **or** `isCustomTTSProvider(id)`, which is a bare `id.startsWith('custom-tts-')` prefix test (`types.ts:216-218`) against no registry. Only the first branch is an allowlist; any `custom-tts-*` string passes the second whether or not such a provider was ever configured. `getTTSProvider` then returns `undefined` for it (`:1394`), so the id resolves to "no voice" rather than to a provider |
+| `DEFAULT_QWEN_TTS_VOICE_CLONE_MODEL` | [`constants.ts:82`](lib/audio/constants.ts#L82) | `'qwen3-tts-vc-2026-01-22'` |
+| `isQwenVoiceCloneModel` | [`constants.ts:86`](lib/audio/constants.ts#L86) | `/-tts-vc(?:-\|$)/iu` on the model id, or an exact match with the operator-configured VC model |
+| `isQwenCatalogVoice` | [`constants.ts:94`](lib/audio/constants.ts#L94) | voice id present in `TTS_PROVIDERS['qwen-tts'].voices` |
+| `isQwenCloneVoice` | [`constants.ts:99`](lib/audio/constants.ts#L99) | any Qwen voice id *not* in the catalog — local storage is deliberately not an authority |
+| `resolveTTSModelForVoice` | [`constants.ts:107`](lib/audio/constants.ts#L107) | client half: a clone voice forces the VC model; a catalog voice never gets one |
+| `getManuallySelectableTTSModels` | [`constants.ts:1404`](lib/audio/constants.ts#L1404) | filters the VC model out of manual pickers — it is only ever *derived* |
+| `isKnownTTSProviderId` | [`constants.ts:1379`](lib/audio/constants.ts#L1379) | two branches: `Object.hasOwn(TTS_PROVIDERS, id)` — deliberately not `in`, so prototype keys (`toString`) cannot pass — **or** `isCustomTTSProvider(id)`, which is a bare `id.startsWith('custom-tts-')` prefix test ([`types.ts:216-218`](lib/audio/types.ts#L216-L218)) against no registry. Only the first branch is an allowlist; any `custom-tts-*` string passes the second whether or not such a provider was ever configured. `getTTSProvider` then returns `undefined` for it (`:1394`), so the id resolves to "no voice" rather than to a provider |
 
 `resolveTTSModel(providerId, clientModel?, voiceId?)`
-(`lib/server/provider-config.ts:805`) is the authority. For a non-Qwen provider
+([`lib/server/provider-config.ts:805`](lib/server/provider-config.ts#L805)) is the authority. For a non-Qwen provider
 it is two lines: a non-empty `${PREFIX}_MODELS` pin list wins over the client
 model, otherwise the client model passes through (`:845-846`). For `qwen-tts` it
 additionally:
@@ -237,7 +237,7 @@ additionally:
 Headless classroom generation used to bypass the pin list by handing
 `DEFAULT_TTS_MODELS[providerId]` straight to `generateTTS`. Commit `a5c71845`
 ("fix(tts): honor classroom TTS model pins") routed it through the same helper:
-`lib/server/classroom-media-generation.ts:308-310` now calls
+[`lib/server/classroom-media-generation.ts:308-310`](lib/server/classroom-media-generation.ts#L308-L310) now calls
 `resolveTTSModel(providerId, DEFAULT_TTS_MODELS[providerId], voice)` inside the
 `generateTTS` call at `:304`. So a deployment that pins `TTS_QWEN_MODELS` now
 constrains classroom narration exactly as it constrains an interactive request.
@@ -273,13 +273,13 @@ call; a repo-wide search for a cache key or memo in `lib/audio/**` and
 
 | Layer | Behaviour | Location |
 | --- | --- | --- |
-| Asset pool | Content-addressed durable byte store (`BrowserAssetStore` over IndexedDB `maic-asset-pool`, or a configured server-backed store) | `lib/media/asset-pool.ts:73-83` |
+| Asset pool | Content-addressed durable byte store (`BrowserAssetStore` over IndexedDB `maic-asset-pool`, or a configured server-backed store) | [`lib/media/asset-pool.ts:73-83`](lib/media/asset-pool.ts#L73-L83) |
 | Dexie `audioFiles` | Legacy/compat row keyed by `audioId`, carrying `blob`, `duration`, `format`, `text`, `voice` | `lib/utils/database.ts` |
-| Read path | `resolveAudioBlob(audioId)` — pool first, Dexie fallback; a **zero-byte row counts as "no bytes"** so the reference stays retryable rather than playing silence | `lib/media/resolve-audio-bytes.ts:15` |
+| Read path | `resolveAudioBlob(audioId)` — pool first, Dexie fallback; a **zero-byte row counts as "no bytes"** so the reference stays retryable rather than playing silence | [`lib/media/resolve-audio-bytes.ts:15`](lib/media/resolve-audio-bytes.ts#L15) |
 | Session-scoped negative cache | Only for *outbound media fetches*, not TTS: permanent 4xx verdicts, exponential transient backoff, per-URL request dedup | `lib/media/proxy-media-cache.ts` |
 
 Text length, not caching, is the only request-shaping step:
-`splitLongSpeechActions(actions, providerId)` (`lib/audio/tts-utils.ts:82`) is a
+`splitLongSpeechActions(actions, providerId)` ([`lib/audio/tts-utils.ts:82`](lib/audio/tts-utils.ts#L82)) is a
 no-op unless the provider appears in `TTS_MAX_TEXT_LENGTH` — today exactly
 `{ 'glm-tts': 1024 }` (`:12`). When it fires, one speech action becomes
 `${id}_tts_1..N` sub-actions, **each with its own audio file**, explicitly not a
@@ -287,7 +287,7 @@ byte concatenation (`:77-80`).
 
 ## 6. The audio format and duration contract
 
-`measureAudioDuration(bytes, format?)` (`lib/audio/audio-duration.ts:210`) is the
+`measureAudioDuration(bytes, format?)` ([`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210)) is the
 whole contract in one dependency-free function. Its ordering is the interesting
 part: **sniff the magic bytes first** (`sniffFormat`, `:190`) and trust the
 `format` hint only when the bytes are unrecognisable — because
@@ -307,7 +307,7 @@ answering `audio/flac`, `audio/ogg` or `audio/webm` is stored with
 `estimateSpeechDurationMs`. That is a degradation, not a failure.
 
 Reference-audio validation for Qwen voice enrolment is a separate, much stricter
-gate: `validateReferenceAudio` (`lib/audio/wav-validate.ts:26`) requires PCM
+gate: `validateReferenceAudio` ([`lib/audio/wav-validate.ts:26`](lib/audio/wav-validate.ts#L26)) requires PCM
 format 1, mono, exactly 24 000 Hz, 16-bit, consistent `byteRate`/`blockAlign`,
 no trailing bytes, and a 1–60 s duration — anything else throws
 `InvalidReferenceAudioError` (`:12`, code `QWEN_VC_REFERENCE_AUDIO_INVALID`).
@@ -343,10 +343,10 @@ else, **including `TTSRequestTimeoutError`**, → 500 `GENERATION_FAILED` (`:179
   `components/settings/tts-settings.tsx` (1672 lines, not read) clamps the UI is
   unverified; a scripted or agent-driven call certainly is not clamped.
 - No built-in `TTS_PROVIDERS` entry sets `requiresRegisteredVoice`, so its one
-  consumer (`voice-catalog.ts:120`, fault-injected at
-  `tests/audio/voice-catalog.test.ts:98-102`) only fires for a runtime provider.
+  consumer ([`voice-catalog.ts:120`](lib/audio/voice-catalog.ts#L120), fault-injected at
+  [`tests/audio/voice-catalog.test.ts:98-102`](tests/audio/voice-catalog.test.ts#L98-L102)) only fires for a runtime provider.
 - A 429 is surfaced to the client rather than retried. `TTSRateLimitError`'s own
-  doc comment (`tts-providers.ts:117-121`) says the class "enables future
+  doc comment ([`tts-providers.ts:117-121`](lib/audio/tts-providers.ts#L117-L121)) says the class "enables future
   retry/backoff logic"; no backoff exists yet.
 - `TTSRequestTimeoutError` collapses to a generic 500, so a caller cannot
   distinguish a slow provider from a broken one without reading the message.

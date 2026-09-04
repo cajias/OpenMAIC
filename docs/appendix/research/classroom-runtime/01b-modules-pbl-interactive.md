@@ -5,7 +5,7 @@ Companion files: `01a-modules-playback.md` (playback core),
 
 ## 1. Scene dispatch
 
-`components/stage/scene-renderer.tsx:20` is a four-way switch on `scene.type`,
+[`components/stage/scene-renderer.tsx:20`](components/stage/scene-renderer.tsx#L20) is a four-way switch on `scene.type`,
 each arm re-checking `scene.content.type` and rendering `Invalid … content` on a
 mismatch:
 
@@ -17,7 +17,7 @@ mismatch:
 | `pbl` | `PBLRenderer` | see §2 |
 
 Auto-play deliberately stops at non-slide scenes:
-`components/edit/PlaybackChromeRoot.tsx:896` and `:910` return early when the
+[`components/edit/PlaybackChromeRoot.tsx:896`](components/edit/PlaybackChromeRoot.tsx#L896) and [`:910`](components/edit/PlaybackChromeRoot.tsx#L910) return early when the
 current scene is `quiz`, `interactive` or `pbl`, so a learner is never advanced
 past an activity they have not finished.
 
@@ -43,22 +43,22 @@ flowchart TD
 
 ### 2.1 Content resolution and legacy reachability
 
-`lib/pbl/legacy/read.ts:206` `resolvePBLContent` is the single arbiter, returning
+[`lib/pbl/legacy/read.ts:206`](lib/pbl/legacy/read.ts#L206) `resolvePBLContent` is the single arbiter, returning
 `{kind:'v2'} | {kind:'legacy'} | {kind:'empty'}`:
 
 - `v2` when `isRunnablePBLProjectV2(content.projectV2)` — requires containers for
   `milestones` / `roles` / `submissions` / `evaluations` / `threads` /
   `engagementEvents`, at least one `instructor` role with a non-empty string `id`
   and a string `name`, and every milestone carrying at least one microtask with a
-  non-empty string `id` and a string `title` (`lib/pbl/v2/types.ts:658`).
+  non-empty string `id` and a string `title` ([`lib/pbl/v2/types.ts:658`](lib/pbl/v2/types.ts#L658)).
 - `legacy` when a non-empty `projectConfig` with `issueboard.issues.length > 0`
   is present.
 - `empty` otherwise → `PBLRenderer` renders `t('pbl.emptyProject')`
-  (`pbl-renderer.tsx:70`).
+  ([`pbl-renderer.tsx:70`](components/scene-renderers/pbl-renderer.tsx#L70)).
 
 **Is legacy reachable? Yes for reading, no for running.** A `legacy` result is
 immediately upgraded by `upgradeLegacyPBLConfigToProjectV2`
-(`pbl-renderer.tsx:47`, `legacy/read.ts:84`) into a synthetic v2 project: one
+([`pbl-renderer.tsx:47`](components/scene-renderers/pbl-renderer.tsx#L47), [`legacy/read.ts:84`](lib/pbl/legacy/read.ts#L84)) into a synthetic v2 project: one
 `role-compat-instructor` role, one milestone per legacy issue (ordered by
 `issue.index`), exactly one microtask per milestone, notes lifted into a
 `reference` document, and the legacy chat replayed into the instructor thread with
@@ -67,25 +67,25 @@ content (`detectLegacyLanguage`, `:304`). So there is **no legacy runtime** — 
 a read-time projection.
 
 Production importers of `lib/pbl/legacy/read.ts`:
-`components/scene-renderers/pbl-renderer.tsx:9`,
-`lib/pbl/v2/runtime/hydration.ts:9`,
-`lib/pbl/v2/runtime/document-persistence.ts:2`,
-`app/api/generate/scene-actions/route.ts:28`,
-`lib/server/agent-runtime/generation-content.ts:8`, plus type-only imports in
-`lib/types/stage.ts:20` and `lib/document-store/validators.ts:10`. The module
+[`components/scene-renderers/pbl-renderer.tsx:9`](components/scene-renderers/pbl-renderer.tsx#L9),
+[`lib/pbl/v2/runtime/hydration.ts:9`](lib/pbl/v2/runtime/hydration.ts#L9),
+[`lib/pbl/v2/runtime/document-persistence.ts:2`](lib/pbl/v2/runtime/document-persistence.ts#L2),
+[`app/api/generate/scene-actions/route.ts:28`](app/api/generate/scene-actions/route.ts#L28),
+[`lib/server/agent-runtime/generation-content.ts:8`](lib/server/agent-runtime/generation-content.ts#L8), plus type-only imports in
+[`lib/types/stage.ts:20`](lib/types/stage.ts#L20) and [`lib/document-store/validators.ts:10`](lib/document-store/validators.ts#L10). The module
 header states the writer rule explicitly: "Writers must never import it to create
-or project legacy shapes" (`legacy/read.ts:5`).
+or project legacy shapes" ([`legacy/read.ts:5`](lib/pbl/legacy/read.ts#L5)).
 
 One asymmetry worth knowing: the upgraded project is rendered but **never
 persisted back as v2** — `preparePBLScenesForDocumentPersistence`
-(`runtime/document-persistence.ts:14`) skips any scene whose `resolvePBLContent`
+([`runtime/document-persistence.ts:14`](lib/pbl/v2/runtime/document-persistence.ts#L14)) skips any scene whose `resolvePBLContent`
 is not `v2`, so the original v1 `projectConfig` round-trips untouched and learner
 progress on an upgraded legacy project is not written to the document.
 
 ### 2.2 UI phase machine
 
 `PBLUiPhase = 'hero' | 'generating' | 'workspace' | 'completed'`
-(`packages/@openmaic/dsl/src/pbl.ts:16`).
+([`packages/@openmaic/dsl/src/pbl.ts:16`](packages/@openmaic/dsl/src/pbl.ts#L16)).
 
 ```mermaid
 stateDiagram-v2
@@ -101,7 +101,7 @@ stateDiagram-v2
 ```
 
 `workspace` and `completed` are both rendered by **one** portaled
-`PBLV2WorkspaceLayer` (`pbl-renderer.tsx:293`), `position: fixed`, portalled to
+`PBLV2WorkspaceLayer` ([`pbl-renderer.tsx:293`](components/scene-renderers/pbl-renderer.tsx#L293)), `position: fixed`, portalled to
 `document.body` — or to `document.fullscreenElement` while native fullscreen is on
 (`:260`). That single-instance choice is what preserves chat scroll position and an
 in-flight instructor stream across expand/collapse *and* across
@@ -119,7 +119,7 @@ out the bug a boolean caused.
 Launch choreography constants: `HERO_LAUNCH_EXPAND_DURATION_SECONDS = 1.3` with
 ease `[0.4, 0, 0.2, 1]` for the one-time Hero → workspace reveal, versus
 `IMMERSIVE_LAUNCH_DURATION_SECONDS = 0.45` for every later manual expand
-(`pbl-renderer.tsx:20-30`).
+([`pbl-renderer.tsx:20-30`](components/scene-renderers/pbl-renderer.tsx#L20-L30)).
 
 ### 2.3 Instructor agent — `lib/pbl/v2/agents/instructor.ts`
 
@@ -129,9 +129,9 @@ Three phases (`InstructorPhase`, `:58`) with different tool exposure:
 
 | Phase | Trigger | Tools exposed | Prompt block |
 | --- | --- | --- | --- |
-| `greeting` | first entry, empty instructor thread (`chat.tsx:395`) | none | `PHASE_BLOCKS.greeting` (`:69`) |
-| `setup` | a new microtask became active (`workspace.tsx:220` `runTaskOpenerPhase`) | none | `PHASE_BLOCKS.setup` (`:82`) |
-| `instructing` | learner message (`chat.tsx:505`) | `record_observation`, `adjust_difficulty` | `PHASE_BLOCKS.instructing` (`:97`) |
+| `greeting` | first entry, empty instructor thread ([`chat.tsx:395`](components/scene-renderers/pbl/v2/chat.tsx#L395)) | none | `PHASE_BLOCKS.greeting` ([`:69`](components/scene-renderers/pbl/v2/chat.tsx#L69)) |
+| `setup` | a new microtask became active ([`workspace.tsx:220`](components/scene-renderers/pbl/v2/workspace.tsx#L220) `runTaskOpenerPhase`) | none | `PHASE_BLOCKS.setup` ([`:82`](components/scene-renderers/pbl/v2/workspace.tsx#L82)) |
+| `instructing` | learner message ([`chat.tsx:505`](components/scene-renderers/pbl/v2/chat.tsx#L505)) | `record_observation`, `adjust_difficulty` | `PHASE_BLOCKS.instructing` ([`:97`](components/scene-renderers/pbl/v2/chat.tsx#L97)) |
 
 Openers expose **no** tools deliberately: an eager-tool model would emit a tool
 call instead of speaking and leave the learner with an empty chat (`:1495`).
@@ -203,24 +203,24 @@ sequenceDiagram
   end
 ```
 
-`advanceMicrotask` (`progress.ts:463`) refuses an already-terminal microtask
+`advanceMicrotask` ([`progress.ts:463`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L463)) refuses an already-terminal microtask
 (`already_terminal`), clears the pending completion, writes a `status_changed`
 runtime event, records a `microtask_completed` engagement event, then **freezes**
 `microtask.engagement = microtaskEngagement(project, microtaskId)` — explicitly
 because the engagement ledger is a 500-entry ring
-(`MAX_ENGAGEMENT_EVENTS = 500`, `engagement.ts:28`) and a long project would
-otherwise evaluate against rolled-off telemetry (`progress.ts:515-526`).
+(`MAX_ENGAGEMENT_EVENTS = 500`, [`engagement.ts:28`](packages/@openmaic/generation/src/pbl/operations/kernel/engagement.ts#L28)) and a long project would
+otherwise evaluate against rolled-off telemetry ([`progress.ts:515-526`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L515-L526)).
 
 Milestone boundaries are a *third* explicit gate: completing the last microtask of
-a milestone stages a `PBLHandover` (`lib/pbl/v2/types.ts:500`) and the learner must
+a milestone stages a `PBLHandover` ([`lib/pbl/v2/types.ts:500`](lib/pbl/v2/types.ts#L500)) and the learner must
 click Continue → `action: 'continue_handover'` → `continueAfterHandover`
-(`progress.ts:761`) before the next milestone leaves `locked`.
+([`progress.ts:761`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L761)) before the next milestone leaves `locked`.
 
 Scenario projects add two more deterministic, LLM-free transitions on the same
 endpoint: `enter_scenario` (prep stage → first roleplay stage, gated on
 `milestone.scenarioStage === 'prep'`) and `complete_act`
-(`completeRoleplayAct`, `progress.ts:652`) — both reject non-scenario projects
-outright (`task/update/route.ts:121`, `:151`).
+(`completeRoleplayAct`, [`progress.ts:652`](packages/@openmaic/generation/src/pbl/operations/kernel/progress.ts#L652)) — both reject non-scenario projects
+outright ([`task/update/route.ts:121`](app/api/pbl/v2/task/update/route.ts#L121), [`:151`](app/api/pbl/v2/task/update/route.ts#L151)).
 
 ### 2.5 Wire protocol and client patching
 
@@ -233,7 +233,7 @@ mutates its own copy and emits `project_patch` events describing what changed
 (`:47`). Six patch kinds: `message`, `advance`, `engagement_event`, `evaluation`,
 `handover`, `proficiency`.
 
-`useInstructorStream` (`use-instructor-stream.ts:105`) parses frames, applies each
+`useInstructorStream` ([`use-instructor-stream.ts:105`](components/scene-renderers/pbl/v2/use-instructor-stream.ts#L105)) parses frames, applies each
 patch through `applyInstructorEvent`, and chains evaluators **after** the
 instructor stream closes, in the fixed order task → milestone → final
 (`:175-243`) — never interleaved, because two concurrent LLM streams would
@@ -264,23 +264,23 @@ flowchart TD
 Key properties, all stated in code:
 
 - Drain is **at-least-once**; downstream folds must dedupe by event id
-  (`drain.ts:8`). Two independent device-scoped watermarks per
+  ([`drain.ts:8`](lib/pbl/v2/runtime/drain.ts#L8)). Two independent device-scoped watermarks per
   `(stageId, sceneId, learnerKey)` — one for `runtimeEvents`, one for
-  `engagementEvents` (`drain.ts:38`).
+  `engagementEvents` ([`drain.ts:38`](lib/pbl/v2/runtime/drain.ts#L38)).
 - Both project outboxes are bounded 500-event rings; before a save strips learner
   state, the persistence boundary verifies the fold and appends a **full snapshot**
-  when the visible outboxes cannot reconstruct current state (`drain.ts:12`).
+  when the visible outboxes cannot reconstruct current state ([`drain.ts:12`](lib/pbl/v2/runtime/drain.ts#L12)).
 - `hydratePBLProject` reports `source: 'fold' | 'document'`, a `diff` list and a
-  `selfHealed` flag (`hydration.ts:38`), so divergence is observable rather than
+  `selfHealed` flag ([`hydration.ts:38`](lib/pbl/v2/runtime/hydration.ts#L38)), so divergence is observable rather than
   silently resolved.
-- `PBL_DRAIN_TIMEOUT_MS = 10_000`, chain hard cap `20_000` (`drain.ts:29-31`).
+- `PBL_DRAIN_TIMEOUT_MS = 10_000`, chain hard cap `20_000` ([`drain.ts:29-31`](lib/pbl/v2/runtime/drain.ts#L29-L31)).
 - `PBL_RUNTIME_EVENT_KINDS_REQUIRING_ATTACHMENT` lists the seven kinds that must
-  carry an attachment (`record-payloads.ts:19`); a record missing one becomes a
-  recorded `PBLFoldGap` (`fold.ts:27`), not a thrown error.
+  carry an attachment ([`record-payloads.ts:19`](lib/pbl/v2/runtime/record-payloads.ts#L19)); a record missing one becomes a
+  recorded `PBLFoldGap` ([`fold.ts:27`](lib/pbl/v2/runtime/fold.ts#L27)), not a thrown error.
 
 ### 2.7 Adaptive proficiency
 
-`PBLProficiencyAssessment` (`lib/pbl/v2/types.ts:400`) is an EWMA on `[-1,+1]`
+`PBLProficiencyAssessment` ([`lib/pbl/v2/types.ts:400`](lib/pbl/v2/types.ts#L400)) is an EWMA on `[-1,+1]`
 with buckets at `±0.33`, hysteresis (the score must pass the *opposite* boundary
 by `0.20` to leave a tier), a confidence gate (`< 0.4` blocks any switch), and both
 a minimum-signal and a turn-cooldown gate (`dynamicSignalsSinceRetier`,
@@ -291,4 +291,4 @@ explicit level, quiz accuracy) and seven dynamic. Sources:
 bounded to the most recent 50 (`:416`).
 
 The learner never sees it — the only surface named in code is a dev badge behind
-`PBL_V2_DEV_PROFICIENCY_BADGE` (`api/sse.ts:122`).
+`PBL_V2_DEV_PROFICIENCY_BADGE` ([`api/sse.ts:122`](lib/pbl/v2/api/sse.ts#L122)).

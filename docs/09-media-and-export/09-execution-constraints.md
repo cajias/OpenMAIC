@@ -6,7 +6,7 @@ Several of its least obvious design decisions exist only because of that spread.
 This file maps which code runs where, how each boundary is enforced, and the
 legacy export paths that still ship alongside the current ones.
 
-**Sources:** `eslint.config.mjs:254-533`,
+**Sources:** [`eslint.config.mjs:254-533`](eslint.config.mjs#L254-L533),
 `tests/video-export/{eslint-boundary,export-loading-boundary}.test.ts`,
 `lib/choreography/**`, `lib/video-export/**`, `lib/video-export-app/**`,
 `lib/audio/{constants,types,tts-providers}.ts`,
@@ -14,7 +14,7 @@ legacy export paths that still ship alongside the current ones.
 `lib/media/adapters/comfyui-image-adapter.ts`, `lib/utils/audio-player.ts`,
 `lib/whiteboard/runtime/legacy-import.ts`, `lib/video-export/legacy/read.ts`,
 `lib/export/**`, `render-service/**`;
-[`../appendix/research/media-audio-video/03b-flows-video-export.md`](../appendix/research/media-audio-video/03b-flows-video-export.md).
+[`../appendix/research/media-audio-video/03b-flows-video-export.md`](docs/appendix/research/media-audio-video/03b-flows-video-export.md).
 
 ## 1. Which code runs where
 
@@ -66,12 +66,12 @@ flowchart TD
 
 | Code | Runs where | How the boundary is enforced |
 | --- | --- | --- |
-| `lib/choreography/**` | browser **and** pure Node | eslint `no-restricted-syntax` + `no-restricted-imports` (`eslint.config.mjs:254-329`) |
-| `lib/video-export/**` (root) | browser **and** pure Node | `eslint.config.mjs:348-415` |
-| `lib/video-export/{passes,legacy}/**` | browser **and** pure Node | `eslint.config.mjs:419-492` (a *separate, deeper* allowlist) |
-| `lib/video-export/emit-hyperframes/**` | browser **and** pure Node | `eslint.config.mjs:498-533` |
+| `lib/choreography/**` | browser **and** pure Node | eslint `no-restricted-syntax` + `no-restricted-imports` ([`eslint.config.mjs:254-329`](eslint.config.mjs#L254-L329)) |
+| `lib/video-export/**` (root) | browser **and** pure Node | [`eslint.config.mjs:348-415`](eslint.config.mjs#L348-L415) |
+| `lib/video-export/{passes,legacy}/**` | browser **and** pure Node | [`eslint.config.mjs:419-492`](eslint.config.mjs#L419-L492) (a *separate, deeper* allowlist) |
+| `lib/video-export/emit-hyperframes/**` | browser **and** pure Node | [`eslint.config.mjs:498-533`](eslint.config.mjs#L498-L533) |
 | `lib/video-export-app/**` | browser only | `'use client'`; Dexie, `document.createElement('video'\|'audio'\|'canvas')`, `URL.createObjectURL`, `@openmaic/renderer/snapshot` |
-| `lib/audio/constants.ts`, `lib/audio/types.ts` | both | file header states the split: kept free of Node libs so client components can import the registry (`constants.ts:5-8`) |
+| `lib/audio/constants.ts`, `lib/audio/types.ts` | both | file header states the split: kept free of Node libs so client components can import the registry ([`constants.ts:5-8`](lib/audio/constants.ts#L5-L8)) |
 | `lib/audio/tts-providers.ts` | Next Node process | uses `Buffer` and `process.env`; `browser-native-tts` throws with a client-side directive (`:246-249`) |
 | `lib/media/comfyui-workflows.ts` | import-safe both ways; `fs` paths server-only | `typeof window === 'undefined'` wrapping a **dynamic** `import('fs')` (`:77-81`) |
 | `render-service/src/**` | the container only | its own `package.json` / `tsconfig.json` / `vitest.config.ts`, run via `tsx` |
@@ -157,16 +157,16 @@ Each of these exists *because* of a boundary above.
 | --- | --- |
 | The compiler cannot touch Dexie or the DOM | Five **synchronous** DI interfaces (`lib/video-export/deps.ts`) and a `duration` persisted at TTS time so `TimingProbe.audioDurationMs` needs no promise |
 | The compiler cannot import GSAP | The emitter produces GSAP *statements as strings*; the browser never evaluates them, Chromium does |
-| Chromium is offline | Every font ships inside the ZIP (see [`./08-asset-generation-scripts.md`](./08-asset-generation-scripts.md)); GSAP is vendored to `public/vendor/gsap.min.js` and copied in |
-| `hyperframes preview` and `hyperframes render` differ in window size | No `vw` units anywhere in the emitted CSS; cover CSS is written at `COVER_DESIGN_WIDTH = 1280` and scaled numerically (`emit-hyperframes/index.ts:789`, `:1064`) |
-| No `Date.now` / `Math.random` at render time | Determinism red-line stated at `emit-hyperframes/index.ts:18-20`, enforced downstream by `hyperframes lint` |
+| Chromium is offline | Every font ships inside the ZIP (see [`./08-asset-generation-scripts.md`](docs/09-media-and-export/08-asset-generation-scripts.md)); GSAP is vendored to `public/vendor/gsap.min.js` and copied in |
+| `hyperframes preview` and `hyperframes render` differ in window size | No `vw` units anywhere in the emitted CSS; cover CSS is written at `COVER_DESIGN_WIDTH = 1280` and scaled numerically ([`emit-hyperframes/index.ts:789`](lib/video-export/emit-hyperframes/index.ts#L789), [`:1064`](lib/video-export/emit-hyperframes/index.ts#L1064)) |
+| No `Date.now` / `Math.random` at render time | Determinism red-line stated at [`emit-hyperframes/index.ts:18-20`](lib/video-export/emit-hyperframes/index.ts#L18-L20), enforced downstream by `hyperframes lint` |
 | The settings store (client) imports `image-providers.ts` | `comfyui-workflows.ts` must be import-safe in the browser → dynamic `import('fs')` behind a `typeof window` guard the bundler can dead-code-eliminate (`:15-22`, `:64-71`) |
-| `browser-native-tts` has no server implementation | `generateTTS` throws for it (`tts-providers.ts:246`); the route rejects it (`app/api/generate/tts/route.ts:65`); the `PlaybackEngine` handles it with `SpeechSynthesisUtterance` |
-| `speechSynthesis.pause()` is broken on Firefox | Pause saves the remaining browser-TTS chunks and calls `cancel()` instead (`lib/playback/engine.ts:244-247`) |
-| `cancel()` can fire `onend` synchronously | The engine sets `mode` *before* stopping audio (`engine.ts:459`) |
-| A cross-origin legacy audio URL has no CORS headers | `AudioPlayer` falls back to handing the URL to the media element, which is not CORS-bound (`audio-player.ts:126-131`) |
-| Chromium must run `--no-sandbox` in a container | The container drops to an unprivileged `render` user via `setpriv` after installing iptables (`docker-entrypoint.sh:71-73`) |
-| `@hyperframes/producer` auto-starts a server when the entry is `src/server.ts` | The render-service entry is named `main.ts` (`main.ts:19-23`) |
+| `browser-native-tts` has no server implementation | `generateTTS` throws for it ([`tts-providers.ts:246`](lib/audio/tts-providers.ts#L246)); the route rejects it ([`app/api/generate/tts/route.ts:65`](app/api/generate/tts/route.ts#L65)); the `PlaybackEngine` handles it with `SpeechSynthesisUtterance` |
+| `speechSynthesis.pause()` is broken on Firefox | Pause saves the remaining browser-TTS chunks and calls `cancel()` instead ([`lib/playback/engine.ts:244-247`](lib/playback/engine.ts#L244-L247)) |
+| `cancel()` can fire `onend` synchronously | The engine sets `mode` *before* stopping audio ([`engine.ts:459`](lib/playback/engine.ts#L459)) |
+| A cross-origin legacy audio URL has no CORS headers | `AudioPlayer` falls back to handing the URL to the media element, which is not CORS-bound ([`audio-player.ts:126-131`](lib/utils/audio-player.ts#L126-L131)) |
+| Chromium must run `--no-sandbox` in a container | The container drops to an unprivileged `render` user via `setpriv` after installing iptables ([`docker-entrypoint.sh:71-73`](render-service/docker-entrypoint.sh#L71-L73)) |
+| `@hyperframes/producer` auto-starts a server when the entry is `src/server.ts` | The render-service entry is named `main.ts` ([`main.ts:19-23`](render-service/src/main.ts#L19-L23)) |
 
 ## 5. Legacy export paths still in the tree
 
@@ -199,17 +199,17 @@ flowchart LR
 
 **(1) The classroom archive.** `lib/export/use-export-classroom.ts` (300 lines)
 writes a `.maic.zip` (`CLASSROOM_ZIP_EXTENSION`,
-`CLASSROOM_ZIP_FORMAT_VERSION = 1`, `classroom-zip-types.ts:11-12`) containing a
+`CLASSROOM_ZIP_FORMAT_VERSION = 1`, [`classroom-zip-types.ts:11-12`](lib/export/classroom-zip-types.ts#L11-L12)) containing a
 `ClassroomManifest` plus a media index. It predates video export and inlines
 interactive HTML assets through a 727-line `inline-assets.ts` pipeline. It carries
 its own legacy-audio path: `collectLegacyAudioForExport`
-(`classroom-zip-utils.ts:265`) and `legacyAudioArchivePath` (`:111`) exist beside
+([`classroom-zip-utils.ts:265`](lib/export/classroom-zip-utils.ts#L265)) and `legacyAudioArchivePath` ([`:111`](lib/export/classroom-zip-utils.ts#L111)) exist beside
 the modern `collectAudioFiles` (`:144`) / `audioArchivePath` (`:103`), and
 `rewriteAudioRefsToIds` (`:356`) normalises references on the way out.
 
 **(2) PPTX export.** `lib/export/use-export-pptx.ts` (1443 lines) over the
 vendored `packages/pptxgenjs` + `packages/mathml2omml` forks. Covered in
-[`../07-dsl-renderer-editor/index.md`](../07-dsl-renderer-editor/index.md); it
+[`../07-dsl-renderer-editor/index.md`](docs/07-dsl-renderer-editor/index.md); it
 shares only `resolveStoredBytes` with this subsystem.
 
 **(3) Narration script export.** `lib/export/use-export-script.ts` (259 lines) —
@@ -226,17 +226,17 @@ project legacy PBL shapes" (`:3-5`). It reads unknown-shaped records defensively
 (`isRecord`, `isRecordArray`, `records`) and produces a `LegacyPblCover`.
 
 **(5) Two whiteboard substrates.** `stage.whiteboard[]` (document) and the runtime
-op log both exist; `components/whiteboard/index.tsx:39-43` picks per render, and
+op log both exist; [`components/whiteboard/index.tsx:39-43`](components/whiteboard/index.tsx#L39-L43) picks per render, and
 `lib/whiteboard/runtime/legacy-import.ts` migrates document → log **one way**, only
 when `isLegacyWhiteboardAutoImportEligible()` (`:43`) finds all three of
 `NEXT_PUBLIC_PERSISTENCE !== '1'`, no configured document storage and no configured
-runtime storage. See [`./03-whiteboard.md`](./03-whiteboard.md) §2.
+runtime storage. See [`./03-whiteboard.md`](docs/09-media-and-export/03-whiteboard.md) §2.
 
 **(6) The legacy audio pair.** An unconverted document holds both `audioId` and
 `audioUrl` on a `SpeechAction`; a converted one carries no `audioUrl`
-(`lib/utils/audio-player.ts:88-93`). Three consumers still honour it: the player
+([`lib/utils/audio-player.ts:88-93`](lib/utils/audio-player.ts#L88-L93)). Three consumers still honour it: the player
 (§4 above), `createVideoTimelineDeps` (fetches the URL only when the id produced no
-bytes, `timeline-deps.ts:299-301`, bounded at 15 s), and the classroom archive.
+bytes, [`timeline-deps.ts:299-301`](lib/video-export-app/timeline-deps.ts#L299-L301), bounded at 15 s), and the classroom archive.
 
 ## 6. Where the boundaries are *not* enforced
 
@@ -251,10 +251,10 @@ Honest gaps, each verified:
   imported by both sides; the descriptors are consumed only by the exporter and a
   schema test.
 - **One duplicated timing literal.** `Math.min(380 + n * 55, 1400)` appears in both
-  `components/whiteboard/index.tsx:81` and `lib/choreography/timing.ts:72`
+  [`components/whiteboard/index.tsx:81`](components/whiteboard/index.tsx#L81) and [`lib/choreography/timing.ts:72`](lib/choreography/timing.ts#L72)
   (`wbClearMs`). They agree today; nothing enforces it.
 - **No CI check regenerates the font modules** and diffs them (see
-  [`./08-asset-generation-scripts.md`](./08-asset-generation-scripts.md) §6).
+  [`./08-asset-generation-scripts.md`](docs/09-media-and-export/08-asset-generation-scripts.md) §6).
 - **`e2e/` is excluded from both tsconfig and ESLint** with no `tsc` step anywhere,
   so any export-related Playwright spec is unchecked.
 

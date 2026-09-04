@@ -9,17 +9,17 @@ convention files are absent. Six routes, two layouts, eight components total.
 `app/workbench/new/{page,client}.tsx`, `app/eval/whiteboard/page.tsx`,
 `app/layout.tsx`, `lib/workbench/entry-gate.ts`; file list from
 `git ls-files app | grep -v '^app/api/'`. Evidence:
-[`../appendix/research/app-shell-and-routing/00-overview.md`](../appendix/research/app-shell-and-routing/00-overview.md),
-[`01-modules.md`](../appendix/research/app-shell-and-routing/01-modules.md).
+[`../appendix/research/app-shell-and-routing/00-overview.md`](docs/appendix/research/app-shell-and-routing/00-overview.md),
+[`01-modules.md`](docs/appendix/research/app-shell-and-routing/01-modules.md).
 
 ## The six routes
 
 | Route | Segment file | Kind | Rendering | Gate | Drives |
 | --- | --- | --- | --- | --- | --- |
-| `/` | `app/page.tsx` (1896) | client (`'use client'` line 1) | default; static shell, all data client-fetched | none server-side; Pro entry hidden behind a runtime probe (`app/page.tsx:145`) | composer → generation handoff; course/folder discovery from IndexedDB; settings |
-| `/generation-preview` | `app/generation-preview/page.tsx` (1554) | client | `force-dynamic` via `app/generation-preview/layout.tsx:2` | none | [generation pipeline](../06-generation-pipeline/index.md) — 6-step run driver |
-| `/classroom/[id]` | `app/classroom/[id]/page.tsx` (256) | client | default | none | [live classroom runtime](../08-classroom-runtime/index.md) via `components/stage` |
-| `/workspace` | `app/workspace/page.tsx` (42) | **server** | `force-dynamic` (line 32) | `isWorkbenchEntryEnabled()` → `redirect('/')` (line 35) | Pro workbench shell → [agent runtime](../05-agent-runtime/index.md) |
+| `/` | `app/page.tsx` (1896) | client (`'use client'` line 1) | default; static shell, all data client-fetched | none server-side; Pro entry hidden behind a runtime probe ([`app/page.tsx:145`](app/page.tsx#L145)) | composer → generation handoff; course/folder discovery from IndexedDB; settings |
+| `/generation-preview` | `app/generation-preview/page.tsx` (1554) | client | `force-dynamic` via [`app/generation-preview/layout.tsx:2`](app/generation-preview/layout.tsx#L2) | none | [generation pipeline](docs/06-generation-pipeline/index.md) — 6-step run driver |
+| `/classroom/[id]` | `app/classroom/[id]/page.tsx` (256) | client | default | none | [live classroom runtime](docs/08-classroom-runtime/index.md) via `components/stage` |
+| `/workspace` | `app/workspace/page.tsx` (42) | **server** | `force-dynamic` (line 32) | `isWorkbenchEntryEnabled()` → `redirect('/')` (line 35) | Pro workbench shell → [agent runtime](docs/05-agent-runtime/index.md) |
 | `/workbench/new` | `app/workbench/new/page.tsx` (21) | **server** | `force-dynamic` (line 11) | `isWorkbenchEntryEnabled()` → `notFound()` (line 14) | legacy launch-link compatibility only; owns no product UI |
 | `/eval/whiteboard` | `app/eval/whiteboard/page.tsx` (107) | client | default | **none — unflagged in production** | Playwright render harness for `eval/whiteboard-layout/capture.ts` |
 
@@ -59,13 +59,13 @@ Three `dynamic` exports exist outside `app/api`, and nothing else:
 
 | Export | File:line | Stated reason |
 | --- | --- | --- |
-| `dynamic = 'force-dynamic'` | `app/generation-preview/layout.tsx:2` | "this page uses client-side hooks (useI18n)" (comment line 1) |
-| `dynamic = 'force-dynamic'` | `app/workspace/page.tsx:32` | keeps the flags request-scoped instead of baking them into a prerender (docstring lines 18-19) |
-| `dynamic = 'force-dynamic'` | `app/workbench/new/page.tsx:11` | same gate, same reason |
+| `dynamic = 'force-dynamic'` | [`app/generation-preview/layout.tsx:2`](app/generation-preview/layout.tsx#L2) | "this page uses client-side hooks (useI18n)" (comment line 1) |
+| `dynamic = 'force-dynamic'` | [`app/workspace/page.tsx:32`](app/workspace/page.tsx#L32) | keeps the flags request-scoped instead of baking them into a prerender (docstring lines 18-19) |
+| `dynamic = 'force-dynamic'` | [`app/workbench/new/page.tsx:11`](app/workbench/new/page.tsx#L11) | same gate, same reason |
 
 There is no `revalidate`, `runtime`, `fetchCache`, `generateMetadata`, or
 `generateStaticParams` anywhere in the non-API tree. `metadata` is a single static
-object at `app/layout.tsx:31` — one title (`'OpenMAIC'`) for every route, so
+object at [`app/layout.tsx:31`](app/layout.tsx#L31) — one title (`'OpenMAIC'`) for every route, so
 `/classroom/<id>` shares the home page's document title.
 
 ## Absent convention files
@@ -76,7 +76,7 @@ returns nothing. Consequences, in order of how likely you are to hit them:
 | Missing | Effect |
 | --- | --- |
 | `error.tsx` / `global-error.tsx` | any render-phase throw in a client surface falls through to Next's built-in error page; there is no route-scoped recovery UI and no reset boundary |
-| `not-found.tsx` | `notFound()` from `app/workbench/new/page.tsx:14` renders Next's default 404, not a branded one |
+| `not-found.tsx` | `notFound()` from [`app/workbench/new/page.tsx:14`](app/workbench/new/page.tsx#L14) renders Next's default 404, not a branded one |
 | `loading.tsx` | no automatic Suspense boundary per segment — every surface that needs one declares its own (`/generation-preview`, `/workspace`, `/workbench/new`) |
 | `robots.ts` / `sitemap.ts` / `opengraph-image` | no crawler directives and no social preview |
 
@@ -124,7 +124,7 @@ server. None is schema-validated.
 | `workbench.launchPrompt` | legacy deploy handoff | `app/workbench/new/client.tsx` | consumed once |
 
 Detail and the exact shapes are in
-[`../appendix/research/app-shell-and-routing/02c-interfaces-session-handoff.md`](../appendix/research/app-shell-and-routing/02c-interfaces-session-handoff.md).
+[`../appendix/research/app-shell-and-routing/02c-interfaces-session-handoff.md`](docs/appendix/research/app-shell-and-routing/02c-interfaces-session-handoff.md).
 The `/` ↔ `/workspace` transition additionally runs a View-Transition
 shared-element swap whose state lives in a module (`lib/workbench/pro-swap.ts`)
 because the component that starts it unmounts mid-flight.
@@ -156,16 +156,16 @@ flowchart TD
 ```
 
 `/workspace` redirects and `/workbench/new` 404s from the *same* gate — a
-deliberate asymmetry. The docstring at `app/workspace/page.tsx:10-16` states the
+deliberate asymmetry. The docstring at [`app/workspace/page.tsx:10-16`](app/workspace/page.tsx#L10-L16) states the
 reason: a workspace whose every submit 404s is worse than no workspace, so the
 entry route degrades to `/`; the legacy compatibility route has nothing to
 degrade to and simply does not exist. Middleware only ever reaches
 `isAgentRuntimeConfigured()` when `NEXT_RUNTIME !== 'edge'`
-(`middleware.ts:53`), so the routes — not middleware — are the authority.
+([`middleware.ts:53`](middleware.ts#L53)), so the routes — not middleware — are the authority.
 
 ## Open questions
 
-- `app/workspace/page.tsx:5-8` and `components/workbench/workspace/WorkspaceShell.tsx:7`
+- [`app/workspace/page.tsx:5-8`](app/workspace/page.tsx#L5-L8) and [`components/workbench/workspace/WorkspaceShell.tsx:7`](components/workbench/workspace/WorkspaceShell.tsx#L7)
   both describe an `AppChrome` component that "suppresses `SiteHeader` on this
   path". Neither `AppChrome` nor `SiteHeader` exists in this repository; the only
   file under `components/site-header/` is `theme-toggle.tsx`. Whether these are

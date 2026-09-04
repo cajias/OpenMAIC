@@ -1,15 +1,15 @@
 # Scene Generation, Part 2: Quiz, Widget, PBL, Actions, Assembly
 
 Part 2 of the scene walkthrough. The three hops, the type router, the content schemas and
-the slide branch are in [`./05-scene-generation.md`](./05-scene-generation.md). This half
+the slide branch are in [`./05-scene-generation.md`](docs/06-generation-pipeline/05-scene-generation.md). This half
 covers the remaining three content branches plus the six widget sub-types, action
 generation, and DSL assembly.
 
-**Sources:** `packages/@openmaic/generation/src/scene-generator.ts:854-1564`, `:1608-1931`,
+**Sources:** [`packages/@openmaic/generation/src/scene-generator.ts:854-1564`](packages/@openmaic/generation/src/scene-generator.ts#L854-L1564), [`:1608-1931`](packages/@openmaic/generation/src/scene-generator.ts#L1608-L1931),
 `.../interactive-post-processor.ts`, `.../action-parser.ts`, `.../scene-builder.ts`,
 `.../pbl/planner-single-call.ts`, `app/api/generate/scene-actions/route.ts`;
-evidence: [`02b-interfaces-scenes.md`](../appendix/research/generation-pipeline/02b-interfaces-scenes.md),
-[`03b-flows-scenes-and-quiz.md`](../appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
+evidence: [`02b-interfaces-scenes.md`](docs/appendix/research/generation-pipeline/02b-interfaces-scenes.md),
+[`03b-flows-scenes-and-quiz.md`](docs/appendix/research/generation-pipeline/03b-flows-scenes-and-quiz.md).
 
 ## Quiz generation
 
@@ -35,7 +35,7 @@ flowchart LR
 ```
 
 The `short_answer` split is the handoff to runtime LLM grading — see
-[`./09-quiz-and-grading.md`](./09-quiz-and-grading.md).
+[`./09-quiz-and-grading.md`](docs/06-generation-pipeline/09-quiz-and-grading.md).
 
 ## Interactive widget generation
 
@@ -64,7 +64,7 @@ Then two post-passes:
 
 - `extractWidgetConfig(html, widgetType)` (`:1264`) reads
   `<script type="application/json" id="widget-config">…</script>`.
-- `postProcessInteractiveHtml(html)` (`interactive-post-processor.ts:16`) converts
+- `postProcessInteractiveHtml(html)` ([`interactive-post-processor.ts:16`](packages/@openmaic/generation/src/interactive-post-processor.ts#L16)) converts
   `$$…$$` → `\[…\]` and `$…$` → `\(…\)` with `<script>` bodies swapped out for
   placeholders first and restored after, then injects KaTeX CSS/JS with auto-render and a
   MutationObserver — but only if the HTML does not already mention `katex` (`:21`).
@@ -173,8 +173,8 @@ Three details that matter:
   classifier can see it.
 
 The app-owned agentic loop planner stays outside the package and is injected as
-`pblLoopFallback` by both drivers (`app/api/generate/scene-content/route.ts:337`,
-`lib/server/classroom-generation.ts:602`). PBL planner quality is measured by
+`pblLoopFallback` by both drivers ([`app/api/generate/scene-content/route.ts:337`](app/api/generate/scene-content/route.ts#L337),
+[`lib/server/classroom-generation.ts:602`](lib/server/classroom-generation.ts#L602)). PBL planner quality is measured by
 `eval/pbl-v2-planner/runner.ts`.
 
 ## Action generation
@@ -213,7 +213,7 @@ handed to the parser as `allowedActions`.
 
 ### Parsing strategy
 
-`parseActionsFromStructuredOutput` (`action-parser.ts:41`) is a three-tier parse followed
+`parseActionsFromStructuredOutput` ([`action-parser.ts:41`](packages/@openmaic/generation/src/action-parser.ts#L41)) is a three-tier parse followed
 by four filters:
 
 | Step | Behaviour |
@@ -258,7 +258,7 @@ All four ship Chinese `title` and `text` that reach the learner regardless of
 
 ## Assembly
 
-`buildCompleteScene` (`scene-builder.ts:22`) is pure and synchronous. Four shape-guarded
+`buildCompleteScene` ([`scene-builder.ts:22`](packages/@openmaic/generation/src/scene-builder.ts#L22)) is pure and synchronous. Four shape-guarded
 branches; any outline/content mismatch returns `null` (`:114`), which the route turns into
 `500 GENERATION_FAILED`.
 
@@ -293,10 +293,10 @@ lets a retrying or upserting consumer keep scene identity stable so a replay bec
 same logical scene rather than a duplicate; the default is a random `nanoid()`.
 
 After assembly the actions route extracts this scene's `speech` action texts and returns
-them as `previousSpeeches` (`app/api/generate/scene-actions/route.ts:179-181`), which the
+them as `previousSpeeches` ([`app/api/generate/scene-actions/route.ts:179-181`](app/api/generate/scene-actions/route.ts#L179-L181)), which the
 caller threads into the *next* scene's `SceneGenerationContext`. That is the entire
 cross-scene coherence mechanism, and it is why actions must stay serial — see
-[`./07-concurrency-and-retry.md`](./07-concurrency-and-retry.md#why-content-can-be-parallel-but-actions-cannot).
+[`./07-concurrency-and-retry.md`](docs/06-generation-pipeline/07-concurrency-and-retry.md#why-content-can-be-parallel-but-actions-cannot).
 
 ## Open questions
 
@@ -307,12 +307,12 @@ cross-scene coherence mechanism, and it is why actions must stay serial — see
   for the procedural-skill gate at `:1210`, which also warns and returns `null` even though
   the *outline* layer has a real demotion path (`sanitizeProceduralSkillOutline`).
 - **Deprecation timeline for `interactiveConfig`.** Marked `@deprecated`
-  (`outline-types.ts:88`) yet still load-bearing: `convertInteractiveConfigToWidget` plus the
+  ([`outline-types.ts:88`](packages/@openmaic/generation/src/outline-types.ts#L88)) yet still load-bearing: `convertInteractiveConfigToWidget` plus the
   `inferWidgetType` regex run whenever it is present, and the actions branch still reads
   `outline.interactiveConfig` for `conceptName` and `designIdea` (`:1701-1702`).
 - **When `gen_img_*` / `gen_vid_*` placeholders are backfilled into already-stored scenes.**
   The route passes an empty `generatedMediaMapping` with the comment "Media generation is
-  handled client-side in parallel" (`app/api/generate/scene-content/route.ts:312-315`), and
+  handled client-side in parallel" ([`app/api/generate/scene-content/route.ts:312-315`](app/api/generate/scene-content/route.ts#L312-L315)), and
   `generateMediaForOutlines` is launched fire-and-forget from
-  `lib/hooks/use-scene-generator.ts:672`. The write-back contract belongs to
-  [`../09-media-and-export/index.md`](../09-media-and-export/index.md).
+  [`lib/hooks/use-scene-generator.ts:672`](lib/hooks/use-scene-generator.ts#L672). The write-back contract belongs to
+  [`../09-media-and-export/index.md`](docs/09-media-and-export/index.md).

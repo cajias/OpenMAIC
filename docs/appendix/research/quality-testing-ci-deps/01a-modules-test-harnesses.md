@@ -1,6 +1,6 @@
 # 01a — Modules: test and eval harnesses
 
-Companion file: `01b-modules-ci-and-build.md` covers CI workflows, `scripts/`,
+Companion file: [`01b-modules-ci-and-build.md`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md) covers CI workflows, `scripts/`,
 lint configuration and the container build.
 
 ## Harness topology
@@ -43,7 +43,7 @@ flowchart TD
 ## `vitest.config.ts` (14 lines)
 
 The entire root test configuration. `test.include` is exactly
-`['tests/**/*.test.ts']` (`vitest.config.ts:11`) — a single glob, no `exclude`,
+`['tests/**/*.test.ts']` ([`vitest.config.ts:11`](vitest.config.ts#L11)) — a single glob, no `exclude`,
 no `environment`, no `coverage`, no `pool` tuning, no per-file timeout override.
 Consequences worth knowing:
 
@@ -52,7 +52,7 @@ Consequences worth knowing:
   would be collected by nothing and would pass by absence.
 - The default Vitest environment is `node`. Component tests that need a DOM must
   declare `// @vitest-environment jsdom` per file or take their DOM by injection.
-- `resolve.alias` maps `@` to the repository root (`vitest.config.ts:7`), which
+- `resolve.alias` maps `@` to the repository root ([`vitest.config.ts:7`](vitest.config.ts#L7)), which
   is what lets `tests/**` import `@/lib/...`, `@/app/api/.../route` and
   `@/components/...` directly. The `app/api/**/route.ts` handlers are therefore
   unit-testable as plain functions, and 52 of 69 of them are imported this way.
@@ -60,7 +60,7 @@ Consequences worth knowing:
 ## `vitest.eval.config.ts` (14 lines) — dead
 
 Identical to the root config except `include: ['tests/**/*.eval.test.ts']`
-(`vitest.eval.config.ts:11`). Measured: **zero** `*.eval.test.ts` files exist
+([`vitest.eval.config.ts:11`](vitest.eval.config.ts#L11)). Measured: **zero** `*.eval.test.ts` files exist
 anywhere in the repository, and the string `vitest.eval.config` appears in no
 `package.json` script, no workflow, and no documentation. It is unreferenced
 configuration. Do not mistake it for the `eval/` harnesses — those are `tsx`
@@ -69,7 +69,7 @@ entry points invoked by the `eval:*` scripts, not Vitest projects.
 ## `tests/setup-env.ts` (41 lines)
 
 The only setup file for the root suite. Its whole job is to *not* load
-`.env.local` (`tests/setup-env.ts:23`). The docstring records the reasoning
+`.env.local` ([`tests/setup-env.ts:23`](tests/setup-env.ts#L23)). The docstring records the reasoning
 verbatim: loading it unconditionally "cannot make a test pass — CI has no
 `.env.local` at all … it can only invent failures that exist on one machine and
 nowhere else". Opt back in with `TEST_LOAD_LOCAL_ENV=1`. Shell-exported variables
@@ -77,12 +77,12 @@ are untouched either way.
 
 The parser is deliberately minimal: split on the first `=`, skip blanks and
 `#` comments, never overwrite an existing `process.env` key
-(`tests/setup-env.ts:34`). The `catch {}` at line 38 is an intentional
+([`tests/setup-env.ts:34`](tests/setup-env.ts#L34)). The `catch {}` at line 38 is an intentional
 "file absent, skip" and carries a comment saying so.
 
 ## Test-suite shape by area
 
-Measured with the Python walker recorded in `06-quality-and-metrics.md`.
+Measured with the Python walker recorded in [`06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md).
 The five largest areas carry 55 % of all cases:
 
 | Area | Files | Lines | Cases |
@@ -144,25 +144,25 @@ Eleven `*.pg.test.ts` files exist (measured:
 `describe.skipIf(!contractUrl)`.
 
 **Only three of the eleven are audited.** `REQUIRED_SUITES` in
-`scripts/assert-pg-contract-suites.mjs:61-65` names exactly
+[`scripts/assert-pg-contract-suites.mjs:61-65`](scripts/assert-pg-contract-suites.mjs#L61-L65) names exactly
 `pg-document-store.pg.test.ts`, `pg-runtime-store.pg.test.ts` and
 `pg-scene-revision.pg.test.ts`. The three agent-session/asset storage suites are
 collected and run under `storage-pg-contract.yml` (which sets `PG_CONTRACT_URL`
 job-wide) but their execution is not asserted.
 
 **Four of the eleven never run against a database in any CI job.**
-`tests/agent-runtime/event-notify.pg.test.ts:57`,
-`tests/agent-runtime/park-attempt-budget.pg.test.ts:30`,
-`tests/agent-runtime/session-events-live.pg.test.ts:51` and
-`tests/persistence/owner-materials.pg.test.ts:29` all `skipIf`. `ci.yml`'s
+[`tests/agent-runtime/event-notify.pg.test.ts:57`](tests/agent-runtime/event-notify.pg.test.ts#L57),
+[`tests/agent-runtime/park-attempt-budget.pg.test.ts:30`](tests/agent-runtime/park-attempt-budget.pg.test.ts#L30),
+[`tests/agent-runtime/session-events-live.pg.test.ts:51`](tests/agent-runtime/session-events-live.pg.test.ts#L51) and
+[`tests/persistence/owner-materials.pg.test.ts:29`](tests/persistence/owner-materials.pg.test.ts#L29) all `skipIf`. `ci.yml`'s
 `pnpm test` runs with no postgres service; `storage-pg-contract.yml` invokes only
 `tests/lib/whiteboard/runtime-store.pg.test.ts` explicitly
-(`.github/workflows/storage-pg-contract.yml:67`). That fifth file is also the
+([`.github/workflows/storage-pg-contract.yml:67`](.github/workflows/storage-pg-contract.yml#L67)). That fifth file is also the
 only app-level one carrying the `STORAGE_PG_CONTRACT_REQUIRED` hard-fail guard
-(`tests/lib/whiteboard/runtime-store.pg.test.ts:23`).
+([`tests/lib/whiteboard/runtime-store.pg.test.ts:23`](tests/lib/whiteboard/runtime-store.pg.test.ts#L23)).
 
 One S3 contract suite exists,
-`packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts:12`, keyed on
+[`packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts:12`](packages/@openmaic/storage/test/s3-asset-bytes.s3.test.ts#L12), keyed on
 `S3_CONTRACT_ENDPOINT` / `STORAGE_S3_CONTRACT_REQUIRED`. Measured: neither string
 appears anywhere under `.github/` or in `docker-compose.yml`. It never runs in
 CI.
@@ -173,20 +173,20 @@ Two suites are Vitest by construction (they need the TypeScript compiler and the
 `lib/video-export` compiler API) but only meaningful with Chromium, so they live
 in the `e2e` job rather than the `check` job:
 
-- `tests/video-export/cover-card-layout.browser.test.ts:34` — `REQUIRED` is
+- [`tests/video-export/cover-card-layout.browser.test.ts:34`](tests/video-export/cover-card-layout.browser.test.ts#L34) — `REQUIRED` is
   `COVER_LAYOUT_BROWSER === '1'`; without it, a missing Chromium is a skip, with
-  it a hard failure. `ci.yml:271-274` sets it.
-- `tests/video-export/interactive-static-html.browser.test.ts:11` — same pattern,
-  gated on `INTERACTIVE_STATIC_BROWSER`, set at `ci.yml:276-279`.
-- `tests/video-export/e2e-materialize.test.ts:35` — writes Hyperframes sample
+  it a hard failure. [`ci.yml:271-274`](.github/workflows/ci.yml#L271-L274) sets it.
+- [`tests/video-export/interactive-static-html.browser.test.ts:11`](tests/video-export/interactive-static-html.browser.test.ts#L11) — same pattern,
+  gated on `INTERACTIVE_STATIC_BROWSER`, set at [`ci.yml:276-279`](.github/workflows/ci.yml#L276-L279).
+- [`tests/video-export/e2e-materialize.test.ts:35`](tests/video-export/e2e-materialize.test.ts#L35) — writes Hyperframes sample
   projects to `HF_E2E_DIR`; the filesystem materializer is skipped when unset.
-  `ci.yml:282-285` points it at `${{ runner.temp }}`, then `ci.yml:289-311`
+  [`ci.yml:282-285`](.github/workflows/ci.yml#L282-L285) points it at `${{ runner.temp }}`, then [`ci.yml:289-311`](.github/workflows/ci.yml#L289-L311)
   runs `hyperframes lint` over seven named samples and requires the literal
   string `0 errors, 0 warnings`, because Hyperframes 0.7.60 reports warning-only
   lint with exit status zero.
 
 Both browser suites' `env` blocks are themselves pinned by
-`tests/workflows/ci-video-export-contract.test.ts:175` and `:186`.
+[`tests/workflows/ci-video-export-contract.test.ts:175`](tests/workflows/ci-video-export-contract.test.ts#L175) and [`:186`](tests/workflows/ci-video-export-contract.test.ts#L186).
 
 ## Playwright layer
 
@@ -210,7 +210,7 @@ reason:
 | `webServer.timeout` | `120_000` | 31 | "covers startup, not the (much slower) build" |
 | `webServer.env` | `PORT=3002`, `NEXT_PUBLIC_MAIC_EDITOR_ENABLED=true` | 35 | build-time flag; in CI it must be set on `pnpm build` |
 
-`e2e/fixtures/base.ts:12` extends Playwright's `test` with one fixture,
+[`e2e/fixtures/base.ts:12`](e2e/fixtures/base.ts#L12) extends Playwright's `test` with one fixture,
 `mockApi`, and unconditionally stubs `/api/server-providers` because the root
 layout calls it on every page load. `e2e/fixtures/mock-api.ts` is 86 lines and
 stubs four endpoints; `mockSceneActions` (line 50) reads `stageId` out of the
@@ -218,37 +218,37 @@ request body when the caller does not supply one, so the mock matches a
 dynamically generated stage id. Three page objects live in `e2e/pages/`
 (`home`, `generation-preview`, `classroom`), 120 lines total.
 
-`e2e/**` is excluded from both the root `tsconfig.json:39` and
-`eslint.config.mjs:53`, has no `e2e/tsconfig.json`, and gets no `tsc` step in any
-workflow — see `06-quality-and-metrics.md` observation 13.
+`e2e/**` is excluded from both the root [`tsconfig.json:39`](tsconfig.json#L39) and
+[`eslint.config.mjs:53`](eslint.config.mjs#L53), has no `e2e/tsconfig.json`, and gets no `tsc` step in any
+workflow — see [`06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md) observation 13.
 
 ## The five eval harnesses
 
 None is wired into any workflow. Each is a `tsx` entry point behind a
-`package.json` script (`package.json:28-33`), each requires a model string from
+`package.json` script ([`package.json:28-33`](package.json#L28-L33)), each requires a model string from
 the environment and exits non-zero on failure, and each writes a timestamped
 markdown + JSON report under `eval/<name>/results/<model>/<timestamp>/` via the
 shared `eval/shared/run-dir.ts` and `eval/shared/markdown-report.ts`.
 
 | Harness | Script | Scenarios | Measures | Scoring | Exit gate |
 | --- | --- | --- | --- | --- | --- |
-| `eval/pbl-v2-planner` | `eval:pbl-v2-planner` | 23 cases | A/B of `loop` vs `single-call` planner: success rate, runtime completability, output quality | 12-dimension LLM judge + `redLines` + a separate completability judge with `pass`/`riskLevel` | `runner.ts:913` — every case `ok && passesCompletionGate && completability.pass` |
-| `eval/whiteboard-layout` | `eval:whiteboard` | 6 scenarios, 3-5 turns each | Whiteboard rendering/layout quality across a multi-turn lesson | VLM rubric, 5 dimensions 1-10 + `overall` + `issues[]` (`scorer.ts:17-59`) | **none** — writes a report, exits 0 |
-| `eval/orchestration` | `eval:orchestration` | 5 | Director premature-`END` regression, pre-fix vs post-fix prompt | **deterministic**, no judge: `parseDirectorDecision` → END rate (`judge.ts:17`) | `runner.ts:187` — every scenario's post-fix END rate ≤ `EVAL_END_THRESHOLD` (default 0.2) |
-| `eval/orchestration` (answering) | `eval:orchestration:answering` | 7 | — | — | `answering-runner.ts:402` |
-| `eval/orchestration` (answer content) | `eval:orchestration:answer-content` | 12 | — | LLM judge (`answer-content-judge.ts`) | `answer-content-runner.ts:516` |
-| `eval/outline-language` | `eval:outline-language` | 50 | Whether the inferred `languageDirective` matches ground truth | LLM-as-judge, binary `pass` (`judge.ts`) | `runner.ts:168` — requires **100 %** pass |
+| `eval/pbl-v2-planner` | `eval:pbl-v2-planner` | 23 cases | A/B of `loop` vs `single-call` planner: success rate, runtime completability, output quality | 12-dimension LLM judge + `redLines` + a separate completability judge with `pass`/`riskLevel` | [`runner.ts:913`](eval/pbl-v2-planner/runner.ts#L913) — every case `ok && passesCompletionGate && completability.pass` |
+| `eval/whiteboard-layout` | `eval:whiteboard` | 6 scenarios, 3-5 turns each | Whiteboard rendering/layout quality across a multi-turn lesson | VLM rubric, 5 dimensions 1-10 + `overall` + `issues[]` ([`scorer.ts:17-59`](eval/whiteboard-layout/scorer.ts#L17-L59)) | **none** — writes a report, exits 0 |
+| `eval/orchestration` | `eval:orchestration` | 5 | Director premature-`END` regression, pre-fix vs post-fix prompt | **deterministic**, no judge: `parseDirectorDecision` → END rate ([`judge.ts:17`](eval/orchestration/judge.ts#L17)) | [`runner.ts:187`](eval/orchestration/runner.ts#L187) — every scenario's post-fix END rate ≤ `EVAL_END_THRESHOLD` (default 0.2) |
+| `eval/orchestration` (answering) | `eval:orchestration:answering` | 7 | — | — | [`answering-runner.ts:402`](eval/orchestration/answering-runner.ts#L402) |
+| `eval/orchestration` (answer content) | `eval:orchestration:answer-content` | 12 | — | LLM judge (`answer-content-judge.ts`) | [`answer-content-runner.ts:516`](eval/orchestration/answer-content-runner.ts#L516) |
+| `eval/outline-language` | `eval:outline-language` | 50 | Whether the inferred `languageDirective` matches ground truth | LLM-as-judge, binary `pass` (`judge.ts`) | [`runner.ts:168`](eval/outline-language/runner.ts#L168) — requires **100 %** pass |
 
 Two details are worth copying into any new harness:
 
-- `eval/orchestration/judge.ts:30` excludes errored samples from the END-rate
+- [`eval/orchestration/judge.ts:30`](eval/orchestration/judge.ts#L30) excludes errored samples from the END-rate
   denominator, with the comment naming the concrete incident: an Anthropic
   `Forbidden` had shown as 100 % END.
-- `eval/orchestration/judge.ts:1-8` argues *against* an LLM judge where the
+- [`eval/orchestration/judge.ts:1-8`](eval/orchestration/judge.ts#L1-L8) argues *against* an LLM judge where the
   verdict is binary and derivable from production parsing code. The other four
   harnesses all use judges because their verdicts are not binary.
 
-`eval/whiteboard-layout/runner.ts:130` maintains a serial `actionChain` promise
+[`eval/whiteboard-layout/runner.ts:130`](eval/whiteboard-layout/runner.ts#L130) maintains a serial `actionChain` promise
 because `ActionEngine.ensureWhiteboardOpen()` awaits an internal delay on first
 call, which would otherwise let later whiteboard actions race ahead and insert
 elements out of order — a good example of the harness having to model a real

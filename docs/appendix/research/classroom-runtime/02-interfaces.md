@@ -37,7 +37,7 @@ export interface TriggerEvent {
 }
 ```
 
-`PlaybackEngineCallbacks` (`types.ts:32`) — the whole surface the host wires:
+`PlaybackEngineCallbacks` ([`types.ts:32`](lib/playback/types.ts#L32)) — the whole surface the host wires:
 
 ```ts
 export interface PlaybackEngineCallbacks {
@@ -78,9 +78,9 @@ export interface PlaybackEngineCallbacks {
 
 Measured: `engine.ts` has **zero** call sites for `onTextDelta`, `onTopicStart`,
 `onTopicAppend` and `onTopicEnd` — four dead callbacks on a public interface.
-`onSpeakerChange` has exactly one call site (`engine.ts:560`, always with the
+`onSpeakerChange` has exactly one call site ([`engine.ts:560`](lib/playback/engine.ts#L560), always with the
 literal `'teacher'`) and is **not** among the 14 callbacks the only production
-constructor wires (`components/edit/PlaybackChromeRoot.tsx:759-923`: `onModeChange`,
+constructor wires ([`components/edit/PlaybackChromeRoot.tsx:759-923`](components/edit/PlaybackChromeRoot.tsx#L759-L923): `onModeChange`,
 `onProgress`, `onSceneChange`, `onSpeechStart`, `onSpeechEnd`, `onEffectFire`,
 `onProactiveShow`, `onProactiveHide`, `onDiscussionConfirmed`, `onDiscussionEnd`,
 `onUserInterrupt`, `isAgentSelected`, `getPlaybackSpeed`, `onComplete`).
@@ -117,8 +117,8 @@ isExhausted(): boolean                                  // :471
 
 `restoreFromSnapshot` has **zero call sites anywhere**, including tests
 (`grep -rn "restoreFromSnapshot" lib components app tests` returns only its own
-declaration at `engine.ts:143`). The app restores position through `jumpToAction`
-instead (`PlaybackChromeRoot.tsx:943`), because a bare cursor restore would not
+declaration at [`engine.ts:143`](lib/playback/engine.ts#L143)). The app restores position through `jumpToAction`
+instead ([`PlaybackChromeRoot.tsx:943`](components/edit/PlaybackChromeRoot.tsx#L943)), because a bare cursor restore would not
 replay the whiteboard prefix.
 
 ## 3. Derived view — `lib/playback/derived-state.ts`
@@ -254,7 +254,7 @@ export async function clearCursor(stageId: string, deps: Pick<PlaybackCursorDeps
 ```
 
 `PlaybackCursorDeps` injects both a `KVStore` and a `PlaybackLegacyStore`, so the
-one-time Dexie migration (`migrateLegacyCursor`, `cursor.ts:102`) is testable
+one-time Dexie migration (`migrateLegacyCursor`, [`cursor.ts:102`](lib/playback/cursor.ts#L102)) is testable
 without opening either browser store.
 
 ## 6. Type relationships
@@ -330,6 +330,6 @@ classDiagram
 
 The relationship worth restating in prose: `PlaybackEngine` does **not** own a
 meaningful `Scene[]`. The app hands it a single-element array
-(`PlaybackChromeRoot.tsx:759`) and rebuilds the engine on every scene change, so
+([`PlaybackChromeRoot.tsx:759`](components/edit/PlaybackChromeRoot.tsx#L759)) and rebuilds the engine on every scene change, so
 its real lifetime is one scene even though its type says otherwise — the
 multi-scene walk in `resolvePlaybackCursor` exists for the video exporter.

@@ -6,9 +6,9 @@ produces no row. Pure usage — there is no cost model anywhere in the codebase.
 **Sources:** `lib/ai/llm.ts`, `lib/usage/normalize.ts`, `lib/server/usage-storage.ts`,
 `app/api/usage/route.ts`, `components/settings/usage-dashboard.tsx`,
 `app/api/generate/{image,video,tts}/route.ts`,
-`lib/server/agent-runtime/generate-{image,video}.ts`, `eslint.config.mjs:575-667`,
-`docker-compose.yml:40`;
-[../appendix/research/ai-provider-layer/01b-modules-server.md](../appendix/research/ai-provider-layer/01b-modules-server.md).
+`lib/server/agent-runtime/generate-{image,video}.ts`, [`eslint.config.mjs:575-667`](eslint.config.mjs#L575-L667),
+[`docker-compose.yml:40`](docker-compose.yml#L40);
+[../appendix/research/ai-provider-layer/01b-modules-server.md](docs/appendix/research/ai-provider-layer/01b-modules-server.md).
 
 ## The metering path
 
@@ -67,14 +67,14 @@ flowchart TD
 ## Why the funnel holds
 
 Every server-side **text-generation** call goes through `callLLM` / `streamLLM`, and that much is
-machine-enforced, not conventional. `eslint.config.mjs:608`–`:634` bans
+machine-enforced, not conventional. [`eslint.config.mjs:608`](eslint.config.mjs#L608)–[`:634`](eslint.config.mjs#L634) bans
 `import { generateText, streamText } from 'ai'` everywhere except `lib/ai/llm.ts`, `eval/**` and
 `tests/**`; `:650`–`:667` bans the dynamic `import('ai')` form via `AI_SDK_DYNAMIC_IMPORT_BAN`
 (`:13`), which is spread into every block that sets `no-restricted-syntax` because flat config
 *replaces* rule options per key rather than merging them (comment at `:584`–`:588`). `require('ai')`
 is covered by the inherited `@typescript-eslint/no-require-imports`.
 
-The comment at `eslint.config.mjs:575`–`:582` records why the rule exists: the PBL v2 runtime
+The comment at [`eslint.config.mjs:575`](eslint.config.mjs#L575)–[`:582`](eslint.config.mjs#L582) records why the rule exists: the PBL v2 runtime
 drifted exactly this way in issue #1003 — five direct `generateText` calls meant zero usage records
 for the busiest traffic in the product, plus three different meanings for one thinking config.
 
@@ -86,9 +86,9 @@ lint violation:
 
 | Call | Where | How usage is recorded |
 | --- | --- | --- |
-| Image and video generation | `app/api/generate/image/route.ts:114`, `generate/video/route.ts:112`, `lib/server/agent-runtime/generate-image.ts:326`, `generate-video.ts:410`, `lib/server/material-extraction/extract.ts:158` | `recordGenerationUsage` (`usage-storage.ts:154`), a sibling entry point to `callLLM`'s `recordUsageSafe` — not the funnel above |
-| TTS | `app/api/generate/tts/route.ts:147` | same sibling entry point |
-| ASR / transcription | `lib/audio/asr-providers.ts:149` imports `experimental_transcribe` from `'ai'` and calls the model directly | **not recorded at all.** `UsageKind` declares `'asr'` (`usage-storage.ts:21`) but no call site anywhere writes a row with that kind |
+| Image and video generation | [`app/api/generate/image/route.ts:114`](app/api/generate/image/route.ts#L114), [`generate/video/route.ts:112`](app/api/generate/video/route.ts#L112), [`lib/server/agent-runtime/generate-image.ts:326`](lib/server/agent-runtime/generate-image.ts#L326), [`generate-video.ts:410`](lib/server/agent-runtime/generate-video.ts#L410), [`lib/server/material-extraction/extract.ts:158`](lib/server/material-extraction/extract.ts#L158) | `recordGenerationUsage` ([`usage-storage.ts:154`](lib/server/usage-storage.ts#L154)), a sibling entry point to `callLLM`'s `recordUsageSafe` — not the funnel above |
+| TTS | [`app/api/generate/tts/route.ts:147`](app/api/generate/tts/route.ts#L147) | same sibling entry point |
+| ASR / transcription | [`lib/audio/asr-providers.ts:149`](lib/audio/asr-providers.ts#L149) imports `experimental_transcribe` from `'ai'` and calls the model directly | **not recorded at all.** `UsageKind` declares `'asr'` ([`usage-storage.ts:21`](lib/server/usage-storage.ts#L21)) but no call site anywhere writes a row with that kind |
 
 So the funnel holds for LLM rows. Non-LLM rows depend on each route remembering to call
 `recordGenerationUsage`, which nothing enforces, and transcription currently does not.
@@ -119,10 +119,10 @@ export interface UsageRecord {
 
 Storage is one JSONL file per UTC month: `data/usage/<YYYY>-<MM>.jsonl`
 (`monthlyFile`, `:14`; base dir `:10`). In Docker this lands in the `openmaic-data` volume mounted
-at `/app/data` (`docker-compose.yml:40`), which the comment at `usage-storage.ts:8` names. There is
+at `/app/data` ([`docker-compose.yml:40`](docker-compose.yml#L40)), which the comment at [`usage-storage.ts:8`](lib/server/usage-storage.ts#L8) names. There is
 no database table, no index, no rotation and no retention job.
 
-`normalizeUsage` (`lib/usage/normalize.ts:30`) prefers the AI SDK v6 nested
+`normalizeUsage` ([`lib/usage/normalize.ts:30`](lib/usage/normalize.ts#L30)) prefers the AI SDK v6 nested
 `inputTokenDetails.cacheReadTokens` / `inputTokenDetails.cacheWriteTokens` /
 `outputTokenDetails.reasoningTokens` and falls back to the deprecated flat `cachedInputTokens` /
 `reasoningTokens` (`:41`–`:43`). Every missing field becomes 0 via `num()` (`:18`), never `NaN`, so a
@@ -132,7 +132,7 @@ model could apply — but no pricing exists in this repo.
 
 ## Three deliberate behaviours in `callLLM`
 
-1. **Record before validating.** `recordUsageSafe(...)` runs at `lib/ai/llm.ts:361`, before the
+1. **Record before validating.** `recordUsageSafe(...)` runs at [`lib/ai/llm.ts:361`](lib/ai/llm.ts#L361), before the
    `validate(result.text)` check at `:364`. The comment at `:352`–`:355` states the reason: an
    attempt that reaches a response was billed, including one that fails validation and one handed
    back after retries are exhausted. Recording only on success would drop both. So with
@@ -153,7 +153,7 @@ next to production traffic.
 
 ## Source labels
 
-`buildUsageMeta` (`lib/ai/llm.ts:287`) puts the `source` argument straight into the row and
+`buildUsageMeta` ([`lib/ai/llm.ts:287`](lib/ai/llm.ts#L287)) puts the `source` argument straight into the row and
 canonicalises the model id through `getCanonicalModelId` (`:290`), so `openai:gpt-5.6-sol` is
 recorded as `openai:gpt-5.6`. `providerId` comes from `getModelProviderId` → `normalizeProviderId`
 (`:117`), which reverse-maps SDK provider strings back to registry ids with two special cases:
@@ -164,12 +164,12 @@ Labels actually written, traced from the call sites:
 
 | Label | Emitter |
 | --- | --- |
-| `scene-outlines-stream`, `scene-content`, `scene-actions`, `agent-profiles`, `quiz-grade`, `generate-classroom` | the matching generation route / `generation-ai-call.ts:33` |
-| `verify-model` | `app/api/verify-model/route.ts:45` |
-| `agent-runtime` | durable agent runner, `lib/server/agent-runtime/runner.ts:1268` |
-| `pi-chat-director` | `lib/chat/pi/director-loop.ts:122` |
-| `pi-chat-child`, `pi-chat-native-child` | `lib/chat/pi/tools/call-agent.ts:877`, `:775` |
-| `image`, `video`, `tts` | `recordGenerationUsage` derives `source = input.kind` (`usage-storage.ts:159`) |
+| `scene-outlines-stream`, `scene-content`, `scene-actions`, `agent-profiles`, `quiz-grade`, `generate-classroom` | the matching generation route / [`generation-ai-call.ts:33`](lib/server/agent-runtime/generation-ai-call.ts#L33) |
+| `verify-model` | [`app/api/verify-model/route.ts:45`](app/api/verify-model/route.ts#L45) |
+| `agent-runtime` | durable agent runner, [`lib/server/agent-runtime/runner.ts:1268`](lib/server/agent-runtime/runner.ts#L1268) |
+| `pi-chat-director` | [`lib/chat/pi/director-loop.ts:122`](lib/chat/pi/director-loop.ts#L122) |
+| `pi-chat-child`, `pi-chat-native-child` | [`lib/chat/pi/tools/call-agent.ts:877`](lib/chat/pi/tools/call-agent.ts#L877), [`:775`](lib/chat/pi/tools/call-agent.ts#L775) |
+| `image`, `video`, `tts` | `recordGenerationUsage` derives `source = input.kind` ([`usage-storage.ts:159`](lib/server/usage-storage.ts#L159)) |
 
 Note the mismatch with `LLM_STAGES`: the routing vocabulary and the accounting vocabulary overlap
 but are not the same set. `chat-adapter` is a routable stage whose calls are recorded under three
@@ -200,7 +200,7 @@ flowchart LR
   route --> dash
 ```
 
-`addTo` (`app/api/usage/route.ts:47`) deliberately excludes cache read/write from `totalTokens`
+`addTo` ([`app/api/usage/route.ts:47`](app/api/usage/route.ts#L47)) deliberately excludes cache read/write from `totalTokens`
 (`:57`): the provider-reported `inputTokens` already includes cached input for OpenAI-compatible
 providers, so adding the cache counts again would double-count. They remain as separate breakdown
 fields. The comment at `:53`–`:56` says exactly this.
@@ -220,21 +220,21 @@ files.
 
 | Situation | Why | Evidence |
 | --- | --- | --- |
-| Streamed OpenAI-compatible response that omits usage | `hasBillableTokens` is false, row skipped | `usage-storage.ts:107`; `normalize.ts:59` |
-| `data/usage/` not writable (read-only FS, EACCES, disk full) | `recordUsage` swallows and warns; `/api/usage` reports zeros | `usage-storage.ts:133` |
-| Dynamic import of `normalize` or `usage-storage` fails | `Usage capture failed (ignored)` | `llm.ts:311`–`:313` |
-| **ASR / transcription** | `UsageKind` includes `'asr'` (`:21`) and the dashboard has a label for it (`usage-dashboard.tsx:45`), but no call site writes an `asr` row anywhere in `app/` or `lib/` | grep for `kind: 'asr'` returns nothing |
-| Any call from `eval/**` or `tests/**` | those paths are exempt from the ESLint funnel and may call the SDK directly | `eslint.config.mjs:616`–`:617` |
+| Streamed OpenAI-compatible response that omits usage | `hasBillableTokens` is false, row skipped | [`usage-storage.ts:107`](lib/server/usage-storage.ts#L107); [`normalize.ts:59`](lib/usage/normalize.ts#L59) |
+| `data/usage/` not writable (read-only FS, EACCES, disk full) | `recordUsage` swallows and warns; `/api/usage` reports zeros | [`usage-storage.ts:133`](lib/server/usage-storage.ts#L133) |
+| Dynamic import of `normalize` or `usage-storage` fails | `Usage capture failed (ignored)` | [`llm.ts:311`](lib/ai/llm.ts#L311)–[`:313`](lib/ai/llm.ts#L313) |
+| **ASR / transcription** | `UsageKind` includes `'asr'` (`:21`) and the dashboard has a label for it ([`usage-dashboard.tsx:45`](components/settings/usage-dashboard.tsx#L45)), but no call site writes an `asr` row anywhere in `app/` or `lib/` | grep for `kind: 'asr'` returns nothing |
+| Any call from `eval/**` or `tests/**` | those paths are exempt from the ESLint funnel and may call the SDK directly | [`eslint.config.mjs:616`](eslint.config.mjs#L616)–[`:617`](eslint.config.mjs#L617) |
 
 ## Known distortions in the aggregate
 
 - **`byDay` mislabels non-LLM rows.** The bucket is created as `emptyBucket(dk, 'llm', 'token')`
-  (`app/api/usage/route.ts:95`) regardless of the record's actual kind, then every row of every kind
+  ([`app/api/usage/route.ts:95`](app/api/usage/route.ts#L95)) regardless of the record's actual kind, then every row of every kind
   is added to it. So a day's `byDay` entry claims `kind: 'llm'`/`unit: 'token'` while its `quantity`
   field silently accumulates TTS characters plus video seconds plus image counts. The dashboard
   avoids the trap only because its daily chart plots `requests`.
 - **Retries inflate request counts.** Each attempt that reaches a response is its own row
-  (`llm.ts:361`), so `totals.requests` counts attempts, not logical calls.
+  ([`llm.ts:361`](lib/ai/llm.ts#L361)), so `totals.requests` counts attempts, not logical calls.
 - **`modelString` is the grouping key, `modelId` the fallback** (`:90`). A row whose provider could
   not be normalised is grouped under `unknown:<modelId>`.
 - **Nothing is per-user.** The log is deployment-wide; there is no owner id, no session id and no
@@ -249,5 +249,5 @@ files.
 - `readUsageRecords` loads every matching month fully into memory on every `GET /api/usage`. No
   bound, no rotation, no retention. At what row count that becomes a problem is untested.
 - The four-class token shape exists "so the same per-class pricing model applies"
-  (`lib/usage/normalize.ts:5`–`:8`) but no pricing table ships. Whether cost is planned or the
+  ([`lib/usage/normalize.ts:5`](lib/usage/normalize.ts#L5)–[`:8`](lib/usage/normalize.ts#L8)) but no pricing table ships. Whether cost is planned or the
   reference was aspirational is not stated.

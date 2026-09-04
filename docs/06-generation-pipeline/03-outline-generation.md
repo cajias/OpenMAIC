@@ -9,18 +9,18 @@ that the UI actually uses, and how output language is controlled.
 `.../outline-types.ts`, `.../json-repair.ts`, `.../outline-formatters.ts`,
 `.../outline-media.ts`, `app/api/generate/scene-outlines-stream/route.ts`,
 `app/generation-preview/page.tsx`; evidence:
-[`02a-interfaces-package.md`](../appendix/research/generation-pipeline/02a-interfaces-package.md),
-[`03a-flows-ingestion-outline.md`](../appendix/research/generation-pipeline/03a-flows-ingestion-outline.md).
+[`02a-interfaces-package.md`](docs/appendix/research/generation-pipeline/02a-interfaces-package.md),
+[`03a-flows-ingestion-outline.md`](docs/appendix/research/generation-pipeline/03a-flows-ingestion-outline.md).
 
 ## Two entry points, one prompt
 
 | Entry | Used by | Streaming | Retry |
 | --- | --- | --- | --- |
-| `generateSceneOutlinesFromRequirements` (`outline-generator.ts:120`) | the headless job (`lib/server/classroom-generation.ts:474`) and package consumers | no | none inside; caller may wrap |
-| `POST /api/generate/scene-outlines-stream` (`route.ts:287`) | the browser driver (`app/generation-preview/page.tsx:568`) | SSE | up to 2 whole-stream retries |
+| `generateSceneOutlinesFromRequirements` ([`outline-generator.ts:120`](packages/@openmaic/generation/src/outline-generator.ts#L120)) | the headless job ([`lib/server/classroom-generation.ts:474`](lib/server/classroom-generation.ts#L474)) and package consumers | no | none inside; caller may wrap |
+| `POST /api/generate/scene-outlines-stream` ([`route.ts:287`](app/api/generate/scene-outlines-stream/route.ts#L287)) | the browser driver ([`app/generation-preview/page.tsx:568`](app/generation-preview/page.tsx#L568)) | SSE | up to 2 whole-stream retries |
 
 Both build the prompt with the *same* package function, `buildOutlinePrompt`
-(`outline-generator.ts:82`), which the route calls at `route.ts:421`. That is deliberate:
+([`outline-generator.ts:82`](packages/@openmaic/generation/src/outline-generator.ts#L82)), which the route calls at [`route.ts:421`](app/api/generate/scene-outlines-stream/route.ts#L421). That is deliberate:
 the route's default branch is byte-identical to the package path, so the four golden
 snapshots in `packages/@openmaic/generation/test/__snapshots__/outline-prompt.test.ts.snap`
 pin both.
@@ -28,7 +28,7 @@ pin both.
 ## Prompt inputs
 
 `buildOutlinePrompt(requirements, context)` fills the `requirements-to-outlines` template
-with exactly ten variables (`outline-generator.ts:99-110`):
+with exactly ten variables ([`outline-generator.ts:99-110`](packages/@openmaic/generation/src/outline-generator.ts#L99-L110)):
 
 | Variable | Source | Fallback |
 | --- | --- | --- |
@@ -77,16 +77,16 @@ The invariant this enforces: **the text says `[see attached]` only for images th
 actually attached.** The streaming route goes further and resolves the slice's asset ids
 to bytes *before* prompt assembly, then rebuilds `resolvedPdfImages` and
 `resolvedImageMapping` naming only the ids that resolved
-(`route.ts:383-388`), so an unresolvable asset drops both its attachment and its text
+([`route.ts:383-388`](app/api/generate/scene-outlines-stream/route.ts#L383-L388)), so an unresolvable asset drops both its attachment and its text
 mention. The route's own comment notes that shift-in is impossible here because
-`visionImages` *is* the resolved slice and is never re-sliced (`route.ts:389-397`) —
+`visionImages` *is* the resolved slice and is never re-sliced ([`route.ts:389-397`](app/api/generate/scene-outlines-stream/route.ts#L389-L397)) —
 unlike the scene-content route, which does re-slice and therefore needs a refill loop
-(see [05](./05-scene-generation.md#vision-pre-resolution)).
+(see [05](docs/06-generation-pipeline/05-scene-generation.md#vision-pre-resolution)).
 
 ## Output schema
 
 The template states the required shape three times — the JSON skeleton at
-`templates/requirements-to-outlines/user.md:54-60`, a "Never return a bare array" sentence
+[`templates/requirements-to-outlines/user.md:54-60`](packages/@openmaic/generation/templates/requirements-to-outlines/user.md), a "Never return a bare array" sentence
 at `:62`, and a "Final reminder" at `:98`:
 
 ```json
@@ -97,11 +97,11 @@ at `:62`, and a "Final reminder" at `:98`:
 }
 ```
 
-The parser accepts a bare array anyway (`outline-generator.ts:154`), defaulting
+The parser accepts a bare array anyway ([`outline-generator.ts:154`](packages/@openmaic/generation/src/outline-generator.ts#L154)), defaulting
 `languageDirective` to `DEFAULT_LANGUAGE_DIRECTIVE`
 (`'Teach in the language that matches the user requirement.'`, `:20`).
 
-`SceneOutline` (`outline-types.ts:70`) is the pivot type of the whole subsystem:
+`SceneOutline` ([`outline-types.ts:70`](packages/@openmaic/generation/src/outline-types.ts#L70)) is the pivot type of the whole subsystem:
 
 ```mermaid
 classDiagram
@@ -161,12 +161,12 @@ classDiagram
 Two shape facts worth internalising:
 
 - **`WidgetOutline` has no discriminant.** It is a flat union of every widget's fields; the
-  discriminant is the sibling `outline.widgetType` (`outline-types.ts:33`). Nothing stops
+  discriminant is the sibling `outline.widgetType` ([`outline-types.ts:33`](packages/@openmaic/generation/src/outline-types.ts#L33)). Nothing stops
   a `diagramType` and a `gameType` coexisting on one outline.
-- **`quizConfig.questionTypes` allows `'text'`** (`outline-types.ts:85`) while
+- **`quizConfig.questionTypes` allows `'text'`** ([`outline-types.ts:85`](packages/@openmaic/generation/src/outline-types.ts#L85)) while
   `generateQuizContent` branches on `q.type === 'short_answer'`
-  (`scene-generator.ts:896`). The outline vocabulary and the question vocabulary are not
-  the same enum — see [09](./09-quiz-and-grading.md).
+  ([`scene-generator.ts:896`](packages/@openmaic/generation/src/scene-generator.ts#L896)). The outline vocabulary and the question vocabulary are not
+  the same enum — see [09](docs/06-generation-pipeline/09-quiz-and-grading.md).
 
 ## Post-parse normalisation
 
@@ -210,8 +210,8 @@ streaming route keeps it, and the app's `llmApiError` recovers it for the two sc
 routes).
 
 `courseTitle` is capped at **120** characters (`:161`) while the template asks for ≤ 30
-(`user.md:57`). The streaming normaliser applies the same 120 cap
-(`route.ts:87`).
+([`user.md:57`](packages/@openmaic/generation/templates/requirements-to-outlines/user.md)). The streaming normaliser applies the same 120 cap
+([`route.ts:87`](app/api/generate/scene-outlines-stream/route.ts#L87)).
 
 ## Validation and repair on invalid output
 
@@ -233,10 +233,10 @@ flowchart TD
   cand2 -->|null| nul["null, plus first-500 and last-500 char dumps"]
 ```
 
-`parseJsonResponseCandidate` (`json-repair.ts:85`) tries every markdown fenced block that
+`parseJsonResponseCandidate` ([`json-repair.ts:85`](packages/@openmaic/generation/src/json-repair.ts#L85)) tries every markdown fenced block that
 starts with `{` or `[`, then a brace/bracket-matched substring located by a string-aware
 scanner, then the whole text. Each candidate runs the four-attempt `tryParseJson` ladder
-(`json-repair.ts:177`):
+([`json-repair.ts:177`](packages/@openmaic/generation/src/json-repair.ts#L177)):
 
 | Attempt | Fix |
 | --- | --- |
@@ -246,7 +246,7 @@ scanner, then the whole text. Each candidate runs the four-attempt `tryParseJson
 | 4 | strip/escape control characters |
 
 Every failed attempt logs a window around the reported error position
-(`logJsonParseError`, `json-repair.ts:19`).
+(`logJsonParseError`, [`json-repair.ts:19`](packages/@openmaic/generation/src/json-repair.ts#L19)).
 
 ### 2. Shape guards
 
@@ -257,9 +257,9 @@ validated at this stage.
 ### 3. Type demotion — `applyOutlineFallbacks`
 
 Runs later, once per outline, immediately before content generation (called at
-`app/api/generate/scene-content/route.ts:179` and
-`lib/server/classroom-generation.ts:559`). Three demotions, checked in this order
-(`outline-generator.ts:205-233`):
+[`app/api/generate/scene-content/route.ts:179`](app/api/generate/scene-content/route.ts#L179) and
+[`lib/server/classroom-generation.ts:559`](lib/server/classroom-generation.ts#L559)). Three demotions, checked in this order
+([`outline-generator.ts:205-233`](packages/@openmaic/generation/src/outline-generator.ts#L205-L233)):
 
 ```mermaid
 flowchart TD
@@ -273,11 +273,11 @@ flowchart TD
 ```
 
 The result is echoed back to the client as `effectiveOutline`
-(`app/api/generate/scene-content/route.ts:355`) so the actions call and the assembled
+([`app/api/generate/scene-content/route.ts:355`](app/api/generate/scene-content/route.ts#L355)) so the actions call and the assembled
 scene use the demoted type, not the original.
 
 A fourth, editor-side path exists: `changeOutlineType(outline, newType)`
-(`outline-type.ts:13`) rebuilds an outline that is valid by construction for the new type
+([`outline-type.ts:13`](packages/@openmaic/generation/src/outline-type.ts#L13)) rebuilds an outline that is valid by construction for the new type
 (quiz gets a default `quizConfig`, interactive gets `simulation` plus a `concept`, pbl gets
 a `pblConfig` synthesised from title and key points). That is what the outlines editor
 calls when a human retypes a scene.
@@ -287,4 +287,4 @@ calls when a human retypes a scene.
 This section outgrew the file-size ceiling and was split. The SSE route — wire format,
 incremental parser, whole-stream retry, client-side reduction rules, the two app-only
 prompt variants — plus end-to-end output-language control and the open questions are in
-[`./03b-outline-streaming.md`](./03b-outline-streaming.md).
+[`./03b-outline-streaming.md`](docs/06-generation-pipeline/03b-outline-streaming.md).

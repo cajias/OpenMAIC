@@ -64,39 +64,39 @@ flowchart TD
 
 Two files, 175 lines total, importing nothing server-only on purpose.
 
-- **`lifecycle.ts:37` `HOST_AGENT_LIFECYCLE`** — the 13 host lifecycle event
+- **[`lifecycle.ts:37`](lib/agent-runtime/lifecycle.ts#L37) `HOST_AGENT_LIFECYCLE`** — the 13 host lifecycle event
   names the runner writes and the browser subscribes to by name. The file header
-  (`lifecycle.ts:5-12`) states the reason it lives outside `lib/server/`: a
+  ([`lifecycle.ts:5-12`](lib/agent-runtime/lifecycle.ts#L5-L12)) states the reason it lives outside `lib/server/`: a
   native `EventSource` delivers `event: user_question` only to a listener
   registered for that exact type, so the browser needs the same constant, and
   importing it must not pull `pg` into the client bundle. `stageLink` documents
   a durable-compat wrinkle: the old name `course_link` is already in historical
-  logs and the browser must keep accepting both (`lifecycle.ts:95-100`).
-- **`stage-writer-tools.ts:20` `STAGE_WRITER_TOOL_NAMES`** — the single list of
+  logs and the browser must keep accepting both ([`lifecycle.ts:95-100`](lib/agent-runtime/lifecycle.ts#L95-L100)).
+- **[`stage-writer-tools.ts:20`](lib/agent-runtime/stage-writer-tools.ts#L20) `STAGE_WRITER_TOOL_NAMES`** — the single list of
   "which agent tools WRITE a stage document" (9 names). Three consumers: the
   server scheduler derives `DOCUMENT_WRITING_TOOLS` from it
-  (`course-tools.ts:110`), the workbench fold arms write ownership on
+  ([`course-tools.ts:110`](lib/server/agent-runtime/course-tools.ts#L110)), the workbench fold arms write ownership on
   `tool_execution_start` for exactly these names, and `rename_stage` is a member
   even though it is scheduled in the curriculum toolset instead.
 
 ## `lib/agent/runtime/` — the shared harness
 
-- **`build-agent.ts:65` `buildAgent(opts)`** — the only place a pi `Agent` is
+- **[`build-agent.ts:65`](lib/agent/runtime/build-agent.ts#L65) `buildAgent(opts)`** — the only place a pi `Agent` is
   constructed in this repo. Both runtimes and the classroom child agent go
-  through it. It pins `toolExecution: 'sequential'` (`build-agent.ts:70`), wraps
+  through it. It pins `toolExecution: 'sequential'` ([`build-agent.ts:70`](lib/agent/runtime/build-agent.ts#L70)), wraps
   every tool in `withAgentToolTimeout` (`:77`), installs the allowlist gate as
   `beforeToolCall` (`:82`), and composes a quota hook with the caller's
   `afterToolCall` (`:83-100`). `STUB_MODEL` (`:28`) is a metadata placeholder
   with `contextWindow: 1_000_000` so the harness never tries to compact on its
   own; the injected `StreamFn` ignores it.
-  `build-agent.ts:103-125` adds a **terminal barrier**: when a `turn_end`
+  [`build-agent.ts:103-125`](lib/agent/runtime/build-agent.ts#L103-L125) adds a **terminal barrier**: when a `turn_end`
   assistant frame has `stopReason === 'length'` and carries length-tool-call
   provenance, it calls `agent.clearAllQueues()` and monkey-patches `steer` and
   `followUp` into no-ops until `agent_end`.
-- **`stream-fn.ts:250` `createCallLlmStreamFn(opts)`** — the integration seam.
+- **[`stream-fn.ts:250`](lib/agent/runtime/stream-fn.ts#L250) `createCallLlmStreamFn(opts)`** — the integration seam.
   pi's `StreamFn` is `(model, context, options) => AssistantMessageEventStream`;
   this ignores pi's model stub, calls OpenMAIC's `streamLLM`
-  (`stream-fn.ts:400`) with `stopWhen: stepCountIs(1)` (`:413`) so pi's own loop
+  ([`stream-fn.ts:400`](lib/agent/runtime/stream-fn.ts#L400)) with `stopWhen: stepCountIs(1)` ([`:413`](lib/agent/runtime/stream-fn.ts#L413)) so pi's own loop
   owns multi-step, and maps AI-SDK `fullStream` parts back to pi events via
   `createPartMapper` (`:168`). `LocalAssistantEventStream` (`:52`) is a local
   re-implementation of pi-ai's event-stream queue because the factory is not
@@ -105,23 +105,23 @@ Two files, 175 lines total, importing nothing server-only on purpose.
   'length'` with executable tool calls stripped; `content-filter | error |
   other` → error; `tool-calls` without a parsed call → error; `stop` →
   `toolUse` when a tool call is present, else `stop`.
-- **`tool-timeout.ts:98` `withAgentToolTimeout(tool)`** — races every tool call
+- **[`tool-timeout.ts:98`](lib/agent/runtime/tool-timeout.ts#L98) `withAgentToolTimeout(tool)`** — races every tool call
   against a budget and the caller's abort signal, because pi awaits
-  `tool.execute` with no deadline (`tool-timeout.ts:5-10`). Default 10 min
+  `tool.execute` with no deadline ([`tool-timeout.ts:5-10`](lib/agent/runtime/tool-timeout.ts#L5-L10)). Default 10 min
   (`:31`), overrides for `generate_scene` / `generate_actions` /
   `extract_material` at 15 min (`:38-45`), env override
   `OPENMAIC_AGENT_TOOL_TIMEOUT_MS` (`:48`). On timeout it throws
   `AgentToolTimeoutError` (`:63`) which pi converts into an error tool result,
   so the session survives. Progress updates from a zombie tool after the race
   settles are dropped (`:190-194`).
-- **`allowlist.ts:5` `makeAllowlistGate(allowed)`** — 10 lines. `block: true`
+- **[`allowlist.ts:5`](lib/agent/runtime/allowlist.ts#L5) `makeAllowlistGate(allowed)`** — 10 lines. `block: true`
   with reason `Tool "<name>" is not enabled in this build.` The comment states
   the design: "v0 capability restriction = tool allowlist (NOT a hardcoded
   workflow)".
-- **`quota.ts:8` `makeQuotaHook(source)`** — 13 lines, explicitly a v0 stub;
+- **[`quota.ts:8`](lib/agent/runtime/quota.ts#L8) `makeQuotaHook(source)`** — 13 lines, explicitly a v0 stub;
   `buildAgent` wires it with `remaining: () => Number.MAX_SAFE_INTEGER`
-  (`build-agent.ts:66`), i.e. **there is no quota enforcement today**.
-- **`run-native-child.ts:189` `runNativeChild(opts)`** — bounded single-shot
+  ([`build-agent.ts:66`](lib/agent/runtime/build-agent.ts#L66)), i.e. **there is no quota enforcement today**.
+- **[`run-native-child.ts:189`](lib/agent/runtime/run-native-child.ts#L189) `runNativeChild(opts)`** — bounded single-shot
   child agent used by the classroom `call_agent` tool. Adds its own budgets on
   top of `buildAgent`: a wall-clock `timeoutMs`, a `maxProviderTransports`
   counter enforced by wrapping the `StreamFn` (`:228-238`), duplicate-tool-call
@@ -151,7 +151,7 @@ subscription, and agent listener with the exact lifetime in which it can fire").
     `LIFECYCLE.thinkingEnd` frames (`:1038`, `:1042`), which therefore skip the
     tripwire and throttle below. User messages do not pass through either — they
     reach the log via the store's own `insertEvent`
-    (`packages/@openmaic/storage/src/agent-session/pg.ts:840`; see the note at
+    ([`packages/@openmaic/storage/src/agent-session/pg.ts:840`](packages/@openmaic/storage/src/agent-session/pg.ts#L840); see the note at
     `runner.ts:1105`). `emit` enforces an
     **event-order tripwire** (`markRunEventEmitted`, `:317`): the first frame of
     a run must be one of `session_start`/`session_resumed`/`session_interrupted`/
@@ -198,7 +198,7 @@ stateDiagram-v2
 
 ## Recovery and transcript integrity
 
-- **`resume.ts:93` `planResume(transcript)`** returns
+- **[`resume.ts:93`](lib/server/agent-runtime/resume.ts#L93) `planResume(transcript)`** returns
   `{kind:'start'} | {kind:'continue', messages, repairedToolCalls} |
   {kind:'already-complete', messages}`. It pops the incomplete assistant suffix
   first (`isDiscardableAssistantTail`, `:83`), then classifies the tail. A
@@ -206,7 +206,7 @@ stateDiagram-v2
   (`:126-130`) — the run is waiting on the user, and a takeover must not
   `continue()` past it. The header (`:33-37`) states the consequence plainly:
   tool execution is **at-least-once**, so every tool must be idempotent.
-- **`tool-call-integrity.ts:109` `repairOrphanedToolCalls(messages)`** — the
+- **[`tool-call-integrity.ts:109`](lib/server/agent-runtime/tool-call-integrity.ts#L109) `repairOrphanedToolCalls(messages)`** — the
   read-boundary normalizer. Strict providers require all results for one
   assistant tool-call frame to be contiguous; parallel tools finishing during an
   abort unwind break that. It moves existing results next to their owning
@@ -214,14 +214,14 @@ stateDiagram-v2
   `interruptedToolResult` (`:64`) only for genuinely missing ones. A healthy
   transcript is returned **by reference** (`:154`) so its bytes are provably
   unchanged. The entry tree itself is never mutated.
-- **`entry-tree-storage.ts:163` `AgentSessionEntryStorage`** — a pi
+- **[`entry-tree-storage.ts:163`](lib/server/agent-runtime/entry-tree-storage.ts#L163) `AgentSessionEntryStorage`** — a pi
   `SessionStorage` adapter over the storage package's append-only entry tree.
   `loadSessionEntryHistory` (`:43`) validates the one tree shape the runner
   understands, rejects a non-backward `firstKeptEntryId` on a compaction entry
   (`:66-72`), and asserts the context-to-entry mapping is 1:1 (`:109-114`).
   `translateStorageError` (`:129`) maps package errors onto pi's `SessionError`
   classes, including a `unknown session` race to `not_found`.
-- **`mutation-fence.ts:10` `runStageMutation(signal, mutation)`** — 25 lines
+- **[`mutation-fence.ts:10`](lib/server/agent-runtime/mutation-fence.ts#L10) `runStageMutation(signal, mutation)`** — 25 lines
   using `AsyncLocalStorage` so a persistence transaction can assert its owning
   tool call has not been aborted (`assertCurrentStageMutationActive`, `:23`).
   The runner passes this assertion into the owner-scoped document store's
@@ -229,11 +229,11 @@ stateDiagram-v2
 
 ## Skills
 
-- **`skills.ts:211` `listSkills(ownerId?)`** = filesystem builtins (cached once,
+- **[`skills.ts:211`](lib/server/agent-runtime/skills.ts#L211) `listSkills(ownerId?)`** = filesystem builtins (cached once,
   `listBuiltinSkills`, `:170`) + this owner's database skills, each wrapped by
   `wrapUserSkillContent` (`:140`) — an explicitly-labelled security boundary
   ("Ported EXACTLY from the reference product — do not reword it").
-- **`skills.ts:592` `createNativeSkillReadTool(skills, onActivate)`** — pi's
+- **[`skills.ts:592`](lib/server/agent-runtime/skills.ts#L592) `createNativeSkillReadTool(skills, onActivate)`** — pi's
   native `read`, restricted to installed skill directories via `realpath`
   containment (`assertAllowed`, `:597-605`). Database skills have virtual paths
   under `/__openmaic_user_skills__` and are served from memory, never through
@@ -245,14 +245,14 @@ stateDiagram-v2
   `lines >= totalLines`, `sourceHash` equals the file's current hash) that
   decides whether a body is actually in context. `skillSourceHash` (`:495`) is
   the first 16 hex chars of sha256.
-- **`skill-preload.ts:224` `buildSkillPreload(input)`** — turns the `/handle`s a
+- **[`skill-preload.ts:224`](lib/server/agent-runtime/skill-preload.ts#L224) `buildSkillPreload(input)`** — turns the `/handle`s a
   turn names (plus the session's frozen `skillId`) into a synthesized
   `assistant(toolCall read)` + `toolResult(SKILL.md)` pair, i.e. "a read that
   already happened". Caps: `SKILL_PRELOAD_MAX_COUNT = 3` (`:124`) and
   `SKILL_PRELOAD_MAX_BYTES = 60_000` (`:138`), with the first named skill
   admitted regardless of size (`:336`). It never emits a `user` message,
   because the follow-up cursor counts `user` frames (`:82-87`).
-- **`skill-preload.ts:437` `preloadConstraintTarget(named)`** — picks the last
+- **[`skill-preload.ts:437`](lib/server/agent-runtime/skill-preload.ts#L437) `preloadConstraintTarget(named)`** — picks the last
   *constrained* named skill (else the last named one) as the outline-constraint
   pointer.
 
@@ -262,7 +262,7 @@ stateDiagram-v2
   lease TTL 10 000 ms, `maxConcurrent` 2, `maxAttempts` 5, compaction **opt-in**
   (`OPENMAIC_AGENT_COMPACTION_ENABLED`, deliberately inverted from the reference
   runtime, `:20-26`), `skillsDir` defaulting to `<cwd>/skills/agent-runtime`.
-- **`agent-driver-model.ts:83` `resolveAgentDriverModel()`** — the driver model
+- **[`agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83) `resolveAgentDriverModel()`** — the driver model
   comes from a dedicated `MODEL_ROUTES` stage `maic-agent-driver` (`:6`);
   `DEFAULT_MODEL` is never consulted. `assertAgentDriverRouteConfig` (`:14`)
   fails boot on a missing route, a bare model id with no provider prefix, a
@@ -273,7 +273,7 @@ stateDiagram-v2
   run once. Its hooks register observed URLs from prompt/message text in the
   same transaction (`:55-70`) and fire `pg_notify` on every durable append
   (`:76-81`).
-- **`owner.ts:52` `resolveRequestOwnerId(req, headers, authenticatedOwnerId?)`**
+- **[`owner.ts:52`](lib/server/agent-runtime/owner.ts#L52) `resolveRequestOwnerId(req, headers, authenticatedOwnerId?)`**
   — identity is an `anon:<uuid-v4>` cookie (`anonymous_id`, HttpOnly, SameSite
   Lax, 30 days) unless the caller supplies an authenticated id. **No current
   caller supplies one** (`:47-50`).

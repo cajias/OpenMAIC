@@ -5,9 +5,9 @@ before any number in sections 02-07, because the single most important fact abou
 of them is that no test was executed.
 
 **Sources:** the working tree at `c2c9553a`;
-[`../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md`](../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md),
-[`06c-metrics-scale-and-gates.md`](../appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md),
-[`07-open-questions.md`](../appendix/research/quality-testing-ci-deps/07-open-questions.md).
+[`../appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md`](docs/appendix/research/quality-testing-ci-deps/06-quality-and-metrics.md),
+[`06c-metrics-scale-and-gates.md`](docs/appendix/research/quality-testing-ci-deps/06c-metrics-scale-and-gates.md),
+[`07-open-questions.md`](docs/appendix/research/quality-testing-ci-deps/07-open-questions.md).
 
 ## The measurement environment
 
@@ -59,9 +59,9 @@ from the evidence packs did not survive it and are corrected in place:
 
 | Inherited claim | What the code says | Corrected in |
 | --- | --- | --- |
-| "all `@ts-expect-error` live in tests" | 6 of 29 are in shipping source — 4 CSS-custom-property casts under `components/slide-renderer/`, one in `packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx:132`, one for an untyped dependency at `packages/@openmaic/importer/src/serializer/mathSerializer.ts:19` | [03-type-safety.md](./03-type-safety.md) |
-| "five package Vitest suites run in CI" | Four do. `@openmaic/renderer` and `@openmaic/editor` are invoked by no workflow | [05-test-strategy.md](./05-test-strategy.md) |
-| "legacy video-export is a dead path" | `lib/video-export/legacy/read.ts` is imported by `lib/video-export/passes/visuals.ts:24` and is live | [10-duplication-and-dead-code.md](./10-duplication-and-dead-code.md) |
+| "all `@ts-expect-error` live in tests" | 6 of 29 are in shipping source — 4 CSS-custom-property casts under `components/slide-renderer/`, one in [`packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx:132`](packages/@openmaic/renderer/src/elements/shape/BaseShapeElement.tsx#L132), one for an untyped dependency at [`packages/@openmaic/importer/src/serializer/mathSerializer.ts:19`](packages/@openmaic/importer/src/serializer/mathSerializer.ts#L19) | [03-type-safety.md](docs/14-code-quality/03-type-safety.md) |
+| "five package Vitest suites run in CI" | Four do. `@openmaic/renderer` and `@openmaic/editor` are invoked by no workflow | [05-test-strategy.md](docs/14-code-quality/05-test-strategy.md) |
+| "legacy video-export is a dead path" | `lib/video-export/legacy/read.ts` is imported by [`lib/video-export/passes/visuals.ts:24`](lib/video-export/passes/visuals.ts#L24) and is live | [10-duplication-and-dead-code.md](docs/14-code-quality/10-duplication-and-dead-code.md) |
 
 ## The commands, by category
 
@@ -116,7 +116,7 @@ every `.ts`/`.tsx` file under `app`, `components`, `lib`, `render-service/src` a
 `packages/@openmaic/*/src`, finds each `catch (…) {`, matches braces to the closing
 `}`, strips `//` and `/* */` comments from the body, and classifies the remainder as
 empty / comment-only / single-`console.*` / code. The full script is reproduced in
-[07-error-handling.md](./07-error-handling.md).
+[07-error-handling.md](docs/14-code-quality/07-error-handling.md).
 
 ### Test volume
 
@@ -187,16 +187,16 @@ Seven classes of claim are therefore absent from this topic:
    `grep -rhoE '\b(it|test)\.each\b' tests packages/@openmaic/*/test | wc -l` → 272
    parameterised blocks, each expanding to as many runtime cases as its table has rows.
 4. **The current ESLint warning count.** `@typescript-eslint/no-unused-vars` is
-   configured as `'warn'` (`eslint.config.mjs:65`), so warnings can accumulate with no
+   configured as `'warn'` ([`eslint.config.mjs:65`](eslint.config.mjs#L65)), so warnings can accumulate with no
    gate counting them.
 5. **Cyclomatic complexity, duplication percentage, or import-cycle counts.** No
    tool for any of these is installed, and adding one changes the tree.
 6. **Which CI checks are required to merge.** That is a repository setting. Three
    workflow comments show the design intends specific answers
-   (`publish-openmaic-skill.yml:8-9`, `publish-packages.yml:29-36`,
-   `publish-packages.yml:298-300`) but none of them is the setting.
+   ([`publish-openmaic-skill.yml:8-9`](.github/workflows/publish-openmaic-skill.yml#L8-L9), [`publish-packages.yml:29-36`](.github/workflows/publish-packages.yml#L29-L36),
+   [`publish-packages.yml:298-300`](.github/workflows/publish-packages.yml#L298-L300)) but none of them is the setting.
 7. **Non-null assertion count as anything but an order of magnitude.** The figure in
-   [03-type-safety.md](./03-type-safety.md) comes from a regex and will both miss forms
+   [03-type-safety.md](docs/14-code-quality/03-type-safety.md) comes from a regex and will both miss forms
    and catch string-content false positives.
 
 ## Two measurement notes that change numbers
@@ -216,13 +216,13 @@ inside provider console URLs. The real count over the six logging levels is 103.
 
 - Whether any figure here would change after an install is unknown. The most likely
   candidate is the ESLint suppression count, since `pnpm build` regenerates
-  `public/vendor/maic-importer/` — a path `eslint.config.mjs:45` ignores, so probably
+  `public/vendor/maic-importer/` — a path [`eslint.config.mjs:45`](eslint.config.mjs#L45) ignores, so probably
   not, but that is inference rather than measurement.
 - `find scripts -type f \( -name '*.ts' -o -name '*.mjs' -o -name '*.js' \)` returns
   16 files / 2 670 lines here, against 17 / 2 728 recorded in the evidence pack. The
   discrepancy is unexplained; the pack's own module list contains one path
   (`scripts/check-package-village-bumps.mjs`) that does not exist on disk, so a
   transcription error in the pack is the likelier explanation than a tree change.
-  [02-size-and-shape.md](./02-size-and-shape.md) uses the measured 16 / 2 670, so its
+  [02-size-and-shape.md](docs/14-code-quality/02-size-and-shape.md) uses the measured 16 / 2 670, so its
   first-party subtotal (1 614 / 349 611) is the sum of its own rows rather than the
   pack's total.

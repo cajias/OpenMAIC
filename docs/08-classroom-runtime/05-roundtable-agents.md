@@ -12,11 +12,11 @@ versus receives.
 `lib/types/roundtable.ts`, `components/roundtable/index.tsx`,
 `components/edit/PlaybackChromeRoot.tsx`, `lib/classroom/load-classroom.ts`,
 `packages/@openmaic/dsl/src/stage.ts`,
-[`../appendix/research/classroom-runtime/01a-modules-playback.md`](../appendix/research/classroom-runtime/01a-modules-playback.md).
+[`../appendix/research/classroom-runtime/01a-modules-playback.md`](docs/appendix/research/classroom-runtime/01a-modules-playback.md).
 
 ## The six built-in agents
 
-`DEFAULT_AGENTS` (`lib/orchestration/registry/store.ts:47`) is a code-defined
+`DEFAULT_AGENTS` ([`lib/orchestration/registry/store.ts:47`](lib/orchestration/registry/store.ts#L47)) is a code-defined
 record of six `AgentConfig` values. They are always present on both server and
 client and are never overwritten by persisted state — the persist `merge`
 rehydrates `{ ...DEFAULT_AGENTS }` and then copies back only agents whose id does
@@ -31,17 +31,17 @@ not start with `default-` and which are not `isGenerated` (`:255-264`).
 | `default-5` | 笔记员 | `student` | 5 | `WHITEBOARD_ACTIONS` | Note-taker; structured recaps, writes formulas on the board |
 | `default-6` | 思考者 | `student` | 6 | `WHITEBOARD_ACTIONS` | Deep thinker; challenges assumptions, plays devil's advocate |
 
-`AgentConfig.role` is a plain `string` (`registry/types.ts:12`), not a union.
-`ROLE_ACTIONS` (`types.ts:83`) maps the three roles the codebase actually uses:
+`AgentConfig.role` is a plain `string` ([`registry/types.ts:12`](lib/orchestration/registry/types.ts#L12)), not a union.
+`ROLE_ACTIONS` ([`types.ts:83`](lib/orchestration/registry/types.ts#L83)) maps the three roles the codebase actually uses:
 `teacher` gets slide plus whiteboard verbs, `assistant` and `student` get
 whiteboard only. `SLIDE_ACTIONS` is `['spotlight', 'laser', 'play_video']`
-(`store.ts:44`) — note this is a *different* list from the DSL's
+([`store.ts:44`](lib/orchestration/registry/store.ts#L44)) — note this is a *different* list from the DSL's
 `SLIDE_ONLY_ACTIONS`, which omits `play_video`
-(`packages/@openmaic/dsl/src/action.ts:264`).
+([`packages/@openmaic/dsl/src/action.ts:264`](packages/@openmaic/dsl/src/action.ts#L264)).
 
 Three of the six names are hard-coded Chinese strings in the persona record.
 Display names are overridden per locale by
-`t('settings.agentNames.<agentId>')` when that key resolves (`store.ts:309-311`),
+`t('settings.agentNames.<agentId>')` when that key resolves ([`store.ts:309-311`](lib/orchestration/registry/store.ts#L309-L311)),
 but the `persona` text itself — which is what the model sees — is English prose
 with Chinese names embedded.
 
@@ -73,7 +73,7 @@ flowchart TD
   STORE --> PICK["pickStudentAgent()<br/>PlaybackChromeRoot.tsx:254 — fills a trigger with no agentId"]
 ```
 
-The comment at `agent-selection.ts:12-25` explains the one rule that is easy to
+The comment at [`agent-selection.ts:12-25`](lib/orchestration/registry/agent-selection.ts#L12-L25) explains the one rule that is easy to
 get wrong: only an **explicit** user choice (`persistedIsUserSet`) may carry
 across classrooms, and only while it is still valid for the loaded stage.
 Stage-derived defaults written by a previous load are not user choices — treating
@@ -103,14 +103,14 @@ highest-priority agent is promoted into it. So there is always exactly one teach
 on the left, and there is always a user participant, regardless of what the roster
 contains.
 
-`Participant` is deliberately thin (`lib/types/roundtable.ts:5`): `id`, `name`,
+`Participant` is deliberately thin ([`lib/types/roundtable.ts:5`](lib/types/roundtable.ts#L5)): `id`, `name`,
 `role` (`'teacher' | 'student' | 'user'`), `avatar`, `isOnline`, optional
 `isSpeaking`. No persona, no colour, no allowed actions — the roundtable does not
 need them.
 
 ## What the roundtable receives versus derives
 
-`RoundtableProps` has **57 own properties** (`components/roundtable/index.tsx:44-113`).
+`RoundtableProps` has **57 own properties** ([`components/roundtable/index.tsx:44-113`](components/roundtable/index.tsx#L44-L113)).
 Roughly: 22 state inputs, 20 callbacks, 15 layout/toolbar props. Everything the
 component knows about the classroom arrives through them.
 
@@ -169,11 +169,11 @@ flowchart LR
 
 ### Two derivations of the same fact
 
-`computePlaybackView` (`lib/playback/derived-state.ts:77`) reduces 13 raw fields
+`computePlaybackView` ([`lib/playback/derived-state.ts:77`](lib/playback/derived-state.ts#L77)) reduces 13 raw fields
 into one `PlaybackView` with `phase`, `sourceText`, `bubbleRole`, `activeRole`,
 `buttonState`, `isInLiveFlow`, `isTopicActive`. The roundtable then re-derives
 `bubbleRole` and `activeRole` locally as `playbackView?.<field> ?? <local
-fallback>` (`index.tsx:542-576`) and republishes an `enrichedPlaybackView`
+fallback>` ([`index.tsx:542-576`](components/roundtable/index.tsx#L542-L576)) and republishes an `enrichedPlaybackView`
 (`:598-608`). Two implementations of the same ordered fallback chain live in two
 files. The local copy exists to overlay `userMessage` — the learner's own bubble
 shown for 3 s — which the pure function knows nothing about.
@@ -189,7 +189,7 @@ session is still open (`:96-101`).
 
 There is exactly one speech bubble. Its React key is derived from speaker
 identity, not text — `'user'`, `` `agent-${speakingAgentId}` ``, `'teacher'`, or
-`'idle'` (`index.tsx:588-595`) — explicitly so a text update does not remount and
+`'idle'` ([`index.tsx:588-595`](components/roundtable/index.tsx#L588-L595)) — explicitly so a text update does not remount and
 flicker. `bubbleName` resolves to the student's name, the teacher's name,
 `t('roundtable.you')`, or empty (`:578-585`).
 
@@ -229,7 +229,7 @@ Non-`Escape` shortcuts are skipped when the event target is an `INPUT`,
 ## Two props that go nowhere
 
 - `mode?: 'playback' | 'autonomous'` is destructured as `_mode` and never read
-  (`index.tsx:153`). The `ProactiveCard` `mode` the roundtable actually passes is
+  ([`index.tsx:153`](components/roundtable/index.tsx#L153)). The `ProactiveCard` `mode` the roundtable actually passes is
   computed from `engineMode`, so `'autonomous'` never reaches the card.
 - `speechProgress` is destructured as `_speechProgress` (`:167`) — the auto-scroll
   effect keys on `sourceText` instead (`:319-326`).
@@ -239,15 +239,15 @@ Non-`Escape` shortcuts are skipped when the event target is an `INPUT`,
 The roundtable reflects `speakingAgentId`, `thinkingState` and `currentSpeech`; it
 never chooses a speaker. That decision is made server-side behind
 `POST /api/chat`. See
-[`./06-turn-taking-and-interruption.md`](./06-turn-taking-and-interruption.md) and
-[`../05-agent-runtime/index.md`](../05-agent-runtime/index.md).
+[`./06-turn-taking-and-interruption.md`](docs/08-classroom-runtime/06-turn-taking-and-interruption.md) and
+[`../05-agent-runtime/index.md`](docs/05-agent-runtime/index.md).
 
 One exception is worth flagging because it is a mutation, not a decision: when a
 `discussion` action carries no `agentId`, `onProactiveShow` fills it by
 **mutating the trigger object in place** with `pickStudentAgent()`
-(`PlaybackChromeRoot.tsx:822-828`). The in-place mutation is deliberate — the
+([`PlaybackChromeRoot.tsx:822-828`](components/edit/PlaybackChromeRoot.tsx#L822-L828)). The in-place mutation is deliberate — the
 engine's `currentTrigger` holds the same reference, and `confirmDiscussion` reads
-`agentId` off it (`lib/playback/engine.ts:376-380`). `pickStudentAgent`
+`agentId` off it ([`lib/playback/engine.ts:376-380`](lib/playback/engine.ts#L376-L380)). `pickStudentAgent`
 (`:254-268`) picks uniformly at random among selected `role === 'student'` agents,
 else among non-teachers, else `agents[0]?.id || 'default-1'`.
 
@@ -259,11 +259,11 @@ else among non-teachers, else `agents[0]?.id || 'default-1'`.
   nothing validates the value at the document boundary.
 - Whether `'autonomous'` stage mode is reachable in the classroom is not
   established. `resolveStageChromeMode` accepts it and `Stage` routes it to
-  `PlaybackChromeRoot` (`components/stage.tsx:334`), but no surveyed entry point
+  `PlaybackChromeRoot` ([`components/stage.tsx:334`](components/stage.tsx#L334)), but no surveyed entry point
   sets it, and the roundtable's own `mode` prop is unused.
 
 ## Next
 
-- [`./06-turn-taking-and-interruption.md`](./06-turn-taking-and-interruption.md)
-- [`./04-buffering-and-prefetch.md`](./04-buffering-and-prefetch.md) — what feeds
+- [`./06-turn-taking-and-interruption.md`](docs/08-classroom-runtime/06-turn-taking-and-interruption.md)
+- [`./04-buffering-and-prefetch.md`](docs/08-classroom-runtime/04-buffering-and-prefetch.md) — what feeds
   `currentSpeech`.

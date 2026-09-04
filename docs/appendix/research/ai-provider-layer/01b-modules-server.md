@@ -7,7 +7,7 @@ The server-only half of the layer. Catalog/capability modules are in
 
 The single source of truth for "what did the operator configure?". Header states
 the contract outright: *"Keys never leave the server — only provider IDs and
-metadata are exposed via API."* (`lib/server/provider-config.ts:5`).
+metadata are exposed via API."* ([`lib/server/provider-config.ts:5`](lib/server/provider-config.ts#L5)).
 
 ### Shape
 
@@ -150,7 +150,7 @@ via `getThinkingConfigFromBody` (`:148`).
 
 ## `lib/server/config-validation.ts` (213 lines)
 
-Warn-only, non-throwing, run once from `instrumentation.ts:29`. Four checks:
+Warn-only, non-throwing, run once from [`instrumentation.ts:29`](instrumentation.ts#L29). Four checks:
 
 | function | what it catches |
 | --- | --- |
@@ -250,17 +250,17 @@ flowchart TD
   browser --> ua --> us
 ```
 
-- `GET /api/server-providers` (`app/api/server-providers/route.ts:16`) returns
+- `GET /api/server-providers` ([`app/api/server-providers/route.ts:16`](app/api/server-providers/route.ts#L16)) returns
   all seven capability listings plus
   `generation.parallelSceneConcurrency` from
-  `getParallelSceneConcurrency()` (`lib/server/provider-config.ts:1112`, clamped
+  `getParallelSceneConcurrency()` ([`lib/server/provider-config.ts:1112`](lib/server/provider-config.ts#L1112), clamped
   to `[0,10]`).
-- `POST /api/verify-model` (`app/api/verify-model/route.ts:8`) resolves a model
+- `POST /api/verify-model` ([`app/api/verify-model/route.ts:8`](app/api/verify-model/route.ts#L8)) resolves a model
   with no `stage`, then sends the literal prompt
   `Say "OK" if you can hear me.` with `maxOutputTokens: 64` and thinking forced
   off (`:39`–`:48`). Resolution failure → HTTP 401 (`:30`); upstream failure is
   string-matched into a friendlier message (`:60`–`:72`).
-- `POST /api/provider/probe-models` (`app/api/provider/probe-models/route.ts:19`)
+- `POST /api/provider/probe-models` ([`app/api/provider/probe-models/route.ts:19`](app/api/provider/probe-models/route.ts#L19))
   SSRF-validates both `baseUrl` and `modelsUrl` (`:33`), fetches, then filters
   ids against `NON_CHAT_PATTERN` (`:10`) and reports `total`/`filtered`.
   A `ModelFetchError` 404 is re-emitted as HTTP 404 to signal "use manual model
@@ -270,10 +270,10 @@ flowchart TD
   `resolveServerVideoProviderId()`, force-disable check → 403, managed check →
   discard client key/URL, SSRF in production, key/model presence checks, then a
   `test*Connectivity` probe. The image route also sets `maxDuration = 30`
-  (`app/api/verify-image-provider/route.ts:37`).
+  ([`app/api/verify-image-provider/route.ts:37`](app/api/verify-image-provider/route.ts#L37)).
 - `POST /api/verify-pdf-provider` has an AliDocMind AK/SK branch that keeps
   managed and unmanaged credentials strictly separate — unmanaged *never* falls
-  back to server env (`app/api/verify-pdf-provider/route.ts:46`).
-- `GET /api/usage` (`app/api/usage/route.ts:71`) buckets by model, day and kind.
+  back to server env ([`app/api/verify-pdf-provider/route.ts:46`](app/api/verify-pdf-provider/route.ts#L46)).
+- `GET /api/usage` ([`app/api/usage/route.ts:71`](app/api/usage/route.ts#L71)) buckets by model, day and kind.
   `addTo` (`:47`) deliberately excludes cache read/write from `totalTokens`
   because provider-reported `inputTokens` already includes cached input (`:53`).

@@ -10,8 +10,8 @@ all deliberate-or-accidental facts you will inherit.
 `lib/server/{resolve-model,model-routes,ssrf-guard,capped-stream,http-range,llm-error-response}.ts`,
 `lib/pbl/v2/api/sse.ts`, `middleware.ts`, `package.json`, and a scan of all 69
 route files; evidence
-[`../appendix/research/api-surface/02a-interfaces-envelope-identity-model.md`](../appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
-[`../appendix/research/api-surface/02b-interfaces-egress-body-sse.md`](../appendix/research/api-surface/02b-interfaces-egress-body-sse.md).
+[`../appendix/research/api-surface/02a-interfaces-envelope-identity-model.md`](docs/appendix/research/api-surface/02a-interfaces-envelope-identity-model.md),
+[`../appendix/research/api-surface/02b-interfaces-egress-body-sse.md`](docs/appendix/research/api-surface/02b-interfaces-egress-body-sse.md).
 
 ## The conventional handler
 
@@ -50,14 +50,14 @@ flowchart TD
 Note the ordering rule that recurs in ten handlers across nine route files: **body validation runs before
 `withRequestOwnerId`.** A malformed request must not mint an anonymous cookie
 partition for a request that will not proceed
-(`app/api/agent/sessions/route.ts:49-92`, `app/api/stages/route.ts:53-79`,
-`app/api/folders/route.ts:72-99`).
+([`app/api/agent/sessions/route.ts:49-92`](app/api/agent/sessions/route.ts#L49-L92), [`app/api/stages/route.ts:53-79`](app/api/stages/route.ts#L53-L79),
+[`app/api/folders/route.ts:72-99`](app/api/folders/route.ts#L72-L99)).
 
 ## Error envelopes: five shapes
 
 | Shape | Where | Files |
 | --- | --- | --- |
-| `{success:false, errorCode, error, details?}` | `apiError` / `ownerApiError` (`lib/server/api-response.ts:51`) | 45 route files (48 import `api-response`; `health`, `export-video/capability` and `access-code/status` use only `apiSuccess`) |
+| `{success:false, errorCode, error, details?}` | `apiError` / `ownerApiError` ([`lib/server/api-response.ts:51`](lib/server/api-response.ts#L51)) | 45 route files (48 import `api-response`; `health`, `export-video/capability` and `access-code/status` use only `apiSuccess`) |
 | `text/plain` body `"Not found"` with 404 | `ownerNotFound` plus every feature-gate 404 | 25 route files |
 | `{error:{code, message}}` | `folders/**`, `persistence/[...path]` | 4 route files |
 | `{error:'snake_case'}` | `stages/[id]/{status,publish,unpublish,generation-complete}`, `stage-meta/[stageId]` | 5 route files |
@@ -70,17 +70,17 @@ array (`:194`), `GET /api/agent/sessions/status` a plain map (`:18`),
 
 `apiSuccess` spreads the payload **next to** `success:true` — there is no `data`
 wrapper, so a payload field named `success` would collide by design
-(`lib/server/api-response.ts:68-69`).
+([`lib/server/api-response.ts:68-69`](lib/server/api-response.ts#L68-L69)).
 
 `API_ERROR_CODES` has 36 entries (`:3-40`), a mix of generic (`INVALID_REQUEST`,
 `UPSTREAM_ERROR`) and vendor-specific (`QWEN_VC_AUDIO_TOO_LARGE`,
 `VOXCPM_AUTO_VOICE_REQUIRES_CONTEXT`).
 
 A generic client cannot key on one error shape. The plain-text 404 is intentional
-(`route-response.ts:36-40`); the `{error:{code,message}}` and
+([`route-response.ts:36-40`](lib/server/agent-runtime/route-response.ts#L36-L40)); the `{error:{code,message}}` and
 `{error:'snake_case'}` shapes exist only because those routes were ported from a
-reference implementation (`app/api/folders/route.ts:46`,
-`app/api/stages/[id]/status/route.ts:9`).
+reference implementation ([`app/api/folders/route.ts:46`](app/api/folders/route.ts#L46),
+[`app/api/stages/[id]/status/route.ts:9`](app/api/stages/[id]/status/route.ts#L9)).
 
 ## Validation
 
@@ -97,7 +97,7 @@ Quality of the hand-written checks varies enormously:
 | exact-shape rejection of unknown keys | `chat/pi/whiteboard-visibility`'s `validBody` uses `Reflect.ownKeys` against a 3-key allowlist (`:11-29`) — the strictest validator in the surface |
 | field-by-field allowlist copy | `generate-classroom` copies 11 named fields, never a spread (`:19-36`) |
 | typed decode helpers | `decodeCourseRefs`, `decodeElementRefs`, `resolveSlideElementReference` return `{ok, error}` unions |
-| bounded list checks | `materialIds` string-array + dedupe + `<= 20` + no blanks (`agent/sessions/route.ts:70-79`) |
+| bounded list checks | `materialIds` string-array + dedupe + `<= 20` + no blanks ([`agent/sessions/route.ts:70-79`](app/api/agent/sessions/route.ts#L70-L79)) |
 | driver-hazard filtering | `stages/[id]/scenes` drops ids containing `\0` or a lone surrogate (`:41-59`) |
 | generic-message discipline | `extract-document`'s JSON form never echoes the offending value (`:524-529`) |
 | none | `usage`'s `?months=` is split on commas with no format check (`:73-74`) |
@@ -108,7 +108,7 @@ Two hardening habits worth copying:
   `extract-document` maintains two message sets for exactly this reason
   (`:642-652`).
 - **Sanitise before logging.** `sanitizeLogValue` strips CR/LF
-  (`extract-document/route.ts:657-659`). It is the only log-injection defence in
+  ([`extract-document/route.ts:657-659`](app/api/extract-document/route.ts#L657-L659)). It is the only log-injection defence in
   the surface; every other route interpolates caller strings into log lines
   unchanged.
 
@@ -149,7 +149,7 @@ classDiagram
 ```
 
 `withRequestOwnerId` guarantees the minted `Set-Cookie` rides **every** response
-including the catch-all 500 (`with-owner.ts:18-23`). The reason is written down:
+including the catch-all 500 ([`with-owner.ts:18-23`](lib/server/agent-runtime/with-owner.ts#L18-L23)). The reason is written down:
 a 500 that dropped the cookie would silently make the client's retry a different
 anonymous owner. Three routes call `resolveRequestOwnerId` directly because they
 build streaming responses and cannot use the wrapper —
@@ -160,17 +160,17 @@ build streaming responses and cannot use the wrapper —
 
 One helper, 13 routes. Precedence is `MODEL_ROUTES[stage]` > `x-model` header >
 `DEFAULT_MODEL`, and the helper **refuses to invent a model** — it throws when
-nothing resolves (`lib/server/resolve-model.ts:66-70`).
+nothing resolves ([`lib/server/resolve-model.ts:66-70`](lib/server/resolve-model.ts#L66-L70)).
 
 | Rule | Line |
 | --- | --- |
-| Headers read: `x-model`, `x-api-key`, `x-base-url`, `x-provider-type` | `resolve-model.ts:168-172` |
+| Headers read: `x-model`, `x-api-key`, `x-base-url`, `x-provider-type` | [`lib/server/resolve-model.ts:168-172`](lib/server/resolve-model.ts#L168-L172) |
 | Body read: `thinkingConfig` or legacy `thinking` | `:148-153` |
 | A **routed** stage discards the client's key, base URL and provider type | `:56-81` |
 | Provider-type mismatch against the registry throws | `:89-97` |
 | `bedrock` requires server management | `:101-103` |
 | SSRF on a client base URL: **`NODE_ENV === 'production'` only** | `:105-110` |
-| Closed stage vocabulary: `LLM_STAGES`, 20 members, with composite keys falling back to their base | `lib/server/model-routes.ts:131-152` |
+| Closed stage vocabulary: `LLM_STAGES`, 20 members, with composite keys falling back to their base | [`lib/server/model-routes.ts:131-152`](lib/server/model-routes.ts#L131-L152) |
 
 ## Streaming
 
@@ -189,7 +189,7 @@ Ten routes stream SSE. Only four share a typed contract.
 Only the two `id:`-emitting streams (`agent/sessions/[id]/events`,
 `agent/owner-events`) are resumable with a native `EventSource` and
 `Last-Event-ID`. `stages/[id]/freshness` emits no `id:` and reads no cursor at all
-(`app/api/stages/[id]/freshness/route.ts:106-112`) — a reconnect simply re-emits
+([`app/api/stages/[id]/freshness/route.ts:106-112`](app/api/stages/[id]/freshness/route.ts#L106-L112)) — a reconnect simply re-emits
 the current `rev`, which is all a pure-optimisation stream needs. The three
 `data:`-only streams require an `onmessage` handler plus a discriminator read out
 of the JSON.
@@ -271,36 +271,36 @@ None, except one literal path segment.
 | No version prefix | there is no `/api/v1`. The only version in a path is `app/api/pbl/v2/**`, and no `v1` exists beside it. |
 | No `Accept` negotiation | no route reads `Accept` |
 | No deprecation headers | no route emits `Sunset`, `Deprecation`, or a `Warning` header |
-| Document versioning is in the payload, not the URL | `@openmaic/dsl` carries `dslVersion` (0.3.0) and `runtimeDslVersion` (0.1.0); `DocumentVersionError` surfaces as `400 'document was written by a newer client; reload before saving'` (`stages/[id]/route.ts:48-57`) |
+| Document versioning is in the payload, not the URL | `@openmaic/dsl` carries `dslVersion` (0.3.0) and `runtimeDslVersion` (0.1.0); `DocumentVersionError` surfaces as `400 'document was written by a newer client; reload before saving'` ([`stages/[id]/route.ts:48-57`](app/api/stages/[id]/route.ts#L48-L57)) |
 | The routes *are* the contract | no OpenAPI document, no generated client |
 
 ## Size limits
 
 | Limit | Value | Source | Enforced on |
 | --- | --- | --- | --- |
-| Next proxy client body | 200 MB | `next.config.ts:36` (`experimental.proxyClientMaxBodySize`) | **every** request body, before any handler runs |
-| `MAX_SESSION_TEXT_LENGTH` | 100 000 chars | `lib/server/agent-runtime/limits.ts:9` | `prompt`, `text` |
-| `STAGE_NAME_MAX_LENGTH` | 120 chars | `lib/server/agent-runtime/stage-limits.ts:9` | stage `name` |
+| Next proxy client body | 200 MB | [`next.config.ts:36`](next.config.ts#L36) (`experimental.proxyClientMaxBodySize`) | **every** request body, before any handler runs |
+| `MAX_SESSION_TEXT_LENGTH` | 100 000 chars | [`lib/server/agent-runtime/limits.ts:9`](lib/server/agent-runtime/limits.ts#L9) | `prompt`, `text` |
+| `STAGE_NAME_MAX_LENGTH` | 120 chars | [`lib/server/agent-runtime/stage-limits.ts:9`](lib/server/agent-runtime/stage-limits.ts#L9) | stage `name` |
 | Folder name | display width ≤ 40 (full-width = 2) | `lib/utils/folder-name-validation.ts` | folder `name` |
-| `materialIds` per request | 20 | `agent/sessions/route.ts:77` | array length |
-| `MAX_MATERIAL_LIST_LIMIT` | 200 | `materials/route.ts:77` | `?limit=` |
-| `MAX_BATCH_SCENE_IDS` | 200 | `stages/[id]/scenes/route.ts:33` | `?ids=` count |
-| `MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES` | 50 MiB | `lib/constants/generation.ts:16` | declared size *and* recorded asset length |
-| `maxUploadBytes` / `maxDocumentBytes` | 50 MiB each, env-overridable | `lib/server/agent-runtime/config.ts:46-48` | **streamed bytes** via `readMeteredBody` |
-| `maxMaterialsPerOwner` / `maxMaterialBytesPerOwner` | 100 / 2 GiB | `config.ts:50-55` | per-owner quota → **429** |
-| Skill upload | 1 048 576 bytes | `agent/skills/route.ts:63` | buffered length → 413 |
-| `MAX_PROXY_BYTES` | 25 MiB | `proxy-media/route.ts:67` | `content-length` *and* blob size |
-| `MAX_UPLOAD_BYTES` (render) | 300 MiB | `export-video/render/route.ts:18` | **streamed bytes** via `capBodyStream` |
-| `MAX_OUTLINE_STREAM_BYTES` | 512 KiB | `scene-outlines-stream/route.ts:486` | accumulated LLM output |
-| `SEARCH_QUERY_REWRITE_EXCERPT_LENGTH` | see `lib/web-search` | `web-search/route.ts:123` | `pdfText` |
-| Filename | 512 chars after `basename` | `materials/route.ts:91` | `x-material-filename` |
+| `materialIds` per request | 20 | [`agent/sessions/route.ts:77`](app/api/agent/sessions/route.ts#L77) | array length |
+| `MAX_MATERIAL_LIST_LIMIT` | 200 | [`materials/route.ts:77`](app/api/materials/route.ts#L77) | `?limit=` |
+| `MAX_BATCH_SCENE_IDS` | 200 | [`stages/[id]/scenes/route.ts:33`](app/api/stages/[id]/scenes/route.ts#L33) | `?ids=` count |
+| `MAX_EXTRACT_DOCUMENT_FILE_SIZE_BYTES` | 50 MiB | [`lib/constants/generation.ts:16`](lib/constants/generation.ts#L16) | declared size *and* recorded asset length |
+| `maxUploadBytes` / `maxDocumentBytes` | 50 MiB each, env-overridable | [`lib/server/agent-runtime/config.ts:46-48`](lib/server/agent-runtime/config.ts#L46-L48) | **streamed bytes** via `readMeteredBody` |
+| `maxMaterialsPerOwner` / `maxMaterialBytesPerOwner` | 100 / 2 GiB | [`lib/server/agent-runtime/config.ts:50-55`](lib/server/agent-runtime/config.ts#L50-L55) | per-owner quota → **429** |
+| Skill upload | 1 048 576 bytes | [`agent/skills/route.ts:63`](app/api/agent/skills/route.ts#L63) | buffered length → 413 |
+| `MAX_PROXY_BYTES` | 25 MiB | [`proxy-media/route.ts:67`](app/api/proxy-media/route.ts#L67) | `content-length` *and* blob size |
+| `MAX_UPLOAD_BYTES` (render) | 300 MiB | [`export-video/render/route.ts:18`](app/api/export-video/render/route.ts#L18) | **streamed bytes** via `capBodyStream` |
+| `MAX_OUTLINE_STREAM_BYTES` | 512 KiB | [`scene-outlines-stream/route.ts:486`](app/api/generate/scene-outlines-stream/route.ts#L486) | accumulated LLM output |
+| `SEARCH_QUERY_REWRITE_EXCERPT_LENGTH` | see `lib/web-search` | [`web-search/route.ts:123`](app/api/web-search/route.ts#L123) | `pdfText` |
+| Filename | 512 chars after `basename` | [`materials/route.ts:91`](app/api/materials/route.ts#L91) | `x-material-filename` |
 
 **The global 200 MB ceiling sits *below* the per-route maximum.** `next.config.ts`
 sets `proxyClientMaxBodySize: '200mb'` for every request, so on a proxied or Vercel
 deployment the 300 MiB `MAX_UPLOAD_BYTES` that `export-video/render` advertises is
 unreachable — the proxy rejects the upload first. The two numbers were set
 independently; see
-[`../15-cross-cutting/04-threat-secrets-and-uploads.md`](../15-cross-cutting/04-threat-secrets-and-uploads.md)
+[`../15-cross-cutting/04-threat-secrets-and-uploads.md`](docs/15-cross-cutting/04-threat-secrets-and-uploads.md)
 for the full ladder.
 
 **Two upload routes have no cap at all**: `parse-pdf` and `transcription` both
@@ -310,7 +310,7 @@ materialise the whole body.
 
 | Mechanism | Values |
 | --- | --- |
-| `export const maxDuration` | 24 routes: 30, 60, 120, 300. Advisory — self-hosted `next start` ignores it; it feeds Vercel's build adapter (`agent/sessions/[id]/events/route.ts:44-46`) |
+| `export const maxDuration` | 24 routes: 30, 60, 120, 300. Advisory — self-hosted `next start` ignores it; it feeds Vercel's build adapter ([`agent/sessions/[id]/events/route.ts:44-46`](app/api/agent/sessions/[id]/events/route.ts#L44-L46)) |
 | Internal route deadline | `generate/voice`: `ROUTE_DEADLINE_MS` 29 000 with a 5 000 ms lookup slice (`:40-41`) |
 | Vision resolution budget | `scene-content`: 15 000 ms aggregate plus a 3-consecutive-failure fuse (`:49-57`) |
 | Upstream fetch timeouts | render poll/cancel 15 000 ms; MP4 **header-only** 30 000 ms; render submit 300 000 ms; MinerU/self-hosted probes 10 000 ms; render-service health 3 000 ms |
@@ -322,12 +322,12 @@ materialise the whole body.
 
 | Gap | Assessment |
 | --- | --- |
-| **Zero rate limiting** in `app/api/**` | accident. The closest thing is `x-openmaic-client` forwarded to the render service, and the per-owner material quota. Every LLM, image, video and TTS route is a cost primitive with no per-caller ceiling. Whether it is also *unauthenticated* depends on deployment: `middleware.ts:60-61` returns `NextResponse.next()` before the cookie check when `ACCESS_CODE` is unset, which is the default, so an unconfigured deployment exposes them to any caller; with `ACCESS_CODE` set they sit behind the 401, and the cost ceiling is still absent. |
+| **Zero rate limiting** in `app/api/**` | accident. The closest thing is `x-openmaic-client` forwarded to the render service, and the per-owner material quota. Every LLM, image, video and TTS route is a cost primitive with no per-caller ceiling. Whether it is also *unauthenticated* depends on deployment: [`middleware.ts:60-61`](middleware.ts#L60-L61) returns `NextResponse.next()` before the cookie check when `ACCESS_CODE` is unset, which is the default, so an unconfigured deployment exposes them to any caller; with `ACCESS_CODE` set they sit behind the 401, and the cost ceiling is still absent. |
 | No `Retry-After` header anywhere | accident; `429 RATE_LIMITED` is returned by `generate/tts` and `export-video/render` without one. |
-| `ALLOW_LOCAL_NETWORKS` as one global SSRF off-switch | deliberate dev affordance with a wide blast radius: one env var disables the hostname and private-address checks at all 20 `validateUrlForSSRF` call sites, in 16 modules — the 13 route files below plus `lib/server/resolve-model.ts` and the two agent-runtime redirect loops (`ssrf-guard.ts:266-269`). |
-| SSRF strictness differs between siblings | accident, in both directions. Unconditional (6 sites): `azure-voices:29`, `generate/tts:98`, `generate/voice:126`, `provider/probe-models:34`, and `proxy-media:33`/`:55` (initial URL and every redirect hop). Production-only (12 sites): `generate/image:71`, `generate/video:66`, `parse-pdf:48`, `transcription:58`, `extract-document:259`/`:387`, `verify-image-provider:58`, `verify-video-provider:53`, `verify-pdf-provider:59`/`:84`/`:133`, and `lib/server/resolve-model.ts:106`. The two non-route sites — `agent-runtime/generate-image.ts:111`, `generate-video.ts:155` — are unconditional. |
+| `ALLOW_LOCAL_NETWORKS` as one global SSRF off-switch | deliberate dev affordance with a wide blast radius: one env var disables the hostname and private-address checks at all 20 `validateUrlForSSRF` call sites, in 16 modules — the 13 route files below plus `lib/server/resolve-model.ts` and the two agent-runtime redirect loops ([`ssrf-guard.ts:266-269`](lib/server/ssrf-guard.ts#L266-L269)). |
+| SSRF strictness differs between siblings | accident, in both directions. Unconditional (6 sites): `azure-voices:29`, `generate/tts:98`, `generate/voice:126`, `provider/probe-models:34`, and `proxy-media:33`/`:55` (initial URL and every redirect hop). Production-only (12 sites): `generate/image:71`, `generate/video:66`, `parse-pdf:48`, `transcription:58`, `extract-document:259`/`:387`, `verify-image-provider:58`, `verify-video-provider:53`, `verify-pdf-provider:59`/`:84`/`:133`, and [`lib/server/resolve-model.ts:106`](lib/server/resolve-model.ts#L106). The two non-route sites — [`agent-runtime/generate-image.ts:111`](lib/server/agent-runtime/generate-image.ts#L111), [`generate-video.ts:155`](lib/server/agent-runtime/generate-video.ts#L155) — are unconditional. |
 | The access-code token never expires server-side | accident. Neither verifier compares the signed timestamp to now. |
-| Plain-text 404 for "off", "not yours" and "absent" | deliberate, stated at `route-response.ts:36-40`. |
+| Plain-text 404 for "off", "not yours" and "absent" | deliberate, stated at [`route-response.ts:36-40`](lib/server/agent-runtime/route-response.ts#L36-L40). |
 | No OpenAPI artifact | deliberate by omission; this topic is the substitute. |
 | No CORS headers on any route | consistent with a same-origin-only client. `next.config.ts` sets `X-Frame-Options` and CSP `frame-ancestors` only. |
 
@@ -360,4 +360,4 @@ materialise the whole body.
   `/api/*` responses (as opposed to page responses) was not verified from the
   route layer.
 
-Back to [`index.md`](./index.md).
+Back to [`index.md`](docs/12-api-reference/index.md).

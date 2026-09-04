@@ -37,25 +37,25 @@ mindmap
    asserted by the runner's comments and by
    `tests/agent-runtime/runner-*.test.ts`, not verified here.
 2. **The durable event/entry SQL schema.** `ensureAgentSessionSchema(pool)`
-   (`lib/server/agent-runtime/store.ts:47`) creates it inside the package. The
+   ([`lib/server/agent-runtime/store.ts:47`](lib/server/agent-runtime/store.ts#L47)) creates it inside the package. The
    `erDiagram` in `02-interfaces.md` is derived from `AgentSessionMeta` /
    `PersistedAgentSessionEvent` usage, not from DDL, and is labelled as such.
 3. **The render service contract.** `render_scene_preview`
-   (`scene-preview.ts:46`) is registered only when "the render capability is
+   ([`scene-preview.ts:46`](lib/server/agent-runtime/scene-preview.ts#L46)) is registered only when "the render capability is
    available"; the actual HTTP contract lives in `render-service/`, which is a
    different subsystem.
 4. **Where `Authorization: Bearer <access-code>` is terminated for the Live
-   Demo.** `skills/openmaic/references/live-demo.md:12-13` and
-   `generate-flow.md:12` require that header on every request to
-   `https://open.maic.chat`. `middleware.ts:60-85` is the only access gate in
+   Demo.** [`skills/openmaic/references/live-demo.md:12-13`](skills/openmaic/references/live-demo.md#access-code-setup) and
+   [`generate-flow.md:12`](skills/openmaic/references/generate-flow.md#preconditions) require that header on every request to
+   `https://open.maic.chat`. [`middleware.ts:60-85`](middleware.ts#L60-L85) is the only access gate in
    this tree and it reads a signed `openmaic_access` cookie;
    `grep -rn "Bearer" app/api middleware.ts` finds only outbound provider
-   headers (`app/api/verify-pdf-provider/route.ts:102`, `:148`).
+   headers ([`app/api/verify-pdf-provider/route.ts:102`](app/api/verify-pdf-provider/route.ts#L102), [`:148`](app/api/verify-pdf-provider/route.ts#L148)).
    *Inferred:* the hosted deployment sits behind a gateway or a fork that is not
    in this repository. Unresolved either way: what a **self-hosted** OpenMAIC
    with `ACCESS_CODE` set is supposed to do with a Bearer-only driver, and
    whether the `403 Daily quota exhausted` / 10-generations-per-day behaviour the
-   skill documents (`live-demo.md:30-33`) exists anywhere in this codebase —
+   skill documents ([`live-demo.md:30-33`](skills/openmaic/references/live-demo.md#quota)) exists anywhere in this codebase —
    nothing in `app/api/generate-classroom/` implements a quota.
 
 ## Deferred-work questions
@@ -64,7 +64,7 @@ mindmap
    `OPENMAIC_AGENT_COMPACTION_ENABLED` and its two token knobs are read into
    `agentRuntimeConfig.compaction` (`config.ts:27-42`) and then never consumed
    (measured: zero references outside `config.ts`). The classroom director has a
-   working compaction runtime (`lib/chat/pi/director-compaction.ts:106`) and the
+   working compaction runtime ([`lib/chat/pi/director-compaction.ts:106`](lib/chat/pi/director-compaction.ts#L106)) and the
    runner has the pieces that would be needed
    (`withToolCallIntegrityRepair`, `entry-tree-storage.ts`'s compaction-aware
    `contextEntries` mapping, `loadSessionEntryHistory`'s `firstKeptEntryId`
@@ -75,20 +75,20 @@ mindmap
    streamed but never read by the runner (see `06-quality-and-metrics.md` item
    12). The route's own comment says validation is deferred "until a later slice
    consumes stageId — the upstream document store has no owner partition yet"
-   (`app/api/agent/sessions/route.ts:133-136`). Whether the intended consumer is
+   ([`app/api/agent/sessions/route.ts:133-136`](app/api/agent/sessions/route.ts#L133-L136)). Whether the intended consumer is
    a pre-seeded `read_stage` on the first turn, an owner-partition migration, or
    something else is not derivable.
-7. **What will back `QuotaSource`?** `quota.ts:3` says "v0 stub; wire to the
-   credit/quota system later" and `build-agent.ts:66` wires it open. There is no
+7. **What will back `QuotaSource`?** [`quota.ts:3`](lib/agent/runtime/quota.ts#L3) says "v0 stub; wire to the
+   credit/quota system later" and [`build-agent.ts:66`](lib/agent/runtime/build-agent.ts#L66) wires it open. There is no
    credit system in this repo's `lib/` that I found, so the intended source
    (per-owner credits? per-session token budget? the `usage/` normaliser?) is
    unknown.
 8. **Is `import_pptx` / `generate_image` / `generate_video` missing from
    `tool-presentation.ts` an oversight or an intentional hide?** The i18n labels
-   exist (`lib/i18n/workbench.ts:233-234`, `:244`, `:309-310`, `:318` and the
+   exist ([`lib/i18n/workbench.ts:233-234`](lib/i18n/workbench.ts#L233-L234), [`:244`](lib/i18n/workbench.ts#L244), [`:309-310`](lib/i18n/workbench.ts#L309-L310), [`:318`](lib/i18n/workbench.ts#L318) and the
    Chinese equivalents), which argues strongly for oversight, and the stale note
-   at `tool-presentation.ts:10-11` explains the mechanism. But `HIDDEN_TOOLS`
-   (`tool-presentation.ts:85`) shows there *is* a deliberate hide mechanism and
+   at [`tool-presentation.ts:10-11`](components/workbench/chat/tool-presentation.ts#L10-L11) explains the mechanism. But `HIDDEN_TOOLS`
+   ([`tool-presentation.ts:85`](components/workbench/chat/tool-presentation.ts#L85)) shows there *is* a deliberate hide mechanism and
    these three are not in it, so a third possibility (rows written, then lost in
    a rebase) cannot be ruled out from the tree alone. Git archaeology would
    settle it; it was not performed.
@@ -96,7 +96,7 @@ mindmap
 ## Operational questions
 
 9. **Which classroom path does a production deployment actually run?**
-   `NEXT_PUBLIC_PI_CHAT_ENABLED` is commented out in `.env.example:324` and
+   `NEXT_PUBLIC_PI_CHAT_ENABLED` is commented out in [`.env.example:324`](.env.example#L324) and
    `OPENMAIC_ENABLE_PI_NATIVE_CHILD_RUNTIME` at `:298`, so the *shipped default*
    is the LangGraph path with the legacy JSON-action child. Whether that matches
    the deployed Live Demo, and whether the LangGraph path is scheduled for
@@ -109,15 +109,15 @@ mindmap
     makes sense on a long-lived Node process. Whether the intended production
     topology is a single always-on Node instance, several (the lease protocol
     supports it), or a separate worker deployment is not documented in the tree.
-11. **Skill hot-reload.** `builtinCache` (`skills.ts:97`) never invalidates, so
+11. **Skill hot-reload.** `builtinCache` ([`skills.ts:97`](lib/server/agent-runtime/skills.ts#L97)) never invalidates, so
     editing a builtin SKILL.md needs a restart. Whether `OPENMAIC_AGENT_SKILLS_DIR`
     is expected to point at a mounted volume that changes at runtime — in which
     case the cache is a bug rather than a choice — is unclear from
     `config.ts:43`'s "Overridable so a deployment can mount its own set".
 12. **`materialExtraction` lifecycle events.** `HOST_AGENT_LIFECYCLE.materialExtraction`
-    (`lifecycle.ts:66`) is declared here but written by
+    ([`lifecycle.ts:66`](lib/agent-runtime/lifecycle.ts#L66)) is declared here but written by
     `lib/server/material-extraction/runner.ts` (started alongside the agent
-    runner at `instrumentation.ts:51`), which is a different subsystem. The
+    runner at [`instrumentation.ts:51`](instrumentation.ts#L51)), which is a different subsystem. The
     interleaving guarantees between a material extraction event and a run event
     on the same session were not traced.
 

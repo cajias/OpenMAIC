@@ -1,6 +1,6 @@
 # 01b — Modules: CI, `scripts/`, lint config, build and containers
 
-Companion file: `01a-modules-test-harnesses.md` covers `tests/`, `e2e/` and
+Companion file: [`01a-modules-test-harnesses.md`](docs/appendix/research/quality-testing-ci-deps/01a-modules-test-harnesses.md) covers `tests/`, `e2e/` and
 `eval/`.
 
 ## `ci.yml` job graph
@@ -54,16 +54,16 @@ flowchart TD
 Three points that are easy to miss:
 
 - **The steps within `check` are deliberately sequential after step 6.**
-  `ci.yml:133-135`: running root Vitest alongside the storage package on a
+  [`ci.yml:133-135`](.github/workflows/ci.yml#L133-L135): running root Vitest alongside the storage package on a
   4-core runner made 5-second-timeout tests flake — "CPU contention, not a
   product regression". Only the four linters run in parallel, and only because
-  they share no state (`ci.yml:123`).
+  they share no state ([`ci.yml:123`](.github/workflows/ci.yml#L123)).
 - **`concurrency.cancel-in-progress` is conditional**:
-  `${{ github.event_name == 'pull_request' }}` (`ci.yml:26`). A `main` run is
+  `${{ github.event_name == 'pull_request' }}` ([`ci.yml:26`](.github/workflows/ci.yml#L26)). A `main` run is
   never cancelled, because each `main` run validates only its own push range; a
   superseded run would take the range containing a package change with it.
 - **Push triggers list the integration branches as well as the PR triggers**
-  (`ci.yml:9`), because a `pull_request` run "only ever proves one part merged
+  ([`ci.yml:9`](.github/workflows/ci.yml#L9)), because a `pull_request` run "only ever proves one part merged
   into the branch".
 
 ## `scripts/ci-run-parallel.sh` (58 lines)
@@ -71,9 +71,9 @@ Three points that are easy to miss:
 Runs `NAME COMMAND` pairs concurrently, buffers each to
 `${RUNNER_TEMP}/ci-parallel-$$/<i>.log`, then replays them in argument order as
 GitHub Actions groups and exits 1 if any child failed
-(`scripts/ci-run-parallel.sh:36-55`). `CI_PARALLEL_ANNOTATE=0` suppresses the
+([`scripts/ci-run-parallel.sh:36-55`](scripts/ci-run-parallel.sh#L36-L55)). `CI_PARALLEL_ANNOTATE=0` suppresses the
 `::error::` annotation, which is what lets `ci.yml`'s self-test assert the
-expected-failure case without painting the check red (`ci.yml:41-50`).
+expected-failure case without painting the check red ([`ci.yml:41-50`](.github/workflows/ci.yml#L41-L50)).
 
 It is the only bash-only step, and it runs *before* `pnpm install`, so a broken
 helper fails in seconds rather than after a full install.
@@ -81,7 +81,7 @@ helper fails in seconds rather than after a full install.
 ## The shared package registry: `scripts/openmaic-packages.mjs` (206 lines)
 
 One list, `OPENMAIC_PACKAGES = ['dsl','generation','storage','renderer','editor','importer']`
-(`scripts/openmaic-packages.mjs:34`), plus `INTERNAL_DEPENDENTS` (line 37)
+([`scripts/openmaic-packages.mjs:34`](scripts/openmaic-packages.mjs#L34)), plus `INTERNAL_DEPENDENTS` (line 37)
 recording which owned package depends on which.
 
 `assertPackageListIsComplete()` (line 71) checks the list **in both directions**
@@ -99,7 +99,7 @@ The textual check is honest about its own limits, documented at lines 122-139:
 
 ## `scripts/check-package-version-bumps.mjs` (679 lines)
 
-Two modes (`scripts/check-package-version-bumps.mjs:55-59`):
+Two modes ([`scripts/check-package-version-bumps.mjs:55-59`](scripts/check-package-version-bumps.mjs#L55-L59)):
 
 - **diff mode** — `<base-ref>`, the merge-time gate. For each package whose
   publishable inputs changed between `base` and `HEAD`, require the manifest
@@ -187,7 +187,7 @@ step.
 | `check-i18n-keys.mjs` | 114 | Leaf-key set equality across `lib/i18n/locales/*.json` against `en-US.json`; rejects arrays and empty objects as locale values |
 | `assert-vendor-maic-importer.mjs` | 36 | Build-time guard that `public/vendor/maic-importer/index.js` exists and is non-empty; runs as the first half of `pnpm build` |
 | `sync-maic-importer.mjs` | 34 | Copies `packages/@openmaic/importer/dist` → `public/vendor/maic-importer`; the bundle has dynamic `require()` from pdfjs-dist that Turbopack rejects, so it is served as a static asset and imported by runtime URL |
-| `generation-node-smoke-server.mjs` / `generation-node-smoke.mjs` | 6.6 K | A fake model endpoint plus a pure-Node consumer of `@openmaic/generation`; `ci.yml:151-178` asserts the JSON has non-empty `outlines`, a `scene`, and `sceneValidation.valid === true` |
+| `generation-node-smoke-server.mjs` / `generation-node-smoke.mjs` | 6.6 K | A fake model endpoint plus a pure-Node consumer of `@openmaic/generation`; [`ci.yml:151-178`](.github/workflows/ci.yml#L151-L178) asserts the JSON has non-empty `outlines`, a `scene`, and `sceneValidation.valid === true` |
 | `generate-video-export-katex.mjs`, `-noto-cjk.mjs`, `-noto-script-fonts.mjs` | 13.6 K | Font/KaTeX asset generators behind `gen:*` scripts |
 | `probe-mineru-cloud.mjs` | 138 | Manual developer probe of the MinerU Cloud API; not referenced by CI |
 | `check-package-version-bumps.mjs`, `check-internal-dependency-ranges.mjs`, `assert-pg-contract-suites.mjs`, `verify-package-artifacts.mjs`, `openmaic-packages.mjs`, `ci-run-parallel.sh` | — | Covered above |
@@ -268,11 +268,11 @@ format-checked.
 `exclude` replaces rather than extends) and additionally drops `tests`, `eval`
 and `packages/@openmaic/*/test`.
 
-CI runs the *root* `npx tsc --noEmit` (`ci.yml:130`), i.e. the config that
+CI runs the *root* `npx tsc --noEmit` ([`ci.yml:130`](.github/workflows/ci.yml#L130)), i.e. the config that
 **includes** `tests/` and `eval/`. It additionally runs
 `pnpm --filter @openmaic/generation run typecheck` and
 `pnpm --filter @openmaic/storage run typecheck`, both of which chain a second
-`tsc -p tsconfig.test.json --noEmit`. `ci.yml:181-184` explains why storage needs
+`tsc -p tsconfig.test.json --noEmit`. [`ci.yml:181-184`](.github/workflows/ci.yml#L181-L184) explains why storage needs
 its own: the device-scope guard is written as `@ts-expect-error` probes in its
 tests, "and a probe nothing type-checks proves nothing".
 
@@ -299,6 +299,6 @@ lockdown (needs `CAP_NET_ADMIN`), then drops privileges with `setpriv`.
 **`docker-compose.yml`** — three services. `openmaic` on the default network plus
 an `internal: true` `render` network. `postgres` behind the `server-persistence`
 profile with a documented development-only default password
-(`docker-compose.yml:53-55`). `render-service` behind the `video-export` profile,
+([`docker-compose.yml:53-55`](docker-compose.yml#L53-L55)). `render-service` behind the `video-export` profile,
 `cap_add: NET_ADMIN`, `mem_limit` 8 GiB default, `shm_size: 2gb`, and 17
 `RENDER_*` tuning variables each carrying a comment explaining the chosen value.

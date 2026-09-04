@@ -66,17 +66,17 @@ Six routes emit `text/event-stream` directly and four more do so through
 work happens, so every downstream failure is an in-band frame:
 
 - `chat` writes `data: {"type":"error","data":{"message":...}}` then closes
-  (`app/api/chat/route.ts:174-185`).
+  ([`app/api/chat/route.ts:174-185`](app/api/chat/route.ts#L174-L185)).
 - `chat/pi` does the same via `send({type:'error', ...})`
-  (`app/api/chat/pi/route.ts:274-282`).
+  ([`app/api/chat/pi/route.ts:274-282`](app/api/chat/pi/route.ts#L274-L282)).
 - `generate/scene-outlines-stream` writes `{type:'error', error}` after three
-  failed attempts (`route.ts:673-683`) and also from the outer catch (`:684-689`).
+  failed attempts ([`route.ts:673-683`](app/api/generate/scene-outlines-stream/route.ts#L673-L683)) and also from the outer catch (`:684-689`).
 - `createSSEResponse` converts a generator throw into an `error` frame with code
-  `STREAM_ERROR` followed by a `done` frame (`lib/pbl/v2/api/sse.ts:265-273`).
+  `STREAM_ERROR` followed by a `done` frame ([`lib/pbl/v2/api/sse.ts:265-273`](lib/pbl/v2/api/sse.ts#L265-L273)).
 - The agent event streams never emit an error frame; a read failure degrades to
   `caught_up {degraded:true}` after three consecutive failures and the client is
   expected to schedule a full reconciliation
-  (`app/api/agent/sessions/[id]/events/route.ts:195-199`, `owner-events:134-137`).
+  ([`app/api/agent/sessions/[id]/events/route.ts:195-199`](app/api/agent/sessions/[id]/events/route.ts#L195-L199), `owner-events:134-137`).
 
 Consequence for callers: `res.ok` is not a success signal for any streaming
 route. A client that only checks the status will treat a total generation failure
@@ -90,7 +90,7 @@ as a success with zero outlines.
 | `chat/pi` | a child `AbortController` mirrors `req.signal` into the director loop (`:131-133`) |
 | `generate/scene-outlines-stream` | `abortSignal: req.signal` passed to `streamLLM`; per-chunk and per-retry checks so a disconnect does not burn retries (`:504`, `:536-539`, `:636-639`) |
 | `agent/sessions/:id/events`, `owner-events`, `stages/:id/freshness` | `cancel()` sets `closed` and clears the poll timer, the heartbeat, and the NOTIFY subscription; `write()` also self-closes when `enqueue` throws because some runtimes never call `cancel()` (`events:122-134`, `:290-293`) |
-| `createSSEResponse` | `signal.addEventListener('abort', onAbort, {once:true})`, and the listener is removed in `safeClose` (`sse.ts:229-246`) |
+| `createSSEResponse` | `signal.addEventListener('abort', onAbort, {once:true})`, and the listener is removed in `safeClose` ([`sse.ts:229-246`](lib/pbl/v2/api/sse.ts#L229-L246)) |
 | `export-video/render/:jobId/download` | the 30 s timer bounds only the header fetch and is cleared once headers arrive, so a slow MP4 is not truncated (`:27-37`) |
 
 Non-streaming routes generally do **not** check `req.signal`; an abandoned
@@ -118,17 +118,17 @@ flowchart TD
 The ordering invariant is stated in the code: the object key is recorded by the
 reservation *before* the bytes are written, so a crash after the write leaves a
 durable pointer for the 24-hour reclaim
-(`app/api/materials/route.ts:338-340`), and the stale sweep deletes bytes before
+([`app/api/materials/route.ts:338-340`](app/api/materials/route.ts#L338-L340)), and the stale sweep deletes bytes before
 removing reservations (`:232-257`).
 
 `agent/sessions` POST compensates the other direction: if
 `bindOwnerMaterialsToSession` or `postUserMessage` fails after
 `createSession` succeeded, it soft-deletes the session
-(`app/api/agent/sessions/route.ts:177`).
+([`app/api/agent/sessions/route.ts:177`](app/api/agent/sessions/route.ts#L177)).
 
 No other route compensates. `classroom` POST writes to disk with
 `persistClassroom` and simply 500s on failure; a partially written classroom
-directory is not cleaned up (`app/api/classroom/route.ts:34-48`).
+directory is not cleaned up ([`app/api/classroom/route.ts:34-48`](app/api/classroom/route.ts#L34-L48)).
 
 ## Failure mode 4: silent degradation
 
@@ -136,16 +136,16 @@ Places where a failure produces a **success** response:
 
 | Route | Behaviour | Line |
 | --- | --- | --- |
-| `comfyui-workflows` | any listing error → `200 {workflows: []}` | `route.ts:19-22` |
-| `quiz-grade` | unparseable LLM output → 50 % of the available points with a canned comment | `route.ts:95-103` |
-| `web-search` | query-rewrite model unavailable → warn, then search on the raw requirement | `route.ts:148-150` |
-| `generate/scene-content` | vision resolution budget/fuse trip → generate with fewer or zero images, one summary warn | `route.ts:301-309` |
-| `generate/scene-outlines-stream` | buffer over 512 KiB → stop reading and finalise with whatever parsed | `route.ts:543-548` |
-| `chat/pi` | persistence init failure for the native whiteboard → warn and continue without the capability | `route.ts:183-186` |
-| `generate/voice` | `deleteVoice` without a caller key → `200 {deleted:false, localOnly:true}` | `route.ts:154-163` |
-| `persistence/[...path]` | `ASSET_BYTE_EGRESS=redirect` with too-short grace → warn and use direct bytes | `route.ts:63-77` |
-| `agent/sessions` POST | an unrecognised `/handle` in the prompt → no skill, never an error | `route.ts:117-131` |
-| `materials` POST | stale-upload reclaim failure → warn and continue with the upload | `route.ts:251-257` |
+| `comfyui-workflows` | any listing error → `200 {workflows: []}` | [`route.ts:19-22`](app/api/comfyui-workflows/route.ts#L19-L22) |
+| `quiz-grade` | unparseable LLM output → 50 % of the available points with a canned comment | [`route.ts:95-103`](app/api/quiz-grade/route.ts#L95-L103) |
+| `web-search` | query-rewrite model unavailable → warn, then search on the raw requirement | [`route.ts:148-150`](app/api/web-search/route.ts#L148-L150) |
+| `generate/scene-content` | vision resolution budget/fuse trip → generate with fewer or zero images, one summary warn | [`route.ts:301-309`](app/api/generate/scene-content/route.ts#L301-L309) |
+| `generate/scene-outlines-stream` | buffer over 512 KiB → stop reading and finalise with whatever parsed | [`route.ts:543-548`](app/api/generate/scene-outlines-stream/route.ts#L543-L548) |
+| `chat/pi` | persistence init failure for the native whiteboard → warn and continue without the capability | [`route.ts:183-186`](app/api/chat/pi/route.ts#L183-L186) |
+| `generate/voice` | `deleteVoice` without a caller key → `200 {deleted:false, localOnly:true}` | [`route.ts:154-163`](app/api/generate/voice/route.ts#L154-L163) |
+| `persistence/[...path]` | `ASSET_BYTE_EGRESS=redirect` with too-short grace → warn and use direct bytes | [`route.ts:63-77`](app/api/persistence/[...path]/route.ts#L63-L77) |
+| `agent/sessions` POST | an unrecognised `/handle` in the prompt → no skill, never an error | [`route.ts:117-131`](app/api/agent/sessions/route.ts#L117-L131) |
+| `materials` POST | stale-upload reclaim failure → warn and continue with the upload | [`route.ts:251-257`](app/api/materials/route.ts#L251-L257) |
 
 Most of these carry an explicit rationale comment. `comfyui-workflows` and
 `quiz-grade` do not explain themselves and are the two that would surprise a
@@ -166,7 +166,7 @@ The surface is inconsistent about echoing internals:
 - **Deliberately does not leak**: `generate/scene-content` and
   `generate/scene-actions` route everything through `llmApiError`, which keeps the
   provider's HTTP status but substitutes a fixed message
-  (`lib/server/llm-error-response.ts:59-74`); `extract-document`'s JSON form
+  ([`lib/server/llm-error-response.ts:59-74`](lib/server/llm-error-response.ts#L59-L74)); `extract-document`'s JSON form
   returns a fixed `PARSE_FAILED` message (`:642-651`); `stages/**` tenancy routes
   return `{error:'internal_error'}` only (`publish:62-65`); `materials` returns a
   fixed `'material upload failed'` (`:391`).
@@ -183,20 +183,20 @@ the surface (checked across all 69 files).
 ```ts
 'Content-Disposition': `attachment; filename="${jobId}.mp4"`,
 ```
-`app/api/export-video/render/[jobId]/download/route.ts:57`
+[`app/api/export-video/render/[jobId]/download/route.ts:57`](app/api/export-video/render/[jobId]/download/route.ts#L57)
 
 `jobId` is never validated in this route (it is only `encodeURIComponent`-ed for
 the *upstream URL* at `:34`). A `jobId` containing `"` breaks out of the quoted
 filename. CR/LF would be rejected by the `Headers` constructor, so this is
 filename spoofing rather than response splitting. `skills/[id]` does the same
 interpolation but validates first with `isSafeSkillId`
-(`app/api/skills/[id]/route.ts:26`, `:18`), which is the pattern the download
+([`app/api/skills/[id]/route.ts:26`](app/api/skills/[id]/route.ts#L26), `:18`), which is the pattern the download
 route is missing.
 
 ## Failure mode 7: unauthenticated reachability
 
 With `ACCESS_CODE` unset — the default in `.env` terms, since the middleware
-short-circuits at `middleware.ts:61` — the following are reachable by anyone who
+short-circuits at [`middleware.ts:61`](middleware.ts#L61) — the following are reachable by anyone who
 can reach the port:
 
 - Every `generate/**` route: unbounded LLM, image, video and TTS spend against
@@ -211,7 +211,7 @@ can reach the port:
 - `classroom` POST/GET: writes and reads classroom bundles on disk with no owner
   scoping.
 - `stages/[id]/status`: documented as intentionally unauthenticated
-  (`status/route.ts:7`).
+  ([`status/route.ts:7`](app/api/stages/[id]/status/route.ts#L7)).
 
 The agent-runtime family is *not* in this list — it is owner-partitioned by the
 anonymous cookie, which is a weak boundary but a real one.
@@ -219,13 +219,13 @@ anonymous cookie, which is a weak boundary but a real one.
 ## Failure mode 8: the two dead code paths
 
 1. `stages/[id]/publish` and `stages/[id]/unpublish` reject any owner id starting
-   with `anon:` (`publish/route.ts:26`, `unpublish/route.ts:25`). No call site
+   with `anon:` ([`publish/route.ts:26`](app/api/stages/[id]/publish/route.ts#L26), [`unpublish/route.ts:25`](app/api/stages/[id]/unpublish/route.ts#L25)). No call site
    passes `authenticatedOwnerId` to `resolveRequestOwnerId`, so every owner id is
-   `anon:`-prefixed (`lib/server/agent-runtime/owner.ts:60`, `:64`) and both
+   `anon:`-prefixed ([`lib/server/agent-runtime/owner.ts:60`](lib/server/agent-runtime/owner.ts#L60), [`:64`](lib/server/agent-runtime/owner.ts#L64)) and both
    routes always return `401 {error:'login_required'}`. The code anticipates this
-   — `owner.ts:46-50` says a future auth integration must thread the parameter
+   — [`owner.ts:46-50`](lib/server/agent-runtime/owner.ts#L46-L50) says a future auth integration must thread the parameter
    through — but as shipped, publishing is unreachable.
 2. `agent/skills/[id]` GET builds its 404 without the owner headers
-   (`app/api/agent/skills/[id]/route.ts:22`), so a request that mints a fresh
+   ([`app/api/agent/skills/[id]/route.ts:22`](app/api/agent/skills/[id]/route.ts#L22)), so a request that mints a fresh
    anonymous cookie and then misses drops the cookie and the next request mints a
    different owner. Every sibling route threads the headers.

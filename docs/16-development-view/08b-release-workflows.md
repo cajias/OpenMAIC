@@ -4,19 +4,19 @@ The two publish workflows and the `.github/scripts` helpers they drive.
 `publish-packages.yml` makes its security boundary a **job** boundary: install,
 build and pack run with `contents: read` and no token; the only job that can read
 `NPM_TOKEN` neither installs nor builds. Continues
-[`08-ci-workflows.md`](./08-ci-workflows.md), which covers the trigger graph and the
+[`08-ci-workflows.md`](docs/16-development-view/08-ci-workflows.md), which covers the trigger graph and the
 three merge-path workflows.
 
 **Sources:** `.github/workflows/publish-packages.yml` (472 lines),
 `.github/workflows/publish-openmaic-skill.yml` (312),
 `.github/scripts/check-clawhub-version.mjs` (109),
 `.github/scripts/publish-openmaic-skill.sh` (58),
-`scripts/openmaic-packages.mjs:122-205`, `scripts/verify-package-artifacts.mjs`,
+[`scripts/openmaic-packages.mjs:122-205`](scripts/openmaic-packages.mjs#L122-L205), `scripts/verify-package-artifacts.mjs`,
 `tests/workflows/publish-packages-workflow.test.ts`,
 `tests/ci/check-clawhub-version.test.ts`, `tests/ci/publish-openmaic-skill.test.ts`.
 Evidence:
-[`quality-testing-ci-deps/01b`](../appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
-[`quality-testing-ci-deps/03`](../appendix/research/quality-testing-ci-deps/03-flows.md).
+[`quality-testing-ci-deps/01b`](docs/appendix/research/quality-testing-ci-deps/01b-modules-ci-and-build.md),
+[`quality-testing-ci-deps/03`](docs/appendix/research/quality-testing-ci-deps/03-flows.md).
 
 ## `publish-packages.yml` — the release security boundary
 
@@ -150,7 +150,7 @@ not start new workflow runs from `GITHUB_TOKEN` writes.
 
 ### The workflow's package list is cross-checked from outside
 
-`scripts/openmaic-packages.mjs:141-205` reads this YAML **textually** (it runs
+[`scripts/openmaic-packages.mjs:141-205`](scripts/openmaic-packages.mjs#L141-L205) reads this YAML **textually** (it runs
 before `pnpm install`, so no YAML parser is available) and compares:
 
 | Enumeration | Compared as |
@@ -291,8 +291,8 @@ the workflow itself with `node --check` and `bash -n` before use.
   deployment-branch rules limited to `main`, and the token stored as an
   *environment* secret rather than a repository secret. Neither is visible in the
   tree; the workflows only document the requirement in comments
-  (`publish-packages.yml:29-36`, `publish-openmaic-skill.yml:3-7`).
-- `--owner wyuc` is hard-coded in `publish-openmaic-skill.sh:27`. Nothing records
+  ([`publish-packages.yml:29-36`](.github/workflows/publish-packages.yml#L29-L36), [`publish-openmaic-skill.yml:3-7`](.github/workflows/publish-openmaic-skill.yml#L3-L7)).
+- `--owner wyuc` is hard-coded in [`publish-openmaic-skill.sh:27`](.github/scripts/publish-openmaic-skill.sh#L27). Nothing records
   what happens if that ClawHub account changes hands.
 - The `KNOWN LIMITATION` pack/upload/test race is documented but open; the stated fix
   (a separate packing-only job that runs no tests) is not implemented.

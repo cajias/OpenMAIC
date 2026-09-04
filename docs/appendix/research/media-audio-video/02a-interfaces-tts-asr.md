@@ -9,7 +9,7 @@ Companions: `02b-interfaces-media.md`, `02c-interfaces-whiteboard.md`,
 
 ## 1. Provider ids
 
-`lib/audio/types.ts:94` and `:187`
+[`lib/audio/types.ts:94`](lib/audio/types.ts#L94) and [`:187`](lib/audio/types.ts#L187)
 
 ```ts
 export type BuiltInTTSProviderId =
@@ -37,7 +37,7 @@ export type BuiltInASRProviderId =
 export type ASRProviderId = BuiltInASRProviderId | `custom-asr-${string}`;
 ```
 
-`lib/audio/types.ts:216`, `:221`
+[`lib/audio/types.ts:216`](lib/audio/types.ts#L216), [`:221`](lib/audio/types.ts#L221)
 
 ```ts
 export function isCustomTTSProvider(id: string): boolean; // id.startsWith('custom-tts-')
@@ -46,7 +46,7 @@ export function isCustomASRProvider(id: string): boolean; // id.startsWith('cust
 
 ## 2. Registry shapes
 
-`lib/audio/types.ts:99`, `:113`, `:192`
+[`lib/audio/types.ts:99`](lib/audio/types.ts#L99), [`:113`](lib/audio/types.ts#L113), [`:192`](lib/audio/types.ts#L192)
 
 ```ts
 export interface TTSVoiceInfo {
@@ -93,7 +93,7 @@ export interface ASRProviderConfig {
 ```
 
 Registries and accessors, by anchor rather than repeated signature:
-`TTS_PROVIDERS` (`lib/audio/constants.ts:119`), `ASR_PROVIDERS` (`:1078`),
+`TTS_PROVIDERS` ([`lib/audio/constants.ts:119`](lib/audio/constants.ts#L119)), `ASR_PROVIDERS` ([`:1078`](lib/audio/constants.ts#L1078)),
 `DEFAULT_TTS_VOICES` (`:1336`), `DEFAULT_TTS_MODELS` (`:1349`) — both default
 tables are `Record<BuiltInTTSProviderId, string>`, so a missing provider is a
 compile error. Accessors: `getAllTTSProviders` (`:1365`), `getTTSProvider`
@@ -104,7 +104,7 @@ compile error. Accessors: `getAllTTSProviders` (`:1365`), `getTTSProvider`
 
 ## 3. The call contract
 
-`lib/audio/types.ts:151`, `:207`
+[`lib/audio/types.ts:151`](lib/audio/types.ts#L151), [`:207`](lib/audio/types.ts#L207)
 
 ```ts
 export interface TTSModelConfig {
@@ -128,8 +128,8 @@ export interface ASRModelConfig {
 }
 ```
 
-`lib/audio/tts-providers.ts:111`, `:193`, `:207`, `:960`;
-`lib/audio/asr-providers.ts:164`
+[`lib/audio/tts-providers.ts:111`](lib/audio/tts-providers.ts#L111), [`:193`](lib/audio/tts-providers.ts#L193), [`:207`](lib/audio/tts-providers.ts#L207), [`:960`](lib/audio/tts-providers.ts#L960);
+[`lib/audio/asr-providers.ts:164`](lib/audio/asr-providers.ts#L164)
 
 ```ts
 export interface TTSGenerationResult { audio: Uint8Array; format: string }
@@ -152,7 +152,7 @@ export async function transcribeAudio(
 
 ## 4. Error classes
 
-`lib/audio/tts-providers.ts:123`, `:134`, `:165`
+[`lib/audio/tts-providers.ts:123`](lib/audio/tts-providers.ts#L123), [`:134`](lib/audio/tts-providers.ts#L134), [`:165`](lib/audio/tts-providers.ts#L165)
 
 ```ts
 export class TTSRateLimitError extends Error {
@@ -170,7 +170,7 @@ export class TTSRequestTimeoutError extends Error {
 }
 ```
 
-`lib/server/provider-config.ts:789`
+[`lib/server/provider-config.ts:789`](lib/server/provider-config.ts#L789)
 
 ```ts
 export class TTSModelNotAllowedError extends Error {
@@ -180,7 +180,7 @@ export class TTSModelNotAllowedError extends Error {
 }
 ```
 
-`lib/audio/wav-validate.ts:12`
+[`lib/audio/wav-validate.ts:12`](lib/audio/wav-validate.ts#L12)
 
 ```ts
 export class InvalidReferenceAudioError extends Error {
@@ -190,7 +190,7 @@ export class InvalidReferenceAudioError extends Error {
 
 ## 5. Voice/model coupling
 
-`lib/audio/constants.ts:82`, `:84`, `:86`, `:94`, `:99`, `:107`, `:1379`
+[`lib/audio/constants.ts:82`](lib/audio/constants.ts#L82), [`:84`](lib/audio/constants.ts#L84), [`:86`](lib/audio/constants.ts#L86), [`:94`](lib/audio/constants.ts#L94), [`:99`](lib/audio/constants.ts#L99), [`:107`](lib/audio/constants.ts#L107), [`:1379`](lib/audio/constants.ts#L1379)
 
 ```ts
 export const DEFAULT_QWEN_TTS_VOICE_CLONE_MODEL = 'qwen3-tts-vc-2026-01-22';
@@ -207,7 +207,7 @@ export function resolveTTSModelForVoice(
 export function isKnownTTSProviderId(id: string): id is TTSProviderId;
 ```
 
-`lib/audio/voice-resolver.ts:23`, `:37`, `:42`, `:86` (`AgentVoiceOverride` at
+[`lib/audio/voice-resolver.ts:23`](lib/audio/voice-resolver.ts#L23), [`:37`](lib/audio/voice-resolver.ts#L37), [`:42`](lib/audio/voice-resolver.ts#L42), [`:86`](lib/audio/voice-resolver.ts#L86) (`AgentVoiceOverride` at
 `:30` is structurally identical to `ResolvedVoice`)
 
 ```ts
@@ -247,7 +247,7 @@ export function resolveTTSModel(providerId: string, clientModel?: string, voiceI
 
 ## 6. Duration, chunking, reference-audio validation
 
-`lib/audio/audio-duration.ts:55`, `:121`, `:210`
+[`lib/audio/audio-duration.ts:55`](lib/audio/audio-duration.ts#L55), [`:121`](lib/audio/audio-duration.ts#L121), [`:210`](lib/audio/audio-duration.ts#L210)
 
 ```ts
 export function measureWavDuration(input: Uint8Array | ArrayBuffer): number | null;
@@ -258,7 +258,7 @@ export function measureAudioDuration(
 ): number | null;
 ```
 
-`lib/audio/tts-utils.ts:12`, `:21`, `:82`
+[`lib/audio/tts-utils.ts:12`](lib/audio/tts-utils.ts#L12), [`:21`](lib/audio/tts-utils.ts#L21), [`:82`](lib/audio/tts-utils.ts#L82)
 
 ```ts
 export const TTS_MAX_TEXT_LENGTH: Partial<Record<TTSProviderId, number>>; // { 'glm-tts': 1024 }
@@ -266,7 +266,7 @@ export function splitLongSpeechText(text: string, maxLength: number): string[];
 export function splitLongSpeechActions(actions: Action[], providerId: TTSProviderId): Action[];
 ```
 
-`lib/audio/wav-validate.ts:1`, `:6`, `:26`
+[`lib/audio/wav-validate.ts:1`](lib/audio/wav-validate.ts#L1), [`:6`](lib/audio/wav-validate.ts#L6), [`:26`](lib/audio/wav-validate.ts#L26)
 
 ```ts
 export const QWEN_REFERENCE_SAMPLE_RATE = 24_000;

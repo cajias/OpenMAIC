@@ -6,17 +6,17 @@ inferred from a mechanism you can read, not from a design document — there is 
 architecture-decision record in this tree.
 
 **Sources:** `app/api/agent/sessions/[id]/events/route.ts:46,58`,
-`lib/pbl/v2/api/sse.ts:215,286`,
-`app/api/generate/scene-outlines-stream/route.ts:460,486`,
-`app/generation-preview/page.tsx:1031-1051`, `lib/buffer/stream-buffer.ts`,
-`eslint.config.mjs:255-323,578-626`, `lib/export/use-export-pptx.ts:473,509`,
+[`lib/pbl/v2/api/sse.ts:215,286`](lib/pbl/v2/api/sse.ts#L215),
+[`app/api/generate/scene-outlines-stream/route.ts:460,486`](app/api/generate/scene-outlines-stream/route.ts#L460),
+[`app/generation-preview/page.tsx:1031-1051`](app/generation-preview/page.tsx#L1031-L1051), `lib/buffer/stream-buffer.ts`,
+[`eslint.config.mjs:255-323,578-626`](eslint.config.mjs#L255-L323), [`lib/export/use-export-pptx.ts:473,509`](lib/export/use-export-pptx.ts#L473),
 `packages/@openmaic/renderer/src/snapshot/measure.ts`,
-`lib/persistence/bootstrap.ts:15-68`, `lib/audio/audio-duration.ts:210`,
-`lib/choreography/timing.ts:113`, `lib/video-export/deps.ts:61`,
-`render-service/docker-entrypoint.sh:34`, `lib/server/ssrf-guard.ts:253`,
-`lib/server/agent-runtime/route-response.ts:35-43`,
-`lib/server/agent-runtime/runner.ts:889`,
-`../appendix/research/quality-testing-ci-deps/00-overview.md`.
+[`lib/persistence/bootstrap.ts:15-68`](lib/persistence/bootstrap.ts#L15-L68), [`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210),
+[`lib/choreography/timing.ts:113`](lib/choreography/timing.ts#L113), [`lib/video-export/deps.ts:61`](lib/video-export/deps.ts#L61),
+[`render-service/docker-entrypoint.sh:34`](render-service/docker-entrypoint.sh#L34), [`lib/server/ssrf-guard.ts:253`](lib/server/ssrf-guard.ts#L253),
+[`lib/server/agent-runtime/route-response.ts:35-43`](lib/server/agent-runtime/route-response.ts#L35-L43),
+[`lib/server/agent-runtime/runner.ts:889`](lib/server/agent-runtime/runner.ts#L889),
+[`../appendix/research/quality-testing-ci-deps/00-overview.md`](docs/appendix/research/quality-testing-ci-deps/00-overview.md).
 
 ## The attribute map
 
@@ -65,16 +65,16 @@ waits minutes for the first signal.
 | Mechanism | Where | What it buys |
 | --- | --- | --- |
 | SSE with an O(n) incremental JSON scanner | `app/api/generate/scene-outlines-stream/route.ts` | Outline cards appear while the model is still writing |
-| Navigate to the classroom after **one** scene | `app/generation-preview/page.tsx:1031-1051` | Playback starts while scenes 2..n are still being generated |
+| Navigate to the classroom after **one** scene | [`app/generation-preview/page.tsx:1031-1051`](app/generation-preview/page.tsx#L1031-L1051) | Playback starts while scenes 2..n are still being generated |
 | `StreamBuffer` paces at 30 ms/character | `lib/buffer/stream-buffer.ts` | Live conversation reads as speech, not as a JSON dump |
-| Heartbeats: 25 s (agent events), 15 s (PBL, outlines) | `events/route.ts:58`, `sse.ts:215`, `scene-outlines-stream/route.ts:460` | Idle intermediaries do not kill a long stream |
-| `X-Accel-Buffering: no` on PBL streams | `lib/pbl/v2/api/sse.ts:286` | nginx does not buffer the stream into uselessness |
-| Duration stored on the `AudioFileRecord` at TTS time | `lib/audio/audio-duration.ts:210` | The export compiler's DI surface can be **synchronous** (`lib/video-export/deps.ts:61`) |
+| Heartbeats: 25 s (agent events), 15 s (PBL, outlines) | [`events/route.ts:58`](app/api/agent/sessions/[id]/events/route.ts#L58), [`sse.ts:215`](lib/pbl/v2/api/sse.ts#L215), [`scene-outlines-stream/route.ts:460`](app/api/generate/scene-outlines-stream/route.ts#L460) | Idle intermediaries do not kill a long stream |
+| `X-Accel-Buffering: no` on PBL streams | [`lib/pbl/v2/api/sse.ts:286`](lib/pbl/v2/api/sse.ts#L286) | nginx does not buffer the stream into uselessness |
+| Duration stored on the `AudioFileRecord` at TTS time | [`lib/audio/audio-duration.ts:210`](lib/audio/audio-duration.ts#L210) | The export compiler's DI surface can be **synchronous** ([`lib/video-export/deps.ts:61`](lib/video-export/deps.ts#L61)) |
 
 **Accepted cost.** Two complete orchestrations of the same pipeline exist — a
 browser loop and a headless server job — with different retry wiring and
 different partial-failure semantics. And a 512 KiB buffer ceiling on the outline
-stream (`scene-outlines-stream/route.ts:486`) means an unusually long outline
+stream ([`scene-outlines-stream/route.ts:486`](app/api/generate/scene-outlines-stream/route.ts#L486)) means an unusually long outline
 response is truncated rather than degrading gracefully.
 
 ## 2. Provider pluggability
@@ -130,7 +130,7 @@ one key produces a working product.
 
 | Decision | Consequence for a self-hoster |
 | --- | --- |
-| Persistence defaults to the browser (`lib/persistence/bootstrap.ts:15-68` only switches on `NEXT_PUBLIC_PERSISTENCE === '1'`) | No database needed to try it |
+| Persistence defaults to the browser ([`lib/persistence/bootstrap.ts:15-68`](lib/persistence/bootstrap.ts#L15-L68) only switches on `NEXT_PUBLIC_PERSISTENCE === '1'`) | No database needed to try it |
 | `output: 'standalone'` unless `VERCEL` (`next.config.ts`) | A Docker image without `node_modules` |
 | Local providers first-class: Ollama, Lemonade (LLM+TTS+ASR+image), MinerU self-hosted, SearXNG, ComfyUI, FunASR | No cloud dependency for any capability |
 | `ACCESS_CODE` as a one-variable site password | Shared-link deployments work without an identity provider |
@@ -175,7 +175,7 @@ Three mechanisms deserve naming:
 
 1. **The pure-choreography fence.** `lib/choreography` holds the timing literals
    verbatim, copied from `ActionEngine`, and a dedicated ESLint block
-   (`eslint.config.mjs:255-323`) makes it *impossible* to import `@/…`, React,
+   ([`eslint.config.mjs:255-323`](eslint.config.mjs#L255-L323)) makes it *impossible* to import `@/…`, React,
    DOM or GSAP from there. The app engine and the video exporter therefore
    cannot drift on timing.
 2. **The geometry probe.** `measureSlideElementGeometry` exists because
@@ -194,11 +194,11 @@ where drift is possible and unguarded.
 
 | Mechanism | Where |
 | --- | --- |
-| `.maic.zip` with inlined HTML/CSS/media assets, format version 1 | `lib/export/use-export-classroom.ts:80`, `classroom-zip-types.ts:11-12` |
+| `.maic.zip` with inlined HTML/CSS/media assets, format version 1 | [`lib/export/use-export-classroom.ts:80`](lib/export/use-export-classroom.ts#L80), [`classroom-zip-types.ts:11-12`](lib/export/classroom-zip-types.ts#L11-L12) |
 | Course document, chat log, quiz state and resume cursor in IndexedDB | `lib/document-store/store.ts`, `lib/runtime/store.ts`, `lib/utils/chat-storage.ts` |
 | Per-tab `sessionStorage` action resume beating a 1 s-debounced device KV cursor | `lib/playback/action-resume.ts`, `cursor.ts` |
 | Twenty KaTeX faces + Noto CJK/Cyrillic/Arabic (2.0 MiB) baked into the video ZIP | three `gen:video-export-*` scripts |
-| `render-service` runs with iptables egress DROP, failing closed | `render-service/docker-entrypoint.sh:34` |
+| `render-service` runs with iptables egress DROP, failing closed | [`render-service/docker-entrypoint.sh:34`](render-service/docker-entrypoint.sh#L34) |
 
 The render container's zero-egress posture is the strongest statement of this
 attribute: the renderer cannot fetch a font, so the fonts ship with the job.
@@ -257,7 +257,7 @@ scope decision, not an oversight.
 | Access-token expiry | `createAccessToken` embeds a timestamp neither verifier compares to now | 7-day cookie `maxAge` is the only bound, and it is client-side |
 
 Verified by the quality pack:
-`../appendix/research/quality-testing-ci-deps/00-overview.md`.
+[`../appendix/research/quality-testing-ci-deps/00-overview.md`](docs/appendix/research/quality-testing-ci-deps/00-overview.md).
 
 ## Trade-off ledger, one line each
 
@@ -272,10 +272,10 @@ Verified by the quality pack:
 
 ## Cross-links
 
-- Test and gate inventory behind these claims: `../14-code-quality/index.md`
-- Cross-cutting mechanisms (SSRF, flags, i18n, logging): `../15-cross-cutting/index.md`
-- Build and CI shape: `../16-development-view/index.md`
-- Deployment consequences of self-hostability: `../17-deployment-view/index.md`
+- Test and gate inventory behind these claims: [`../14-code-quality/index.md`](docs/14-code-quality/index.md)
+- Cross-cutting mechanisms (SSRF, flags, i18n, logging): [`../15-cross-cutting/index.md`](docs/15-cross-cutting/index.md)
+- Build and CI shape: [`../16-development-view/index.md`](docs/16-development-view/index.md)
+- Deployment consequences of self-hostability: [`../17-deployment-view/index.md`](docs/17-deployment-view/index.md)
 
 ## Open questions
 

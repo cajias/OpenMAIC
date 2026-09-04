@@ -8,7 +8,7 @@ stale.
 
 **Sources:** `scripts/generate-video-export-katex.mjs`,
 `scripts/generate-video-export-noto-cjk.mjs`,
-`scripts/generate-video-export-noto-script-fonts.mjs`, `package.json:12-14`,
+`scripts/generate-video-export-noto-script-fonts.mjs`, [`package.json:12-14`](package.json#L12-L14),
 `lib/video-export/emit-hyperframes/{katex-assets,noto-cjk-assets,noto-script-font-assets,inter-font,quiz-script-font-plan}.ts`,
 `lib/video-export-app/{quiz-layout,package-zip}.ts`,
 `public/vendor/video-export/fonts/`, `render-service/docker-entrypoint.sh`.
@@ -152,7 +152,7 @@ sample string (`'Привет Ёж Ԁ'`, `'العربية'`), and — uniquely �
 `coverage` ranges.
 
 `coverage` exists because it is consumed at *runtime*. `planQuizScriptFonts`
-(`lib/video-export/emit-hyperframes/quiz-script-font-plan.ts:49`) selects packs by
+([`lib/video-export/emit-hyperframes/quiz-script-font-plan.ts:49`](lib/video-export/emit-hyperframes/quiz-script-font-plan.ts#L49)) selects packs by
 Unicode property over the rendered surface markup, not by locale:
 
 ```ts
@@ -193,7 +193,7 @@ Commands: `ls public/vendor/video-export/fonts | wc -l`,
 
 GSAP is notably **not** an npm dependency of the app. It is a committed file,
 fetched from `/vendor/gsap.min.js` at package time by `loadGsapSource()`
-(`package-zip.ts:34`) and written into the ZIP at `project.gsapVendorPath`.
+([`package-zip.ts:34`](lib/video-export-app/package-zip.ts#L34)) and written into the ZIP at `project.gsapVendorPath`.
 
 ## 6. When to re-run, and what breaks if you do not
 
@@ -226,7 +226,7 @@ flowchart TD
 The two failure classes are worth separating:
 
 **Loud.** `packageVideoZip` fetches each `vendorAssets[].sourceUrl` from the app's
-own `public/` and **throws** on failure (`package-zip.ts:43`) — the same posture as
+own `public/` and **throws** on failure ([`package-zip.ts:43`](lib/video-export-app/package-zip.ts#L43)) — the same posture as
 a missing GSAP. A generated module naming a file that is not committed fails the
 whole export rather than shipping a ZIP with boxes for glyphs.
 
@@ -235,7 +235,7 @@ the upstream package the app also measures against*, nothing throws. The quiz
 question list is measured off-screen with `KATEX_MEASUREMENT_CSS` /
 `NOTO_CJK_MEASUREMENT_CSS` (`lib/video-export-app/quiz-layout.ts`), and that
 measurement decides scroll duration via `QUIZ_SCROLL_PX_PER_SECOND_720P` (see
-[`./06-video-export-pipeline.md`](./06-video-export-pipeline.md) §3). Different
+[`./06-video-export-pipeline.md`](docs/09-media-and-export/06-video-export-pipeline.md) §3). Different
 metrics between measurement and render produce a scroll that clips content or
 holds too long — a visual regression with no diagnostic.
 
@@ -256,6 +256,6 @@ manual discipline enforced only by review.
   `vendorAssets: []` yet still renders Inter — but nothing checks that the embedded
   bytes match the installed `@fontsource-variable/inter` version.
 - `@fontsource/noto-sans` and `@fontsource/noto-sans-arabic` are pinned **exact**
-  (`package.json:171-172`) while the CJK packages use carets
+  ([`package.json:171-172`](package.json#L171-L172)) while the CJK packages use carets
   (`:60-61`). The asymmetry is presumably because the script-font generator reads
   `unicode.json` and the cmap, but no comment states it.

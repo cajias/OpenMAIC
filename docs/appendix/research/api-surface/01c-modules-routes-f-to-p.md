@@ -32,20 +32,20 @@ flowchart LR
 ## `folders` family — all `runtime='nodejs'`, all runtime-gated
 
 Distinct envelope: these four files use `{error:{code,message}}`, not `apiError`
-(`app/api/folders/route.ts:47`, `folders/[id]/route.ts:35`,
-`folders/members/route.ts:30`, and `persistence/[...path]/route.ts:31`).
+([`app/api/folders/route.ts:47`](app/api/folders/route.ts#L47), [`folders/[id]/route.ts:35`](app/api/folders/[id]/route.ts#L35),
+[`folders/members/route.ts:30`](app/api/folders/members/route.ts#L30), and [`persistence/[...path]/route.ts:31`](app/api/persistence/[...path]/route.ts#L31)).
 
 | Route | Method | Body / query | Validation | Response |
 | --- | --- | --- | --- | --- |
-| `/api/folders` | `GET` | — | — | `{folders:[{...row, userKey: ownerId}]}` (`route.ts:59`) |
+| `/api/folders` | `GET` | — | — | `{folders:[{...row, userKey: ownerId}]}` ([`route.ts:59`](app/api/folders/route.ts#L59)) |
 | `/api/folders` | `POST` | `{name}` | JSON parse, `typeof name === 'string'`, `validateFolderName` display-width ≤ 40 (`:79-97`) | `{folder}`; store-level duplicate/limit refusals remapped by `folderNameErrorResponse` (`:108-112`) |
-| `/api/folders/[id]` | `PATCH` | `{name}` | same name rules; explicit case-insensitive clash pre-check excluding self → `409 FOLDER_NAME_DUPLICATE` (`[id]/route.ts:68-79`) | `{folder}`; `404 FOLDER_NOT_FOUND` |
-| `/api/folders/[id]` | `DELETE` | `?mode=ungroup\|remove` | anything but `remove` falls back to `ungroup` (`[id]/route.ts:104-105`) | `{ok:true, removedStageIds}` |
-| `/api/folders/members` | `POST` | `{stageId, folderId\|null}` | `stageId` non-empty string; `folderId` non-empty string or explicit `null` (`members/route.ts:45-50`) | `{ok:true}`; `404 FOLDER_NOT_FOUND` |
+| `/api/folders/[id]` | `PATCH` | `{name}` | same name rules; explicit case-insensitive clash pre-check excluding self → `409 FOLDER_NAME_DUPLICATE` ([`[id]/route.ts:68-79`](app/api/folders/[id]/route.ts#L68-L79)) | `{folder}`; `404 FOLDER_NOT_FOUND` |
+| `/api/folders/[id]` | `DELETE` | `?mode=ungroup\|remove` | anything but `remove` falls back to `ungroup` ([`[id]/route.ts:104-105`](app/api/folders/[id]/route.ts#L104-L105)) | `{ok:true, removedStageIds}` |
+| `/api/folders/members` | `POST` | `{stageId, folderId\|null}` | `stageId` non-empty string; `folderId` non-empty string or explicit `null` ([`members/route.ts:45-50`](app/api/folders/members/route.ts#L45-L50)) | `{ok:true}`; `404 FOLDER_NOT_FOUND` |
 
 Body validation for `POST`/`PATCH` runs **before** `withRequestOwnerId` on
 purpose: a malformed request must not mint an anonymous cookie partition
-(`folders/route.ts:72-75`).
+([`folders/route.ts:72-75`](app/api/folders/route.ts#L72-L75)).
 
 ## `generate/agent-profiles` — `POST`
 
@@ -181,7 +181,7 @@ outline's index within `allOutlines` (`:140-147`), normalises legacy PBL content
 
 Middleware-allowlisted. `{success:true, status:'ok', version, capabilities:{webSearch, imageGeneration, videoGeneration, tts}}`
 where each capability is true only if at least one non-`disabled` provider exists
-(`app/api/health/route.ts:12-23`). `version` comes from `npm_package_version`
+([`app/api/health/route.ts:12-23`](app/api/health/route.ts#L12-L23)). `version` comes from `npm_package_version`
 with a `'0.1.0'` fallback read once at module load (`:9`).
 
 ## `materials` — `GET` + `POST`
@@ -238,7 +238,7 @@ All four LLM routes share one shape: parse JSON → validate → `resolveModelFr
 | `POST /api/pbl/v2/simulator` | `pbl-v2-runtime:simulator` | `project` | scenario-only; `runSimulatorTurn` gates and errors otherwise (`:12-13`) |
 | `POST /api/pbl/v2/task/update` | — (no LLM) | `project`, `action` | pure mutation switch over 5 actions; unknown action → 400 (`:159-160`) |
 
-`createSSEResponse` (`lib/pbl/v2/api/sse.ts:211`) adds
+`createSSEResponse` ([`lib/pbl/v2/api/sse.ts:211`](lib/pbl/v2/api/sse.ts#L211)) adds
 `X-Accel-Buffering: no` alongside the usual SSE headers (`:280-288`), keeps a
 15 s `: keepalive` heartbeat (`:192`, `:258`), converts a generator throw into an
 `error` + `done` frame pair (`:265-273`), and wires `signal` so an abort closes

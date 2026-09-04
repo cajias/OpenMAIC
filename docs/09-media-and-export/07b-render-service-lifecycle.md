@@ -1,6 +1,6 @@
 # Render Service: Lifecycle, Profiles, Preview
 
-The second half of [`./07-render-service.md`](./07-render-service.md). Once a
+The second half of [`./07-render-service.md`](docs/09-media-and-export/07-render-service.md). Once a
 project ZIP has been admitted and extracted, this is what happens to it: the job
 state machine, the two resource profiles that fix concurrency and capture policy,
 the startup checks that refuse to boot a misconfigured or unisolated container,
@@ -9,12 +9,12 @@ and the unrelated `/preview` capability that shares the same process.
 **Sources:** all seventeen files of `render-service/src/` — `{render-coordinator,render-executor,chunk-executor,chunk-worker,resource-profile,config,types,preview-renderer,preview-gate,preview-validation,job-store,artifact-store,runtime-info,capped-stream,semaphore,unzip,main}.ts`,
 `render-service/{Dockerfile,docker-entrypoint.sh,package.json}`,
 `docker-compose.yml`;
-[`../appendix/research/media-audio-video/02g-interfaces-render-service.md`](../appendix/research/media-audio-video/02g-interfaces-render-service.md),
-[`../appendix/research/media-audio-video/05-failure-modes.md`](../appendix/research/media-audio-video/05-failure-modes.md).
+[`../appendix/research/media-audio-video/02g-interfaces-render-service.md`](docs/appendix/research/media-audio-video/02g-interfaces-render-service.md),
+[`../appendix/research/media-audio-video/05-failure-modes.md`](docs/appendix/research/media-audio-video/05-failure-modes.md).
 
 ## 1. Job lifecycle
 
-`RenderCoordinator` (`render-coordinator.ts:73`) splits **admission** from
+`RenderCoordinator` ([`render-coordinator.ts:73`](render-service/src/render-coordinator.ts#L73)) splits **admission** from
 **enqueue** — `reserve` → `submit` → `pump` → `run`. `Reservation`
 (`:55`) is `{ identity, consumed }`; `RenderRejectionReason` is
 `'queue_full' | 'per_identity_limit'` (`:29`).
@@ -50,18 +50,18 @@ stateDiagram-v2
 Three invariants in that machine:
 
 - **Non-success always cleans up.** `finishNonSuccess`
-  (`render-coordinator.ts:242`) puts `cleanupProject` in a `finally`, and
+  ([`render-coordinator.ts:242`](render-service/src/render-coordinator.ts#L242)) puts `cleanupProject` in a `finally`, and
   `cleanupProject` (`:334`) removes the project dir plus the derived plan dir,
   `.local.json` and `.chunks` siblings, all `.catch(() => {})`.
 - **A succeeded-but-aborted job is reported cancelled.** `run()` re-checks
   `abort.signal.aborted` *after* a successful execution (`:292`), so a cancel
   racing completion cannot leave a downloadable artifact.
 - **The domain `failure` is kept separately from the HTTP-facing `error` string**
-  (`RenderJobRecord`, `types.ts:130`). `RenderFailureCode` is
+  (`RenderJobRecord`, [`types.ts:130`](render-service/src/types.ts#L130)). `RenderFailureCode` is
   `'cancelled' | 'deadline_exceeded' | 'unsupported_capture_mode' |
   'execution_failed'` (`:68`).
 
-`InProcessExecutor` (`render-executor.ts:168`) is the only `RenderExecutor`
+`InProcessExecutor` ([`render-executor.ts:168`](render-service/src/render-executor.ts#L168)) is the only `RenderExecutor`
 implementation. Non-chunked path: `createRenderJob(buildProducerJobConfig(options,
 workers))` then `executeRenderJob(...)`, under a deadline `AbortController`,
 discriminating `abortCause` between `cancelled` and `deadline`, and normalising
@@ -71,15 +71,15 @@ and worker count — so a silent BeginFrame→screenshot downgrade is observable
 
 An opt-in chunked path exists (`RENDER_CHUNK_EXECUTION=true`) over
 `@hyperframes/producer/distributed`: `executeRenderChunks(chunkRequest)`
-(`:196-284`) with an `ImmutableRenderPlan` (`chunk-executor.ts:67`) carrying
+(`:196-284`) with an `ImmutableRenderPlan` ([`chunk-executor.ts:67`](render-service/src/chunk-executor.ts#L67)) carrying
 `planHash`, `projectHash`, per-asset SHA-256, and the producer / FFmpeg / Node /
 Chromium versions — so a stale or mismatched chunk is detectable via six
 `ChunkFailureCode` values (`:29`). Capture mode must be unanimous across chunks
-when `requireBeginFrame` is on (`render-executor.ts:243`).
+when `requireBeginFrame` is on ([`render-executor.ts:243`](render-service/src/render-executor.ts#L243)).
 
 ## 2. Resource profiles and fail-closed startup
 
-`resolveResourceProfile(env)` (`resource-profile.ts:107`) picks one of two named
+`resolveResourceProfile(env)` ([`resource-profile.ts:107`](render-service/src/resource-profile.ts#L107)) picks one of two named
 profiles; anything other than `standard` / `low-memory` throws at import.
 
 | | `standard` | `low-memory` |
@@ -102,13 +102,13 @@ the selected profile — "Select a different resource profile instead of overrid
 it" — and otherwise *writes* the required value into `process.env`.
 `validateResourceProfileStartup` (`:138`) refuses to boot below the memory floor,
 or when a BeginFrame profile has no existing `PRODUCER_HEADLESS_SHELL_PATH`.
-`boundedIntEnv` (`config.ts:15`) throws when a chunk knob exceeds the profile
+`boundedIntEnv` ([`config.ts:15`](render-service/src/config.ts#L15)) throws when a chunk knob exceeds the profile
 ceiling.
 
 And the strongest gate is the entrypoint. `RENDER_EGRESS_LOCKDOWN` defaults to
 `true`; when it is on and the lockdown cannot be installed the process **exits
 non-zero** rather than starting. The reasoning is written out
-(`docker-entrypoint.sh:16-21`): an unisolated service would still report
+([`docker-entrypoint.sh:16-21`](render-service/docker-entrypoint.sh#L16-L21)): an unisolated service would still report
 `/health: ok`, "and the app would advertise MP4 rendering while Chromium could
 reach the app". Three separate fatal checks — not root (`:52`), no `iptables`
 (`:56`), rules failed to apply (`:60`).
@@ -128,7 +128,7 @@ user via `setpriv` (`:72`), and `HOME` is reset **before** the drop so producer'
 font caches do not resolve to `/root/.cache` and fail with `EACCES` (`:24-27`).
 
 The container also deliberately does *not* set `USER render` in the Dockerfile
-(`Dockerfile:85-88`): it starts as root so the entrypoint can install the rules
+([`Dockerfile:85-88`](render-service/Dockerfile#L85-L88)): it starts as root so the entrypoint can install the rules
 with `CAP_NET_ADMIN`, then drops. Compose puts the service on an
 `internal: true` `render` network with `cap_add: [NET_ADMIN]`.
 
@@ -164,15 +164,15 @@ flowchart TD
 
 `POST /preview` is a second, unrelated capability: server-render **one persisted
 scene** with React and screenshot it. `ChromiumPreviewRenderer`
-(`preview-renderer.ts:43`) builds a slide client bundle with esbuild
-(`buildSlideClientBundle`, warmed at boot in `main.ts:504`), injects it into the
+([`preview-renderer.ts:43`](render-service/src/preview-renderer.ts#L43)) builds a slide client bundle with esbuild
+(`buildSlideClientBundle`, warmed at boot in [`main.ts:504`](render-service/src/main.ts#L504)), injects it into the
 parsed `<head>` via parse5, and screenshots through puppeteer-core. It has its own
 admission gate (`PreviewGate`, `RENDER_PREVIEW_MAX_IN_FLIGHT = 8`,
 `RENDER_PREVIEW_MAX_PER_USER = 2`), its own JSON ceiling
 (`RENDER_PREVIEW_MAX_JSON_BYTES = 32 MiB` → 413), and its own deadline
 (`RENDER_PREVIEW_TIMEOUT_MS = 20_000` → 504).
 
-Its status mapping is finer than `/render`'s (`main.ts:399-412`): 413 too large,
+Its status mapping is finer than `/render`'s ([`main.ts:399-412`](render-service/src/main.ts#L399-L412)): 413 too large,
 400 malformed, **422** for a valid payload whose scene cannot produce a faithful
 preview (`UnprocessablePreviewError` from `previewabilityError`), 429 admission or
 capacity, 504 deadline, 500 otherwise. That 422 is the interesting one — it
@@ -185,7 +185,7 @@ server-renders real scene content.
 ### The 422 is decided by `preview-validation.ts`
 
 `preview-gate.ts` decides *whether you may try*; `preview-validation.ts` (245 lines)
-decides *whether this scene can be previewed faithfully*. It runs at `main.ts:368`,
+decides *whether this scene can be previewed faithfully*. It runs at [`main.ts:368`](render-service/src/main.ts#L368),
 between `parsePreviewPayload` and `coordinator.tryRunWithExecutionSlot` — so a scene that
 cannot be previewed is refused **before** it takes an execution slot, not after Chromium
 has been launched.
@@ -266,7 +266,7 @@ ones most easily missed.
 | `artifact-store.ts` | 42 | `LocalDiskArtifactStore` |
 | `chunk-worker.ts` | **23** | the child-process entry point for one chunk |
 
-`chunk-worker.ts` is not imported — it is *spawned*. `chunk-executor.ts:220` resolves it as
+`chunk-worker.ts` is not imported — it is *spawned*. [`chunk-executor.ts:220`](render-service/src/chunk-executor.ts#L220) resolves it as
 `fileURLToPath(new URL('./chunk-worker.ts', import.meta.url))`, and the worker's entire
 body is one `process.on('message')` handler: take `{ planDir, chunkIndex, outputPath }`,
 call `renderChunk` from `@hyperframes/producer/distributed`, reply `{ ok: true, result }` or
@@ -278,12 +278,12 @@ to run in a process that is killed on a deadline.
 
 - No app code was found calling `POST /preview`. The compose comments say
   "Preview callers send a durable owner identity in `x-openmaic-client`"
-  (`docker-compose.yml:120-122`), so the caller presumably lives in the
+  ([`docker-compose.yml:120-122`](docker-compose.yml#L120-L122)), so the caller presumably lives in the
   editor/snapshot path, outside this topic.
 - `chunk-executor.ts` is 926 lines — the largest file in the service — for a path
-  that is off by default (`config.ts:60`). Whether CI exercises it beyond
+  that is off by default ([`config.ts:60`](render-service/src/config.ts#L60)). Whether CI exercises it beyond
   `render-service/test/chunk-executor.test.ts` is unknown.
-- `main.ts:453` handles a `{ kind: 'url' }` artifact location with a 302 for
+- [`main.ts:453`](render-service/src/main.ts#L453) handles a `{ kind: 'url' }` artifact location with a 302 for
   "presigned-URL stores (demo layer)", but `artifact-store.ts` is 42 lines and
   whether `LocalDiskArtifactStore` can ever produce that branch was not confirmed.
 - `render-service/scripts/egress-smoke.sh` exists as the smoke check for the

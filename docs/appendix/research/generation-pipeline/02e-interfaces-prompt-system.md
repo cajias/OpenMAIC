@@ -51,13 +51,13 @@ flowchart TD
 
 The app loader's snippet fallback is what lets an app-only template such as
 `interactive-outlines` reuse `image-instructions` without keeping a second copy
-on disk (`lib/prompts/loader.ts:40`). The PBL loader is deliberately separate:
+on disk ([`lib/prompts/loader.ts:40`](lib/prompts/loader.ts#L40)). The PBL loader is deliberately separate:
 adding its prompts to `PromptId` would touch a type shared across every
-generation surface (`pbl/prompts/loader.ts:1-11`).
+generation surface ([`pbl/prompts/loader.ts:1-11`](packages/@openmaic/generation/src/pbl/prompts/loader.ts#L1-L11)).
 
 ## Package prompt types
 
-`packages/@openmaic/generation/src/prompts/types.ts:6`, `:22`, `:32`, `:38`:
+[`packages/@openmaic/generation/src/prompts/types.ts:6`](packages/@openmaic/generation/src/prompts/types.ts#L6), [`:22`](packages/@openmaic/generation/src/prompts/types.ts#L22), [`:32`](packages/@openmaic/generation/src/prompts/types.ts#L32), [`:38`](packages/@openmaic/generation/src/prompts/types.ts#L38):
 
 ```ts
 export type PromptId =
@@ -93,13 +93,13 @@ export interface LoadedPrompt {
 export type PromptVariableDefaults = Partial<Record<PromptId, Readonly<Record<string, unknown>>>>;
 ```
 
-`PROMPT_IDS` (`prompts/index.ts:13`) is
+`PROMPT_IDS` ([`prompts/index.ts:13`](packages/@openmaic/generation/src/prompts/index.ts#L13)) is
 `as const satisfies Record<string, PromptId>`, so a constant whose value is not
 in the union fails to compile.
 
 ## Loader signatures
 
-`prompts/loader.ts:27`, `:42`, `:52`, `:65`, `:99`, `:126`:
+[`prompts/loader.ts:27`](packages/@openmaic/generation/src/prompts/loader.ts#L27), `:42`, `:52`, `:65`, `:99`, `:126`:
 
 ```ts
 export function loadSnippet(snippetId: SnippetId, promptsDir?: string): string
@@ -121,15 +121,15 @@ The three regexes are the whole template language:
 
 | Phase | Regex | Source |
 | --- | --- | --- |
-| snippet include | `/\{\{snippet:(\w[\w-]*)\}\}/g` | `loader.ts:46` |
-| conditional block | `/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g` | `loader.ts:57` |
-| variable | `/\{\{(\w+)\}\}/g` | `loader.ts:101` |
+| snippet include | `/\{\{snippet:(\w[\w-]*)\}\}/g` | [`loader.ts:46`](packages/@openmaic/generation/src/prompts/loader.ts#L46) |
+| conditional block | `/\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g` | [`loader.ts:57`](packages/@openmaic/generation/src/prompts/loader.ts#L57) |
+| variable | `/\{\{(\w+)\}\}/g` | [`loader.ts:101`](packages/@openmaic/generation/src/prompts/loader.ts#L101) |
 
 `\w+` on the variable regex is deliberate: kebab-case placeholders such as
-`{{next-agent}}` pass through untouched (`loader.ts:100`).
+`{{next-agent}}` pass through untouched ([`loader.ts:100`](packages/@openmaic/generation/src/prompts/loader.ts#L100)).
 
-App-side equivalents: `lib/prompts/types.ts:8` (8 ids), `lib/prompts/types.ts:21`
-(11 snippet ids), `lib/prompts/loader.ts:139` (`buildPrompt`, same three phases,
+App-side equivalents: [`lib/prompts/types.ts:8`](lib/prompts/types.ts#L8) (8 ids), [`lib/prompts/types.ts:21`](lib/prompts/types.ts#L21)
+(11 snippet ids), [`lib/prompts/loader.ts:139`](lib/prompts/loader.ts#L139) (`buildPrompt`, same three phases,
 no `promptsDir` parameter).
 
 PBL:
@@ -141,8 +141,8 @@ export function loadPBLV2Prompt(name: string, variables: Record<string, unknown>
 
 ## Formatters that produce prompt content
 
-`prompt-formatters.ts:78`, `:93` (byte-identical copies at
-`outline-formatters.ts:3`, `:14`):
+[`prompt-formatters.ts:78`](packages/@openmaic/generation/src/prompt-formatters.ts#L78), [`:93`](packages/@openmaic/generation/src/prompt-formatters.ts#L93) (byte-identical copies at
+[`outline-formatters.ts:3`](packages/@openmaic/generation/src/outline-formatters.ts#L3), [`:14`](packages/@openmaic/generation/src/outline-formatters.ts#L14)):
 
 ```ts
 export function formatImageDescription(img: PdfImage): string
@@ -152,7 +152,7 @@ export function formatImagePlaceholder(img: PdfImage): string
 // "- **img_2**: image from biology.pdf page 2 | size: 800×600 (aspect ratio 1.33) [see attached]"
 ```
 
-`prompt-formatters.ts:109` — the multimodal message builder:
+[`prompt-formatters.ts:109`](packages/@openmaic/generation/src/prompt-formatters.ts#L109) — the multimodal message builder:
 
 ```ts
 export function buildVisionUserContent(
@@ -166,9 +166,9 @@ It emits `[{type:'text', text:userPrompt}]`, then a
 `\n**img_N** (w×h, aspect ratio r):` text part followed by the image part, so the
 model can bind each id to its picture. A `data:<mime>;base64,` src is split into
 `{ image: base64, mimeType }` because the AI SDK accepts only http(s) URLs or raw
-base64 (`prompt-formatters.ts:126`).
+base64 ([`prompt-formatters.ts:126`](packages/@openmaic/generation/src/prompt-formatters.ts#L126)).
 
-`prompt-formatters.ts:9`, `:53`, `:65`, `:145`:
+[`prompt-formatters.ts:9`](packages/@openmaic/generation/src/prompt-formatters.ts#L9), [`:53`](packages/@openmaic/generation/src/prompt-formatters.ts#L53), [`:65`](packages/@openmaic/generation/src/prompt-formatters.ts#L65), [`:145`](packages/@openmaic/generation/src/prompt-formatters.ts#L145):
 
 ```ts
 export function buildCourseContext(ctx?: SceneGenerationContext): string
@@ -190,18 +190,18 @@ appear on the slides (`:71`).
 
 | Prompt id | Built at | Key conditional variables |
 | --- | --- | --- |
-| `requirements-to-outlines` | `outline-generator.ts:99` | `hasSourceImages`, `imageEnabled`, `videoEnabled`, `mediaEnabled` |
-| `slide-content` | `scene-generator.ts:710` | `imageElementEnabled`, `generatedImageEnabled`, `generatedVideoEnabled`, `mediaElementEnabled` |
-| `quiz-content` | `scene-generator.ts:867` | none |
-| `simulation-content` | `scene-generator.ts:1142` | none |
-| `diagram-content` | `scene-generator.ts:1155` | `hasNodeCount`, `hasPrescribedNodes` |
-| `code-content` | `scene-generator.ts:1171` | none |
-| `game-content` | `scene-generator.ts:1185` | none |
-| `visualization3d-content` | `scene-generator.ts:1197` | none |
-| `procedural-skill-content` | `scene-generator.ts:1214` | none (gated by `allowProceduralSkill`) |
-| `slide-actions` | `scene-generator.ts:1634` | none |
-| `quiz-actions` | `scene-generator.ts:1664` | none |
-| `interactive-actions` | `scene-generator.ts:1697` | none; receives `elementInventory` |
-| `pbl-actions` | `scene-generator.ts:1734` | none; `projectSummary` has a loader default |
-| `interactive-outlines` (app) | `scene-outlines-stream/route.ts:436` | same media flags as the outline template |
-| `task-engine-outlines` (app) | `scene-outlines-stream/route.ts:436` | same media flags |
+| `requirements-to-outlines` | [`outline-generator.ts:99`](packages/@openmaic/generation/src/outline-generator.ts#L99) | `hasSourceImages`, `imageEnabled`, `videoEnabled`, `mediaEnabled` |
+| `slide-content` | [`scene-generator.ts:710`](packages/@openmaic/generation/src/scene-generator.ts#L710) | `imageElementEnabled`, `generatedImageEnabled`, `generatedVideoEnabled`, `mediaElementEnabled` |
+| `quiz-content` | [`scene-generator.ts:867`](packages/@openmaic/generation/src/scene-generator.ts#L867) | none |
+| `simulation-content` | [`scene-generator.ts:1142`](packages/@openmaic/generation/src/scene-generator.ts#L1142) | none |
+| `diagram-content` | [`scene-generator.ts:1155`](packages/@openmaic/generation/src/scene-generator.ts#L1155) | `hasNodeCount`, `hasPrescribedNodes` |
+| `code-content` | [`scene-generator.ts:1171`](packages/@openmaic/generation/src/scene-generator.ts#L1171) | none |
+| `game-content` | [`scene-generator.ts:1185`](packages/@openmaic/generation/src/scene-generator.ts#L1185) | none |
+| `visualization3d-content` | [`scene-generator.ts:1197`](packages/@openmaic/generation/src/scene-generator.ts#L1197) | none |
+| `procedural-skill-content` | [`scene-generator.ts:1214`](packages/@openmaic/generation/src/scene-generator.ts#L1214) | none (gated by `allowProceduralSkill`) |
+| `slide-actions` | [`scene-generator.ts:1634`](packages/@openmaic/generation/src/scene-generator.ts#L1634) | none |
+| `quiz-actions` | [`scene-generator.ts:1664`](packages/@openmaic/generation/src/scene-generator.ts#L1664) | none |
+| `interactive-actions` | [`scene-generator.ts:1697`](packages/@openmaic/generation/src/scene-generator.ts#L1697) | none; receives `elementInventory` |
+| `pbl-actions` | [`scene-generator.ts:1734`](packages/@openmaic/generation/src/scene-generator.ts#L1734) | none; `projectSummary` has a loader default |
+| `interactive-outlines` (app) | [`scene-outlines-stream/route.ts:436`](app/api/generate/scene-outlines-stream/route.ts#L436) | same media flags as the outline template |
+| `task-engine-outlines` (app) | [`scene-outlines-stream/route.ts:436`](app/api/generate/scene-outlines-stream/route.ts#L436) | same media flags |

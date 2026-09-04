@@ -1,11 +1,11 @@
 # Interfaces — the storage abstraction
 
 All signatures below are copied verbatim from the cited file:line. Persisted
-column and field names live in the companion file `02b-entities.md`.
+column and field names live in the companion file [`02b-entities.md`](docs/appendix/research/persistence-storage-state/02b-entities.md).
 
 ## The storage abstraction
 
-### `KVStore` — `packages/@openmaic/storage/src/kv/types.ts:15`
+### `KVStore` — [`packages/@openmaic/storage/src/kv/types.ts:15`](packages/@openmaic/storage/src/kv/types.ts#L15)
 
 ```ts
 export type KVScope = 'device' | 'account';
@@ -26,7 +26,7 @@ export interface LocalKVStore extends DeviceSafeKVStore {
 }
 ```
 
-### `DocumentStore` — `src/document/types.ts:180`
+### `DocumentStore` — [`src/document/types.ts:180`](packages/@openmaic/storage/src/document/types.ts#L180)
 
 ```ts
 export interface DocumentStore<TScene extends SceneLike = Scene, TStage extends Stage = Stage> {
@@ -41,7 +41,7 @@ export interface DocumentStore<TScene extends SceneLike = Scene, TStage extends 
 }
 ```
 
-Supporting shapes (`src/document/types.ts:23,87,98,113`):
+Supporting shapes ([`src/document/types.ts:23,87,98,113`](packages/@openmaic/storage/src/document/types.ts#L23)):
 
 ```ts
 export interface SceneLike { id: string; stageId: string; order: number; }
@@ -74,7 +74,7 @@ export interface DocumentFolder {
 }
 ```
 
-### `AssetStore` — `src/asset/types.ts:140`
+### `AssetStore` — [`src/asset/types.ts:140`](packages/@openmaic/storage/src/asset/types.ts#L140)
 
 ```ts
 export interface AssetPrincipal {
@@ -101,7 +101,7 @@ export interface AssetStore {
 }
 ```
 
-### The injected database surface — `src/runtime/pg.ts:41`
+### The injected database surface — [`src/runtime/pg.ts:41`](packages/@openmaic/storage/src/runtime/pg.ts#L41)
 
 ```ts
 export interface QueryResult<TRow extends Record<string, unknown> = Record<string, unknown>> {
@@ -118,7 +118,7 @@ export interface Queryable {
 export type WithTransaction = <T>(body: (queryable: Queryable) => Promise<T>) => Promise<T>;
 ```
 
-### `AgentSessionMeta` and the store — `src/agent-session/types.ts:77,269`
+### `AgentSessionMeta` and the store — [`src/agent-session/types.ts:77,269`](packages/@openmaic/storage/src/agent-session/types.ts#L77)
 
 ```ts
 export interface AgentSessionMeta {
@@ -150,12 +150,12 @@ export interface AgentSessionLease {
 ```
 
 `AGENT_SESSION_STATUSES = ['queued','running','succeeded','failed','cancelled']`
-(`types.ts:11`). `OWNER_SESSION_EVENT_TYPES = ['session_created','session_status','session_deleted','session_cancel_requested','session_title']`
-(`types.ts:424`) — note the **type-level list omits `session_active_stage`**,
+([`types.ts:11`](packages/@openmaic/storage/src/agent-session/types.ts#L11)). `OWNER_SESSION_EVENT_TYPES = ['session_created','session_status','session_deleted','session_cancel_requested','session_title']`
+([`types.ts:424`](packages/@openmaic/storage/src/agent-session/types.ts#L424)) — note the **type-level list omits `session_active_stage`**,
 which the SQL `CHECK` constraint and the client both accept (see
-`07-open-questions.md`).
+[`07-open-questions.md`](docs/appendix/research/persistence-storage-state/07-open-questions.md)).
 
-### Zustand adapter — `src/zustand/persist.ts:14,54`
+### Zustand adapter — [`src/zustand/persist.ts:14,54`](packages/@openmaic/storage/src/zustand/persist.ts#L14)
 
 ```ts
 export interface PersistedValue<S> { state: S; version?: number; }
@@ -279,9 +279,9 @@ Diagram notes: `HttpAccountKV` declares `servesDeviceScopeLocally: false`
 (rendered above as `servesDeviceScopeLocallyIsFalse` because a class member cannot
 carry a literal value) — `false` is not assignable to the `true` the brand
 requires, so "claiming the capability would mean writing the lie out by hand"
-(`kv/types.ts:34-38`). `AssetByteStore.signReadUrl` is optional; the PostgreSQL
+([`kv/types.ts:34-38`](packages/@openmaic/storage/src/kv/types.ts#L34-L38)). `AssetByteStore.signReadUrl` is optional; the PostgreSQL
 byte column omits it entirely so `resolveIndirect` does not take a blob-row lock
-before declining (`lib/persistence/asset-byte-store.ts:117-123`).
+before declining ([`lib/persistence/asset-byte-store.ts:117-123`](lib/persistence/asset-byte-store.ts#L117-L123)).
 
 ## The DSL-version gate on incremental writes
 
@@ -298,7 +298,7 @@ flowchart TD
 ```
 
 `DocumentVersionError` carries `stageId`, `kind: 'future' | 'not-current'` and
-`storedVersion` (`document/types.ts:45-56`). Whole-document `deleteDocument` is
+`storedVersion` ([`document/types.ts:45-56`](packages/@openmaic/storage/src/document/types.ts#L45-L56)). Whole-document `deleteDocument` is
 deliberately **not** version-guarded — "a whole-document removal is a deliberate
-coarse action" (`document/types.ts:206-211`).
+coarse action" ([`document/types.ts:206-211`](packages/@openmaic/storage/src/document/types.ts#L206-L211)).
 

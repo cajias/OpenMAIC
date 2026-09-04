@@ -1,7 +1,7 @@
 # Adjacent modules, and five things called "storage"
 
 Five different things in this repository answer to the word *storage*, and only one of
-them is the abstraction [01-storage-abstraction.md](./01-storage-abstraction.md)
+them is the abstraction [01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md)
 describes. A reader who greps `lib/storage` after reading that page finds a 32-line file
 with no relationship to it, and reasonably assumes they are the same thing.
 
@@ -88,7 +88,7 @@ is not configured in this deployment" and "the upload failed" produce the same `
 capability-probe pattern the video exporter uses
 (`GET /api/export-video/capability`, returning `{ enabled }`) is the shape that would
 separate them; the remediation is Tier-2 item 8 in
-[`../14-code-quality/12-remediation-backlog.md`](../14-code-quality/12-remediation-backlog.md).
+[`../14-code-quality/12-remediation-backlog.md`](docs/14-code-quality/12-remediation-backlog.md).
 
 ## What used to be in `lib/storage/`, and why it is not
 
@@ -110,7 +110,7 @@ anywhere in the repo." The specifier in the rejection test is deliberately held 
 `string` variable "so type-checking does not re-require the deleted module".
 
 This is the rejected-alternative evidence behind
-[`../18-decisions/05-client-first-persistence-with-a-postgres-cutover.md`](../18-decisions/05-client-first-persistence-with-a-postgres-cutover.md):
+[`../18-decisions/05-client-first-persistence-with-a-postgres-cutover.md`](docs/18-decisions/05-client-first-persistence-with-a-postgres-cutover.md):
 a pluggable storage-provider layer over both backends was tried, and its removal is the
 only rejected alternative in this documentation set that is enforced by an executable
 assertion.
@@ -121,12 +121,12 @@ Both are small, both are named as if they belonged to this topic, and neither do
 
 | Directory | Files | What it is | Owning topic |
 | --- | --- | --- | --- |
-| `lib/usage/` | `normalize.ts` (66 lines) | a pure mapper from the AI SDK's `LanguageModelUsage` to the four-class `NormalizedUsage` (`inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheCreationTokens`, `reasoningTokens`). It stores nothing. The *storing* half is `lib/server/usage-storage.ts` | [`../04-ai-provider-layer/07-usage-accounting.md`](../04-ai-provider-layer/07-usage-accounting.md) |
-| `lib/contexts/` | `media-stage-context.tsx`, `scene-context.tsx` | two React contexts that carry the current stage and scene down the render tree. In-memory only, never persisted; they are *not* part of the Zustand store family in [03-client-state-stores.md](./03-client-state-stores.md) | [`../08-classroom-runtime/index.md`](../08-classroom-runtime/index.md) |
+| `lib/usage/` | `normalize.ts` (66 lines) | a pure mapper from the AI SDK's `LanguageModelUsage` to the four-class `NormalizedUsage` (`inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheCreationTokens`, `reasoningTokens`). It stores nothing. The *storing* half is `lib/server/usage-storage.ts` | [`../04-ai-provider-layer/07-usage-accounting.md`](docs/04-ai-provider-layer/07-usage-accounting.md) |
+| `lib/contexts/` | `media-stage-context.tsx`, `scene-context.tsx` | two React contexts that carry the current stage and scene down the render tree. In-memory only, never persisted; they are *not* part of the Zustand store family in [03-client-state-stores.md](docs/10-persistence-and-state/03-client-state-stores.md) | [`../08-classroom-runtime/index.md`](docs/08-classroom-runtime/index.md) |
 
 The complete `lib/*` directory-to-topic ledger — every one of the ~45 directories with its
 owning topic, so a gap like this one is visible rather than discovered — is
-[`../02-container-view/04-logical-layering.md`](../02-container-view/04-logical-layering.md).
+[`../02-container-view/04-logical-layering.md`](docs/02-container-view/04-logical-layering.md).
 
 ## Open questions
 
@@ -140,6 +140,6 @@ owning topic, so a gap like this one is visible rather than discovered — is
 
 ---
 
-Previous [01-storage-abstraction.md](./01-storage-abstraction.md) · next
-[02-data-model.md](./02-data-model.md) · back to [index.md](./index.md) · set root
-[`../README.md`](../README.md)
+Previous [01-storage-abstraction.md](docs/10-persistence-and-state/01-storage-abstraction.md) · next
+[02-data-model.md](docs/10-persistence-and-state/02-data-model.md) · back to [index.md](docs/10-persistence-and-state/index.md) · set root
+[`../README.md`](docs/README.md)

@@ -26,9 +26,9 @@ mindmap
 
 1. **Is the `google` provider's `ProxyAgent` branch reachable in any deployment
    this repo can actually produce?** `getModel()`'s `google` case only sets up
-   `undici.ProxyAgent` when `config.proxy` is truthy (`lib/ai/providers.ts:2294`–`:2296`),
+   `undici.ProxyAgent` when `config.proxy` is truthy ([`lib/ai/providers.ts:2294`](lib/ai/providers.ts#L2294)–[`:2296`](lib/ai/providers.ts#L2296)),
    and `config.proxy` traces to exactly one source: `resolveProxy(providerId)`
-   (`lib/server/provider-config.ts:735`), which reads
+   ([`lib/server/provider-config.ts:735`](lib/server/provider-config.ts#L735)), which reads
    `getConfig().providers[providerId]?.proxy` — a field that can only be set in
    `server-providers.yml`. That file is confirmed absent from this repo
    (`04-dependencies-and-config.md`), and no component under `components/settings/`
@@ -59,7 +59,7 @@ mindmap
 
 ## Deferred-work-shaped questions
 
-4. **Is `resolveModelFromHeaders` (`lib/server/resolve-model.ts:162`) a leftover
+4. **Is `resolveModelFromHeaders` ([`lib/server/resolve-model.ts:162`](lib/server/resolve-model.ts#L162)) a leftover
    from before `resolveModelFromRequest` existed, or deliberately-kept public API
    for a caller that does not exist yet?** It is exported, documented with a full
    JSDoc block, and referenced nowhere else in the tree (re-verified by a fresh
@@ -94,7 +94,7 @@ mindmap
    `06-quality-and-metrics.md` problem 1) and no CI step that would call a real
    Google endpoint, there is no artifact in the tree that would answer this.
 8. **Does any real deployment's traffic actually reach the OpenAI Responses-API
-   branch (`shouldUseOpenAIResponsesApi`, `providers.ts:1813`) versus the
+   branch (`shouldUseOpenAIResponsesApi`, [`providers.ts:1813`](lib/ai/providers.ts#L1813)) versus the
    chat-completions compat path?** The regex gate (`gpt-5.N-pro`, `gpt-5.6*`,
    `gpt-5.5*`, `gpt-5.[3-9]-codex*`) is precise about *which* model ids route
    there, but nothing in the config or the tests indicates whether operators in

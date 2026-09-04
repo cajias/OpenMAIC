@@ -13,8 +13,8 @@ besides `/api/health`.
 `lib/persistence/{server-auth,document-access,owner-bound-document-store,server-provider}.ts`,
 `lib/server/folder-name-errors.ts`, `lib/utils/folder-name-validation.ts`;
 evidence
-[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](../appendix/research/api-surface/01d-modules-routes-p-to-w.md),
-[`../appendix/research/persistence-storage-state/`](../appendix/research/persistence-storage-state/00-overview.md).
+[`../appendix/research/api-surface/01d-modules-routes-p-to-w.md`](docs/appendix/research/api-surface/01d-modules-routes-p-to-w.md),
+[`../appendix/research/persistence-storage-state/`](docs/appendix/research/persistence-storage-state/00-overview.md).
 
 ## The group
 
@@ -103,7 +103,7 @@ Two different principals in one route (`:108-112`):
 | Path prefix | Principal | Isolation |
 | --- | --- | --- |
 | `/documents*` | the server-resolved anonymous owner, used as `learnerKey` | real per-browser partitioning, plus the `stage_meta` fence inside `createOwnerBoundDocumentStore` |
-| everything else (runtime, assets) | `authenticatePersistenceRequest(request)` — a `Bearer PERSISTENCE_DEV_TOKEN` check plus the client's own `x-learner-key` header | **none**; the comment at `:95-99` says the authenticator must be replaced before these routes carry production data, and `lib/persistence/server-auth.ts:1-13` states the token is compiled into the browser bundle |
+| everything else (runtime, assets) | `authenticatePersistenceRequest(request)` — a `Bearer PERSISTENCE_DEV_TOKEN` check plus the client's own `x-learner-key` header | **none**; the comment at `:95-99` says the authenticator must be replaced before these routes carry production data, and [`lib/persistence/server-auth.ts:1-13`](lib/persistence/server-auth.ts#L1-L13) states the token is compiled into the browser bundle |
 
 `authorizeMerge` and `authorizeAdmin` are hard-wired to `async () => false`
 (`:113-114`).
@@ -151,36 +151,36 @@ for failures and `ownerJson` for success.
 
 | Route | Method | Request | Success | Errors |
 | --- | --- | --- | --- | --- |
-| `/api/folders` | GET | — | `200 {folders:[{...DocumentFolder, userKey: ownerId}]}`, ordered by `order` asc (`route.ts:59-63`) | `500 FOLDER_LIST_FAILED` |
+| `/api/folders` | GET | — | `200 {folders:[{...DocumentFolder, userKey: ownerId}]}`, ordered by `order` asc ([`app/api/folders/route.ts:59-63`](app/api/folders/route.ts#L59-L63)) | `500 FOLDER_LIST_FAILED` |
 | `/api/folders` | POST | `{name}` | `200 {folder:{...DocumentFolder, userKey}}` (`:103`) | `400 INVALID_BODY`; `400 FOLDER_NAME_INVALID`; `400 FOLDER_NAME_EMPTY`; `400 FOLDER_NAME_TOO_LONG`; store refusals remapped by `folderNameErrorResponse`; `500 FOLDER_CREATE_FAILED` |
-| `/api/folders/[id]` | PATCH | `{name}` | `200 {folder}` (`[id]/route.ts:85`) | same name codes; `409 FOLDER_NAME_DUPLICATE` from an explicit case-insensitive pre-check that excludes self (`:68-79`); `404 FOLDER_NOT_FOUND`; `500 FOLDER_RENAME_FAILED` |
+| `/api/folders/[id]` | PATCH | `{name}` | `200 {folder}` ([`app/api/folders/[id]/route.ts:85`](app/api/folders/[id]/route.ts#L85)) | same name codes; `409 FOLDER_NAME_DUPLICATE` from an explicit case-insensitive pre-check that excludes self (`:68-79`); `404 FOLDER_NOT_FOUND`; `500 FOLDER_RENAME_FAILED` |
 | `/api/folders/[id]` | DELETE | `?mode=ungroup\|remove` | `200 {ok:true, removedStageIds}` (`:115`) | `404 FOLDER_NOT_FOUND`; `500 FOLDER_DELETE_FAILED` |
-| `/api/folders/members` | POST | `{stageId, folderId: string \| null}` | `200 {ok:true}` (`members/route.ts:59`) | `400 INVALID_BODY`; `400 MISSING_STAGE_ID`; `400 INVALID_FOLDER_ID`; `404 FOLDER_NOT_FOUND`; `500 FOLDER_MEMBER_FAILED` |
+| `/api/folders/members` | POST | `{stageId, folderId: string \| null}` | `200 {ok:true}` ([`members/route.ts:59`](app/api/folders/members/route.ts#L59)) | `400 INVALID_BODY`; `400 MISSING_STAGE_ID`; `400 INVALID_FOLDER_ID`; `404 FOLDER_NOT_FOUND`; `500 FOLDER_MEMBER_FAILED` |
 
 Behavioural notes:
 
 - **`?mode` falls back silently.** Anything other than the literal `'remove'` —
   including a typo or an absent parameter — is treated as `'ungroup'`
-  (`[id]/route.ts:104-105`). `mode=remove` returns the captured member course ids
+  ([`app/api/folders/[id]/route.ts:104-105`](app/api/folders/[id]/route.ts#L104-L105)). `mode=remove` returns the captured member course ids
   so the caller can run its own cascade; the route does not delete courses.
 - **Name validation is the shared display-width rule** from
   `lib/utils/folder-name-validation.ts` (full-width counts 2, half-width 1, ≤ 40),
   imported by both the route and the client dialogs so they cannot drift
-  (`route.ts:14-16`).
+  ([`app/api/folders/route.ts:14-16`](app/api/folders/route.ts#L14-L16)).
 - **Duplicates are checked twice.** The pre-check is case-insensitive in
   application code; the store re-checks inside its owner-scoped transaction and
   the refusal is remapped onto the same machine codes by
-  `folderNameErrorResponse` (`route.ts:105-112`, `[id]/route.ts:86-93`).
+  `folderNameErrorResponse` ([`app/api/folders/route.ts:105-112`](app/api/folders/route.ts#L105-L112), [`app/api/folders/[id]/route.ts:86-93`](app/api/folders/[id]/route.ts#L86-L93)).
 - **`stageId` is a soft reference.** Membership is a pure `(owner, stage) → folder`
   organisation row; the server may delete a stage independently
-  (`members/route.ts:11-14`).
+  ([`members/route.ts:11-14`](app/api/folders/members/route.ts#L11-L14)).
 - Body validation runs before `withRequestOwnerId` on `POST`/`PATCH`, same reason
   as everywhere else: a malformed request must not mint a cookie partition
-  (`route.ts:72-75`).
+  ([`app/api/folders/route.ts:72-75`](app/api/folders/route.ts#L72-L75)).
 
 ## `access-code/**`
 
-The only two API paths, besides `/api/health`, that `middleware.ts:66`
+The only two API paths, besides `/api/health`, that [`middleware.ts:66`](middleware.ts#L66)
 allowlists.
 
 ### `POST /api/access-code/verify`
@@ -245,13 +245,13 @@ Properties of this scheme, all verifiable in 25 lines
   provides partitioning, not authentication.
 - Two implementations of the same verification exist: `verifyAccessToken` with
   `crypto.timingSafeEqual` on the hex buffers (Node), and `verifyToken` with a
-  hand-rolled XOR loop over char codes (edge-compatible, `middleware.ts:18-44`).
+  hand-rolled XOR loop over char codes (edge-compatible, [`middleware.ts:18-44`](middleware.ts#L18-L44)).
 
 ## Notes and caveats
 
 - **`persistence/[...path]`'s non-document paths have no isolation.** The
   `x-learner-key` header is caller-supplied and the bearer token is public. Assets
-  collapse to a single `'shared'` principal (`lib/persistence/server-auth.ts:26`).
+  collapse to a single `'shared'` principal ([`lib/persistence/server-auth.ts:26`](lib/persistence/server-auth.ts#L26)).
   Both facts are stated in the source, not inferred here.
 - **`folders/**` uses a second error envelope.** `{error:{code, message}}`, shared
   only with `persistence/[...path]`. Thirteen machine codes:
@@ -274,9 +274,9 @@ Properties of this scheme, all verifiable in 25 lines
   vocabulary and the four named refusals from
   `owner-bound-document-store.ts` (`foreign` / `tombstoned` / `reserved-document`
   / `unclaimed`) were not enumerated from the route layer — see
-  [`../10-persistence-and-state/index.md`](../10-persistence-and-state/index.md).
+  [`../10-persistence-and-state/index.md`](docs/10-persistence-and-state/index.md).
 - `APP_RUNTIME_PAYLOAD_VALIDATORS` is passed into the handler as
   `payloadValidators` (`:118`); which runtime record kinds it covers was not
   traced here.
 
-Next: [`08-ops.md`](./08-ops.md).
+Next: [`08-ops.md`](docs/12-api-reference/08-ops.md).

@@ -12,7 +12,7 @@ exported `GET|POST|PUT|PATCH|DELETE` symbols; gate scan for
 `isPiChatEnabled`, `authenticatePersistence*`, `resolveStageAccess`,
 `text/event-stream`, `createSSEResponse`, `validateUrlForSSRF`, `resolveModel*`.
 Cross-checked against
-[`../appendix/research/api-surface/00-overview.md`](../appendix/research/api-surface/00-overview.md).
+[`../appendix/research/api-surface/00-overview.md`](docs/appendix/research/api-surface/00-overview.md).
 
 ## Counts
 
@@ -234,17 +234,17 @@ flowchart LR
   (`generate/image` and `verify-image-provider` — `x-image-provider`,
   `x-image-model`; `generate/video` and `verify-video-provider` —
   `x-video-provider`, `x-video-model`). The rest take it from the JSON body. See
-  [`09-conventions.md`](./09-conventions.md). Three other request headers are not
+  [`09-conventions.md`](docs/12-api-reference/09-conventions.md). Three other request headers are not
   model configuration at all: `persistence/[...path]` takes its principal from
-  `x-learner-key` (`lib/persistence/server-auth.ts:59`), and `materials` reads
+  `x-learner-key` ([`lib/persistence/server-auth.ts:59`](lib/persistence/server-auth.ts#L59)), and `materials` reads
   `x-material-filename` and `x-request-id`.
 - **Two routes are dead code in the shipped build.**
   `stages/[id]/publish` and `stages/[id]/unpublish` reject any owner id starting
   with `anon:`, and no call site anywhere supplies an authenticated owner id, so
   every owner id starts with `anon:`
-  (`lib/server/agent-runtime/owner.ts:52-64`, `app/api/stages/[id]/publish/route.ts:26-31`).
+  ([`lib/server/agent-runtime/owner.ts:52-64`](lib/server/agent-runtime/owner.ts#L52-L64), [`app/api/stages/[id]/publish/route.ts:26-31`](app/api/stages/[id]/publish/route.ts#L26-L31)).
 - **`lib/api/*` is not part of this surface** despite the name. It is an
   in-process stage-store toolkit (`lib/api/stage-api.ts`) imported by no route
   file.
 
-Next: [`01-agent-and-chat.md`](./01-agent-and-chat.md).
+Next: [`01-agent-and-chat.md`](docs/12-api-reference/01-agent-and-chat.md).

@@ -98,7 +98,7 @@ export function buildCourseAllowlist(videoDeps?): ReadonlySet<string>         //
 export function courseSystemPrompt(blocks: CoursePromptBlocks): string        // :306
 ```
 
-`lib/agent-runtime/stage-writer-tools.ts:20` — the shared writer registry:
+[`lib/agent-runtime/stage-writer-tools.ts:20`](lib/agent-runtime/stage-writer-tools.ts#L20) — the shared writer registry:
 
 ```ts
 export const STAGE_WRITER_TOOL_NAMES: ReadonlySet<string> = new Set([
@@ -120,7 +120,7 @@ export const STAGE_WRITER_TOOL_NAMES: ReadonlySet<string> = new Set([
 export function isStageWriterTool(toolName: string): boolean
 ```
 
-`DOCUMENT_WRITING_TOOLS` (`course-tools.ts:110-112`) is that set minus
+`DOCUMENT_WRITING_TOOLS` ([`course-tools.ts:110-112`](lib/server/agent-runtime/course-tools.ts#L110-L112)) is that set minus
 `rename_stage`, which is scheduled in the curriculum toolset instead.
 
 `lib/server/agent-runtime/runner-contract.ts` — the whole file (16 lines):
@@ -138,7 +138,7 @@ export function buildRunnerCoursePrompt(blocks: Omit<PromptBlocks, 'dslTools'>):
 }
 ```
 
-`lib/server/agent-runtime/ask-user.ts:12`
+[`lib/server/agent-runtime/ask-user.ts:12`](lib/server/agent-runtime/ask-user.ts#L12)
 
 ```ts
 export interface AskUserQuestion {
@@ -187,7 +187,7 @@ MAX_SESSION_TEXT_LENGTH    = 100_000   // limits.ts:9
 
 ## Classroom contracts
 
-`lib/orchestration/registry/types.ts:9`
+[`lib/orchestration/registry/types.ts:9`](lib/orchestration/registry/types.ts#L9)
 
 ```ts
 export interface AgentConfig {
@@ -216,7 +216,7 @@ export const ROLE_ACTIONS: Record<string, string[]> = {                      // 
 export function getActionsForRole(role: string): string[]                     // :93
 ```
 
-`lib/orchestration/types.ts:12`
+[`lib/orchestration/types.ts:12`](lib/orchestration/types.ts#L12)
 
 ```ts
 export interface WhiteboardActionRecord {
@@ -238,7 +238,7 @@ export interface AgentTurnSummary {                                          // 
 }
 ```
 
-`lib/orchestration/registry/agent-selection.ts:1`
+[`lib/orchestration/registry/agent-selection.ts:1`](lib/orchestration/registry/agent-selection.ts#L1)
 
 ```ts
 export interface AgentSelection {
@@ -261,7 +261,7 @@ export function restoreAgentSelection(params: {
 }): RestoredAgentSelection                                                   // :27
 ```
 
-`lib/chat/agent-loop.ts:107`
+[`lib/chat/agent-loop.ts:107`](lib/chat/agent-loop.ts#L107)
 
 ```ts
 export interface AgentLoopOutcome {
@@ -278,7 +278,7 @@ export async function runAgentLoop(
 ): Promise<AgentLoopOutcome>                                                 // :154
 ```
 
-`lib/chat/pi/director-compaction.ts:34`
+[`lib/chat/pi/director-compaction.ts:34`](lib/chat/pi/director-compaction.ts#L34)
 
 ```ts
 export interface DirectorCompactionTrace {
@@ -299,7 +299,7 @@ export interface DirectorCompactionRuntime {                                 // 
 }
 ```
 
-`components/workbench/chat/tool-presentation.ts:106`
+[`components/workbench/chat/tool-presentation.ts:106`](components/workbench/chat/tool-presentation.ts#L106)
 
 ```ts
 export interface ToolPresentation {

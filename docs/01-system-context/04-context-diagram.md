@@ -4,10 +4,10 @@ The canonical system-context picture, given room to breathe, plus three
 role-scoped zooms and the notation legend every diagram in this documentation set
 obeys.
 
-**Sources:** all of `./02-actors-and-personas.md` and `./03-external-systems.md`,
-plus `middleware.ts:46-90`, `instrumentation.ts:14-102`,
-`lib/workbench/entry-gate.ts:4`, `next.config.ts`, `docker-compose.yml`,
-`render-service/src/main.ts:229-441`.
+**Sources:** all of [`./02-actors-and-personas.md`](docs/01-system-context/02-actors-and-personas.md) and [`./03-external-systems.md`](docs/01-system-context/03-external-systems.md),
+plus [`middleware.ts:46-90`](middleware.ts#L46-L90), [`instrumentation.ts:14-102`](instrumentation.ts#L14-L102),
+[`lib/workbench/entry-gate.ts:4`](lib/workbench/entry-gate.ts#L4), `next.config.ts`, `docker-compose.yml`,
+[`render-service/src/main.ts:229-441`](render-service/src/main.ts#L229-L441).
 
 ## Notation legend (applies to the whole docs set)
 
@@ -98,12 +98,12 @@ flowchart TD
 Three things in that picture are load-bearing and easy to miss.
 
 1. **The default persistence backend is the learner's browser, not the
-   database.** `lib/persistence/bootstrap.ts:15-68` switches documents and
+   database.** [`lib/persistence/bootstrap.ts:15-68`](lib/persistence/bootstrap.ts#L15-L68) switches documents and
    runtime records to HTTP-backed stores *only* when
    `NEXT_PUBLIC_PERSISTENCE === '1'` in a browser. A stock deployment stores
    courses in IndexedDB.
 2. **The runner is not a separate process.** It is a `setInterval` inside the
-   Next server, installed once per server instance from `instrumentation.ts:49`.
+   Next server, installed once per server instance from [`instrumentation.ts:49`](instrumentation.ts#L49).
    Horizontal scaling therefore multiplies runners, which is why PostgreSQL —
    not the process — owns claims and leases.
 3. **`render-service` is the only thing that is genuinely a second container**,
@@ -155,7 +155,7 @@ flowchart TD
 The learner never talks to an LLM provider directly; every model call is
 server-side. But the learner's *browser* holds the conversation state — the
 in-class runtime is stateless server-side and the client re-posts everything each
-iteration (`lib/chat/agent-loop.ts:181-192`).
+iteration ([`lib/chat/agent-loop.ts:181-192`](lib/chat/agent-loop.ts#L181-L192)).
 
 ## Zoom 2: author-facing
 
@@ -248,7 +248,7 @@ flowchart TD
 
 The operator's authority is asymmetric on purpose. `/api/health` and
 `/api/server-providers` publish *whether* a capability exists without publishing
-the credential; `middleware.ts:66` allowlists `/api/health` precisely so an
+the credential; [`middleware.ts:66`](middleware.ts#L66) allowlists `/api/health` precisely so an
 external agent can probe capability before authenticating.
 
 ## System boundary: what is in and what is out
@@ -264,8 +264,8 @@ external agent can probe capability before authenticating.
 
 ## Cross-links
 
-- Actors in detail: `./02-actors-and-personas.md`
-- External systems in detail: `./03-external-systems.md`
-- The next level down: `../02-container-view/index.md`
-- Every endpoint on the boundary: `../12-api-reference/index.md`
-- Physical topology of these boxes: `../17-deployment-view/index.md`
+- Actors in detail: [`./02-actors-and-personas.md`](docs/01-system-context/02-actors-and-personas.md)
+- External systems in detail: [`./03-external-systems.md`](docs/01-system-context/03-external-systems.md)
+- The next level down: [`../02-container-view/index.md`](docs/02-container-view/index.md)
+- Every endpoint on the boundary: [`../12-api-reference/index.md`](docs/12-api-reference/index.md)
+- Physical topology of these boxes: [`../17-deployment-view/index.md`](docs/17-deployment-view/index.md)

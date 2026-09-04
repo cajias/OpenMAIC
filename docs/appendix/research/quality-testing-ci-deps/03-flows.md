@@ -8,25 +8,25 @@ naming real functions in the order they execute.
 ## Flow 1 — A pull request reaches the merge gate
 
 Trigger: `pull_request` targeting `main` (or one of five named feature/integration
-branches), `.github/workflows/ci.yml:10-19`. All three jobs start in parallel;
+branches), [`.github/workflows/ci.yml:10-19`](.github/workflows/ci.yml#L10-L19). All three jobs start in parallel;
 this trace follows `check`.
 
 | # | Hop | Where | Notes |
 | --- | --- | --- | --- |
-| 1 | `actions/checkout@v4` with `fetch-depth: 0` | `ci.yml:34-36` | Full history is required by the version gate's `merge-base` |
-| 2 | `scripts/ci-run-parallel.sh ok true ok2 true`, then `… ok true bad 'exit 7'` inverted | `ci.yml:41-50` | Bash-only self-test before any install; `CI_PARALLEL_ANNOTATE=0` |
-| 3 | `pnpm/action-setup@v4`, `actions/setup-node@v4` `node-version: 22`, `cache: pnpm` | `ci.yml:52-57` | |
-| 4 | `node scripts/check-package-version-bumps.mjs "$BASE_SHA"` | `ci.yml:61` | `runDiffMode(base)` → `assertPackageListIsComplete()` → per-package `publishableInputsChanged()` → `readVersion()` / `compareVersions()` → `checkDslFormatVersionRule(base, mergeBaseWithHead(base), failures)` |
-| 5 | `node scripts/check-internal-dependency-ranges.mjs` | `ci.yml:89` | `assertPackageListIsComplete()` first and fatally, then `workspace:^` / forbidden-field / bidirectional `INTERNAL_DEPENDENTS` checks |
-| 6 | `pnpm install --frozen-lockfile` | `ci.yml:91` | Runs the 8-step `postinstall` chain (`package.json:10`) |
-| 7 | `pnpm check:node-engine` | `ci.yml:94` | `semver.minVersion(root engines.node)` vs every installed direct dependency's `engines.node` |
-| 8 | `git --no-replace-objects rev-parse HEAD` == `$GITHUB_SHA`, then `git --no-replace-objects diff --quiet "$GITHUB_SHA" -- packages/@openmaic` | `ci.yml:107-121` | Catches a stale generated file that `postinstall` rewrote (renderer's `fonts.css`, KaTeX font snapshot) |
-| 9 | `scripts/ci-run-parallel.sh prettier 'pnpm check' eslint 'pnpm lint' tsc 'npx tsc --noEmit' i18n 'pnpm check:i18n-keys'` | `ci.yml:126-131` | The only parallel step; ESLint is the bound |
-| 10 | `pnpm test` | `ci.yml:137` | Root Vitest — the root `tests/` suite only: 666 files / 6 385 cases, not the 837-file repo-wide set. All 5 app-level `*.pg.test.ts` skip (no database) |
-| 11 | `pnpm --filter @openmaic/importer test`, then `dsl test` | `ci.yml:140-143` | |
-| 12 | `generation typecheck` → `generation test` | `ci.yml:146-149` | `typecheck` chains `tsconfig.json` and `tsconfig.test.json` |
-| 13 | Node consumer smoke: boot `scripts/generation-node-smoke-server.mjs --port 43127`, poll `/health` up to 50× at 100 ms, run `scripts/generation-node-smoke.mjs`, assert `outlines.length > 0 && scene && sceneValidation.valid === true` | `ci.yml:151-178` | Proves `@openmaic/generation` works in plain Node with no Next.js |
-| 14 | `storage typecheck` (incl. tests) → `storage test` | `ci.yml:183-187` | Storage's `*.pg.test.ts` skip here; the contract job covers them |
+| 1 | `actions/checkout@v4` with `fetch-depth: 0` | [`ci.yml:34-36`](.github/workflows/ci.yml#L34-L36) | Full history is required by the version gate's `merge-base` |
+| 2 | `scripts/ci-run-parallel.sh ok true ok2 true`, then `… ok true bad 'exit 7'` inverted | [`ci.yml:41-50`](.github/workflows/ci.yml#L41-L50) | Bash-only self-test before any install; `CI_PARALLEL_ANNOTATE=0` |
+| 3 | `pnpm/action-setup@v4`, `actions/setup-node@v4` `node-version: 22`, `cache: pnpm` | [`ci.yml:52-57`](.github/workflows/ci.yml#L52-L57) | |
+| 4 | `node scripts/check-package-version-bumps.mjs "$BASE_SHA"` | [`ci.yml:61`](.github/workflows/ci.yml#L61) | `runDiffMode(base)` → `assertPackageListIsComplete()` → per-package `publishableInputsChanged()` → `readVersion()` / `compareVersions()` → `checkDslFormatVersionRule(base, mergeBaseWithHead(base), failures)` |
+| 5 | `node scripts/check-internal-dependency-ranges.mjs` | [`ci.yml:89`](.github/workflows/ci.yml#L89) | `assertPackageListIsComplete()` first and fatally, then `workspace:^` / forbidden-field / bidirectional `INTERNAL_DEPENDENTS` checks |
+| 6 | `pnpm install --frozen-lockfile` | [`ci.yml:91`](.github/workflows/ci.yml#L91) | Runs the 8-step `postinstall` chain ([`package.json:10`](package.json#L10)) |
+| 7 | `pnpm check:node-engine` | [`ci.yml:94`](.github/workflows/ci.yml#L94) | `semver.minVersion(root engines.node)` vs every installed direct dependency's `engines.node` |
+| 8 | `git --no-replace-objects rev-parse HEAD` == `$GITHUB_SHA`, then `git --no-replace-objects diff --quiet "$GITHUB_SHA" -- packages/@openmaic` | [`ci.yml:107-121`](.github/workflows/ci.yml#L107-L121) | Catches a stale generated file that `postinstall` rewrote (renderer's `fonts.css`, KaTeX font snapshot) |
+| 9 | `scripts/ci-run-parallel.sh prettier 'pnpm check' eslint 'pnpm lint' tsc 'npx tsc --noEmit' i18n 'pnpm check:i18n-keys'` | [`ci.yml:126-131`](.github/workflows/ci.yml#L126-L131) | The only parallel step; ESLint is the bound |
+| 10 | `pnpm test` | [`ci.yml:137`](.github/workflows/ci.yml#L137) | Root Vitest — the root `tests/` suite only: 666 files / 6 385 cases, not the 837-file repo-wide set. All 5 app-level `*.pg.test.ts` skip (no database) |
+| 11 | `pnpm --filter @openmaic/importer test`, then `dsl test` | [`ci.yml:140-143`](.github/workflows/ci.yml#L140-L143) | |
+| 12 | `generation typecheck` → `generation test` | [`ci.yml:146-149`](.github/workflows/ci.yml#L146-L149) | `typecheck` chains `tsconfig.json` and `tsconfig.test.json` |
+| 13 | Node consumer smoke: boot `scripts/generation-node-smoke-server.mjs --port 43127`, poll `/health` up to 50× at 100 ms, run `scripts/generation-node-smoke.mjs`, assert `outlines.length > 0 && scene && sceneValidation.valid === true` | [`ci.yml:151-178`](.github/workflows/ci.yml#L151-L178) | Proves `@openmaic/generation` works in plain Node with no Next.js |
+| 14 | `storage typecheck` (incl. tests) → `storage test` | [`ci.yml:183-187`](.github/workflows/ci.yml#L183-L187) | Storage's `*.pg.test.ts` skip here; the contract job covers them |
 
 ```mermaid
 sequenceDiagram
@@ -64,7 +64,7 @@ sequenceDiagram
 ```
 
 The step at hop 8 is the subtlest in the whole file. Its comment
-(`ci.yml:101-106`) explains the choice of `$GITHUB_SHA` over `HEAD` or the index:
+([`ci.yml:101-106`](.github/workflows/ci.yml#L101-L106)) explains the choice of `$GITHUB_SHA` over `HEAD` or the index:
 "a bare `git diff` misses staged changes, while install code can create a commit
 and move HEAD. This check exists precisely because code ran before it, so its
 reference point must be something that code cannot move." `--no-replace-objects`
@@ -76,32 +76,32 @@ additionally defeats a local `replace` ref.
 
 Trigger: `push` to `main` touching any of the six
 `packages/@openmaic/*/package.json` paths
-(`.github/workflows/publish-packages.yml:39-47`). Concurrency group is
+([`.github/workflows/publish-packages.yml:39-47`](.github/workflows/publish-packages.yml#L39-L47)). Concurrency group is
 `publish-openmaic` — repository-wide, *not* keyed on ref, so two runs cannot each
 independently decide a version is unpublished (lines 56-60).
 
 | # | Hop | Job | Where |
 | --- | --- | --- | --- |
-| 1 | checkout, `persist-credentials: false` | validate | `:99-101` |
-| 2 | `postgres:16` service comes up with `pg_isready` health check | validate | `:85-97` |
-| 3 | `node scripts/check-package-version-bumps.mjs --release` → `runReleaseMode()` → `registryVersions(name)` per package → writes `RELEASE_PLAN_PATH` | validate | `:115` |
-| 4 | `pnpm install --frozen-lockfile` | validate | `:117` |
-| 5 | `pnpm -r --filter …×6 run build` in dependency order | validate | `:121-130` |
-| 6 | `git --no-replace-objects diff --quiet "$GITHUB_SHA"` — whole tree this time | validate | `:143-157` |
-| 7 | `pnpm pack --config.ignore-scripts=true` per package into `RELEASE_ARTIFACTS`, then `verify-package-artifacts.mjs --write` | validate | `:167-179` |
-| 8 | `verify-package-artifacts.mjs "$RELEASE_ARTIFACTS"` (fresh verify) | validate | `:181-184` |
-| 9 | `actions/upload-artifact@v4` — **immutable** snapshot uploaded *before* any test runs | validate | `:189-195` |
-| 10 | `pnpm --filter dsl,generation,renderer,editor,importer run test` | validate | `:213-216` |
-| 11 | `assert-pg-contract-suites.mjs --capture-baseline` → `vitest run --reporter=json` for storage → `assert-pg-contract-suites.mjs <results> --baseline <baseline>` | validate | `:217-222` |
-| 12 | `typecheck` for dsl, generation, storage, renderer, editor (importer omitted) | validate | `:223-225` |
-| 13 | `pnpm test:package-tarballs -- "$RELEASE_ARTIFACTS"` | validate | `:234-237` |
-| 14 | checkout `fetch-depth: 0`, `persist-credentials: false`; `setup-node` with `registry-url` | publish | `:254-265` |
-| 15 | `download-artifact` the sealed snapshot; `verify-package-artifacts.mjs` on it | publish | `:267-277` |
-| 16 | `git rev-list --first-parent origin/main \| grep -cx "$GITHUB_SHA"` must be ≥ 1 | publish | `:284-296` |
-| 17 | Poll `repos/…/actions/workflows/ci.yml/runs?head_sha=…&event=push` until `status == completed`; require `conclusion == success`; 1 800 s deadline | publish | `:301-331` |
-| 18 | `git --no-replace-objects diff --quiet "$GITHUB_SHA"` again | publish | `:338-350` |
-| 19 | Anchor `trusted_digests="$(< $RELEASE_ARTIFACTS/SHA256SUMS)"` in the shell scalar, re-verify, re-run `--release`, then per package: `sha256sum` re-check against the anchored digest, `npm publish "$tarball" --access public --provenance --ignore-scripts` | publish | `:359-413` |
-| 20 | `mark` job: for each package, if published this run or `npm view` confirms it on the registry and no tag exists, `gh api POST repos/…/git/refs` creating `refs/tags/@openmaic/<pkg>@<version>` | mark | `:440-472` |
+| 1 | checkout, `persist-credentials: false` | validate | [`:99-101`](.github/workflows/publish-packages.yml#L99-L101) |
+| 2 | `postgres:16` service comes up with `pg_isready` health check | validate | [`:85-97`](.github/workflows/publish-packages.yml#L85-L97) |
+| 3 | `node scripts/check-package-version-bumps.mjs --release` → `runReleaseMode()` → `registryVersions(name)` per package → writes `RELEASE_PLAN_PATH` | validate | [`:115`](.github/workflows/publish-packages.yml#L115) |
+| 4 | `pnpm install --frozen-lockfile` | validate | [`:117`](.github/workflows/publish-packages.yml#L117) |
+| 5 | `pnpm -r --filter …×6 run build` in dependency order | validate | [`:121-130`](.github/workflows/publish-packages.yml#L121-L130) |
+| 6 | `git --no-replace-objects diff --quiet "$GITHUB_SHA"` — whole tree this time | validate | [`:143-157`](.github/workflows/publish-packages.yml#L143-L157) |
+| 7 | `pnpm pack --config.ignore-scripts=true` per package into `RELEASE_ARTIFACTS`, then `verify-package-artifacts.mjs --write` | validate | [`:167-179`](.github/workflows/publish-packages.yml#L167-L179) |
+| 8 | `verify-package-artifacts.mjs "$RELEASE_ARTIFACTS"` (fresh verify) | validate | [`:181-184`](.github/workflows/publish-packages.yml#L181-L184) |
+| 9 | `actions/upload-artifact@v4` — **immutable** snapshot uploaded *before* any test runs | validate | [`:189-195`](.github/workflows/publish-packages.yml#L189-L195) |
+| 10 | `pnpm --filter dsl,generation,renderer,editor,importer run test` | validate | [`:213-216`](.github/workflows/publish-packages.yml#L213-L216) |
+| 11 | `assert-pg-contract-suites.mjs --capture-baseline` → `vitest run --reporter=json` for storage → `assert-pg-contract-suites.mjs <results> --baseline <baseline>` | validate | [`:217-222`](.github/workflows/publish-packages.yml#L217-L222) |
+| 12 | `typecheck` for dsl, generation, storage, renderer, editor (importer omitted) | validate | [`:223-225`](.github/workflows/publish-packages.yml#L223-L225) |
+| 13 | `pnpm test:package-tarballs -- "$RELEASE_ARTIFACTS"` | validate | [`:234-237`](.github/workflows/publish-packages.yml#L234-L237) |
+| 14 | checkout `fetch-depth: 0`, `persist-credentials: false`; `setup-node` with `registry-url` | publish | [`:254-265`](.github/workflows/publish-packages.yml#L254-L265) |
+| 15 | `download-artifact` the sealed snapshot; `verify-package-artifacts.mjs` on it | publish | [`:267-277`](.github/workflows/publish-packages.yml#L267-L277) |
+| 16 | `git rev-list --first-parent origin/main \| grep -cx "$GITHUB_SHA"` must be ≥ 1 | publish | [`:284-296`](.github/workflows/publish-packages.yml#L284-L296) |
+| 17 | Poll `repos/…/actions/workflows/ci.yml/runs?head_sha=…&event=push` until `status == completed`; require `conclusion == success`; 1 800 s deadline | publish | [`:301-331`](.github/workflows/publish-packages.yml#L301-L331) |
+| 18 | `git --no-replace-objects diff --quiet "$GITHUB_SHA"` again | publish | [`:338-350`](.github/workflows/publish-packages.yml#L338-L350) |
+| 19 | Anchor `trusted_digests="$(< $RELEASE_ARTIFACTS/SHA256SUMS)"` in the shell scalar, re-verify, re-run `--release`, then per package: `sha256sum` re-check against the anchored digest, `npm publish "$tarball" --access public --provenance --ignore-scripts` | publish | [`:359-413`](.github/workflows/publish-packages.yml#L359-L413) |
+| 20 | `mark` job: for each package, if published this run or `npm view` confirms it on the registry and no tag exists, `gh api POST repos/…/git/refs` creating `refs/tags/@openmaic/<pkg>@<version>` | mark | [`:440-472`](.github/workflows/publish-packages.yml#L440-L472) |
 
 ```mermaid
 sequenceDiagram
@@ -142,7 +142,7 @@ Two design decisions worth restating because they are the point of the whole
 shape:
 
 - The **security boundary is the job split**, stated at
-  `publish-packages.yml:65-71`: install, build and pack happen only in
+  [`publish-packages.yml:65-71`](.github/workflows/publish-packages.yml#L65-L71): install, build and pack happen only in
   `validate`, before any job can read `NPM_TOKEN`. The token-bearing job runs
   neither install nor build code, and receives immutable tarballs whose digests
   it re-verifies. `mark` is the only job with a git credential, and it installs
@@ -152,7 +152,7 @@ shape:
   `pipefail` would turn a *found* commit into a failure once `main`'s history
   outgrows the pipe buffer.
 
-The one acknowledged hole is at `:227-233`: the tarball smoke test reads the
+The one acknowledged hole is at [`:227-233`](.github/workflows/publish-packages.yml#L227-L233): the tarball smoke test reads the
 writable local directory, not the uploaded snapshot, so a test process could in
 principle replace a poisoned local tarball. The comment states plainly that this
 cannot be closed while packing, uploading and testing share one job and
@@ -163,7 +163,7 @@ filesystem.
 ## Flow 3 — Proving the PostgreSQL contract suites touched PostgreSQL
 
 Trigger: `push`/`pull_request` on `main` (and three feature branches),
-`.github/workflows/storage-pg-contract.yml:3-7`. The same three steps also run
+[`.github/workflows/storage-pg-contract.yml:3-7`](.github/workflows/storage-pg-contract.yml#L3-L7). The same three steps also run
 inside `publish-packages.yml`'s `validate` job.
 
 | # | Hop | Function / command |
@@ -206,7 +206,7 @@ sequenceDiagram
 ```
 
 Why the audit lives outside the tests, quoted from
-`storage-pg-contract.yml:47-52`: the in-module
+[`storage-pg-contract.yml:47-52`](.github/workflows/storage-pg-contract.yml#L47-L52): the in-module
 `STORAGE_PG_CONTRACT_REQUIRED` guard "only covers a missing database: it is a
 `throw` inside the test modules, so it cannot fire if vitest stops collecting
 them, and collection is decided by storage's `vitest.config.ts` — a file no
@@ -219,26 +219,26 @@ this whole job while it still reported success."
 
 Trigger: manual. `EVAL_CHAT_MODEL=<provider:model> EVAL_SCORER_MODEL=<provider:model>
 pnpm eval:whiteboard --scenario physics-force-decomposition`
-(`eval/whiteboard-layout/runner.ts:21-23`). Requires a locally running app on
+([`eval/whiteboard-layout/runner.ts:21-23`](eval/whiteboard-layout/runner.ts#L21-L23)). Requires a locally running app on
 `--base-url` (default `http://localhost:3000`).
 
 | # | Hop | Function |
 | --- | --- | --- |
-| 1 | `parseArgs` over `scenario`, `repeat`, `base-url`, `output-dir`, `rescore` | `runner.ts:25-33` |
-| 2 | Hard-fail if `EVAL_CHAT_MODEL`/`DEFAULT_MODEL` or `EVAL_SCORER_MODEL` unset | `runner.ts:40-51` |
-| 3 | `loadScenarios()` reads every `scenarios/*.json`, filtering by `id` or filename substring | `runner.ts:60` |
-| 4 | `createRunDir(OUTPUT_DIR, CHAT_MODEL)` → `results/<sanitized-model>/<timestamp>/` | `eval/shared/run-dir.ts:10` |
-| 5 | `initCapture(BASE_URL)` launches the capture browser | `eval/whiteboard-layout/capture.ts:14` |
-| 6 | Per scenario × repeat: `runScenario()` | `runner.ts:80` |
-| 7 | `new EvalStateManager(scenario.initialStoreState)` resets `useCanvasStore`, `useWhiteboardHistoryStore`, `useStageStore`, and constructs the **real** `ActionEngine(useStageStore)` | `eval/whiteboard-layout/state-manager.ts:26-66` |
-| 8 | Per turn: push the user message, then `runAgentLoop(…)` from `@/lib/chat/agent-loop` with a `fetchChat` that POSTs `${BASE_URL}/api/chat` | `runner.ts:135-168` |
-| 9 | `onEvent` demultiplexes `agent_start` / `text_delta` / `action` / `cue_user` / `done` / `error`; each `action` is chained onto `actionChain` so `stateManager.executeAction()` applies in emission order | `runner.ts:170-215` |
-| 10 | `onIterationEnd` awaits `actionChain`, then builds the assistant message from accumulated text + action parts | `runner.ts:217-250` |
-| 11 | At each checkpoint turn (or the last): `stateManager.getWhiteboardElements()` → `captureWhiteboard(elements, scenarioDir, run<i>_turn<j>.png)` | `runner.ts:265-267` |
-| 12 | `scoreScreenshot(screenshotPath, SCORER_MODEL)` → `resolveModel` → `generateText` with the rubric + image, `temperature: 0` | `eval/whiteboard-layout/scorer.ts:67-88` |
-| 13 | On score failure: log and push `score: null`, preserving the screenshot | `runner.ts:274-278` |
-| 14 | `stateManager.dispose()` in `finally` | `runner.ts:286` |
-| 15 | `closeCapture()`, then `generateReport(report, runDir)` writes `report.json` + `report.md` | `runner.ts:377-388` |
+| 1 | `parseArgs` over `scenario`, `repeat`, `base-url`, `output-dir`, `rescore` | [`runner.ts:25-33`](eval/whiteboard-layout/runner.ts#L25-L33) |
+| 2 | Hard-fail if `EVAL_CHAT_MODEL`/`DEFAULT_MODEL` or `EVAL_SCORER_MODEL` unset | [`runner.ts:40-51`](eval/whiteboard-layout/runner.ts#L40-L51) |
+| 3 | `loadScenarios()` reads every `scenarios/*.json`, filtering by `id` or filename substring | [`runner.ts:60`](eval/whiteboard-layout/runner.ts#L60) |
+| 4 | `createRunDir(OUTPUT_DIR, CHAT_MODEL)` → `results/<sanitized-model>/<timestamp>/` | [`eval/shared/run-dir.ts:10`](eval/shared/run-dir.ts#L10) |
+| 5 | `initCapture(BASE_URL)` launches the capture browser | [`eval/whiteboard-layout/capture.ts:14`](eval/whiteboard-layout/capture.ts#L14) |
+| 6 | Per scenario × repeat: `runScenario()` | [`runner.ts:80`](eval/whiteboard-layout/runner.ts#L80) |
+| 7 | `new EvalStateManager(scenario.initialStoreState)` resets `useCanvasStore`, `useWhiteboardHistoryStore`, `useStageStore`, and constructs the **real** `ActionEngine(useStageStore)` | [`eval/whiteboard-layout/state-manager.ts:26-66`](eval/whiteboard-layout/state-manager.ts#L26-L66) |
+| 8 | Per turn: push the user message, then `runAgentLoop(…)` from `@/lib/chat/agent-loop` with a `fetchChat` that POSTs `${BASE_URL}/api/chat` | [`runner.ts:135-168`](eval/whiteboard-layout/runner.ts#L135-L168) |
+| 9 | `onEvent` demultiplexes `agent_start` / `text_delta` / `action` / `cue_user` / `done` / `error`; each `action` is chained onto `actionChain` so `stateManager.executeAction()` applies in emission order | [`runner.ts:170-215`](eval/whiteboard-layout/runner.ts#L170-L215) |
+| 10 | `onIterationEnd` awaits `actionChain`, then builds the assistant message from accumulated text + action parts | [`runner.ts:217-250`](eval/whiteboard-layout/runner.ts#L217-L250) |
+| 11 | At each checkpoint turn (or the last): `stateManager.getWhiteboardElements()` → `captureWhiteboard(elements, scenarioDir, run<i>_turn<j>.png)` | [`runner.ts:265-267`](eval/whiteboard-layout/runner.ts#L265-L267) |
+| 12 | `scoreScreenshot(screenshotPath, SCORER_MODEL)` → `resolveModel` → `generateText` with the rubric + image, `temperature: 0` | [`eval/whiteboard-layout/scorer.ts:67-88`](eval/whiteboard-layout/scorer.ts#L67-L88) |
+| 13 | On score failure: log and push `score: null`, preserving the screenshot | [`runner.ts:274-278`](eval/whiteboard-layout/runner.ts#L274-L278) |
+| 14 | `stateManager.dispose()` in `finally` | [`runner.ts:286`](eval/whiteboard-layout/runner.ts#L286) |
+| 15 | `closeCapture()`, then `generateReport(report, runDir)` writes `report.json` + `report.md` | [`runner.ts:377-388`](eval/whiteboard-layout/runner.ts#L377-L388) |
 
 ```mermaid
 sequenceDiagram
@@ -279,7 +279,7 @@ sequenceDiagram
   Rep-->>Dev: report.json + report.md
 ```
 
-`EvalStateManager`'s docstring (`state-manager.ts:20-21`) states the reason for
+`EvalStateManager`'s docstring ([`state-manager.ts:20-21`](eval/whiteboard-layout/state-manager.ts#L20-L21)) states the reason for
 using the real stores: "ActionEngine reads/writes these same stores — no
 simulation drift." This harness is therefore an integration test of the action
 pipeline as much as a layout scorer, which is also why it needs a live app.
@@ -287,8 +287,8 @@ pipeline as much as a layout scorer, which is also why it needs a live app.
 Note the exit contract: `main()` here **never** exits non-zero on a bad score. It
 only exits 1 on a missing model env var, an empty scenario set, or an unhandled
 rejection (`runner.ts:44,50,356,393`). Compare Flow 4's siblings —
-`eval/outline-language/runner.ts:168` demands 100 % judge pass and
-`eval/pbl-v2-planner/runner.ts:913-919` demands every case pass its gate.
+[`eval/outline-language/runner.ts:168`](eval/outline-language/runner.ts#L168) demands 100 % judge pass and
+[`eval/pbl-v2-planner/runner.ts:913-919`](eval/pbl-v2-planner/runner.ts#L913-L919) demands every case pass its gate.
 
 ---
 
@@ -308,9 +308,9 @@ flowchart LR
   J -->|failure| K["upload playwright-report<br/>retention 7 days"]
 ```
 
-Two operational lessons are baked in as comments. `ci.yml:251-254`: only the
+Two operational lessons are baked in as comments. [`ci.yml:251-254`](.github/workflows/ci.yml#L251-L254): only the
 browser tarball is installed, never `install-deps`, because "on this runner fleet
-that mirror has sat through the whole 15-minute job budget". `ci.yml:324-326`:
+that mirror has sat through the whole 15-minute job budget". [`ci.yml:324-326`](.github/workflows/ci.yml#L324-L326):
 the `pnpm build` step is dedicated so a cold build is not charged against
 Playwright's 120-second `webServer` readiness budget, and
 `NEXT_PUBLIC_MAIC_EDITOR_ENABLED` must be set *here* because it is compiled into

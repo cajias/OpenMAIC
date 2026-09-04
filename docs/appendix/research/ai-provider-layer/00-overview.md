@@ -10,11 +10,11 @@ The AI provider layer is the single seam between OpenMAIC's generation code and
 every text-LLM vendor it can talk to. It owns four things:
 
 1. **A static provider + model registry** — 19 providers, 104 model entries,
-   declared as one object literal in `lib/ai/providers.ts:75`.
+   declared as one object literal in [`lib/ai/providers.ts:75`](lib/ai/providers.ts#L75).
 2. **A capability model** — per-model `streaming` / `tools` / `vision` booleans
    plus a rich `ThinkingCapability` record that describes how each model's
-   reasoning control is wired on the wire (`lib/types/provider.ts:73`).
-3. **Adapter construction** — `getModel()` (`lib/ai/providers.ts:2033`) turns a
+   reasoning control is wired on the wire ([`lib/types/provider.ts:73`](lib/types/provider.ts#L73)).
+3. **Adapter construction** — `getModel()` ([`lib/ai/providers.ts:2033`](lib/ai/providers.ts#L2033)) turns a
    `(providerId, modelId, apiKey, baseUrl, proxy)` tuple into a Vercel AI SDK
    `LanguageModel`, choosing one of five transports and installing per-vendor
    `fetch` shims and reasoning middleware.
@@ -24,9 +24,9 @@ every text-LLM vendor it can talk to. It owns four things:
    model a generation *stage* uses.
 
 Everything that actually calls a model funnels through `callLLM` / `streamLLM`
-in `lib/ai/llm.ts:325` and `lib/ai/llm.ts:397`, which is where thinking options
+in [`lib/ai/llm.ts:325`](lib/ai/llm.ts#L325) and [`lib/ai/llm.ts:397`](lib/ai/llm.ts#L397), which is where thinking options
 are injected and token usage is recorded. That funnel is machine-enforced by an
-ESLint rule (`eslint.config.mjs:620`) banning `generateText` / `streamText`
+ESLint rule ([`eslint.config.mjs:620`](eslint.config.mjs#L620)) banning `generateText` / `streamText`
 imports from `ai` everywhere except `lib/ai/llm.ts`, `eval/**` and `tests/**`.
 
 ## Charter boundaries
@@ -157,7 +157,7 @@ flowchart TD
 ## The one-paragraph mental model
 
 A request arrives at a generation route. The route calls
-`resolveModelFromRequest()` (`lib/server/resolve-model.ts:183`), which picks a
+`resolveModelFromRequest()` ([`lib/server/resolve-model.ts:183`](lib/server/resolve-model.ts#L183)), which picks a
 model string with precedence **stage route > `x-model` header >
 `DEFAULT_MODEL`**, then asks `lib/server/provider-config.ts` whether the
 operator manages that provider. If managed, the operator's key/base URL are
@@ -181,17 +181,17 @@ mid-run — and have now been written. `01-modules` is split into `01a`/`01b` an
 | File | Contents |
 | --- | --- |
 | `00-overview.md` | this file — charter, boundaries, source inventory, internal structure |
-| [`01a-modules-catalog.md`](./01a-modules-catalog.md) | `lib/ai/*`, `lib/types/provider.ts`, `lib/config/*` — catalog, capability, call path |
-| [`01b-modules-server.md`](./01b-modules-server.md) | `lib/server/*`, `lib/usage/*`, the HTTP routes |
-| [`02-interfaces.md`](./02-interfaces.md) | verbatim signatures, isomorphic half: the type graph, `ProviderConfig`/`ModelInfo`/`ThinkingCapability`, `providers.ts`, `llm.ts`, `thinking-config.ts` |
-| [`02b-interfaces-server-and-usage.md`](./02b-interfaces-server-and-usage.md) | verbatim signatures, server half: `resolve-model`, `model-routes` (the 20 `LLM_STAGES`), `provider-config`, `agent-driver-model`, usage types, `model-fetch` |
-| [`03-flows.md`](./03-flows.md) | four traced end-to-end flows |
-| [`04-dependencies-and-config.md`](./04-dependencies-and-config.md) | npm deps, full env-var inventory |
-| [`05-failure-modes.md`](./05-failure-modes.md) | error handling and failure states |
-| [`06-quality-and-metrics.md`](./06-quality-and-metrics.md) | measured registry/model/test counts, `any`/`eslint-disable` density, genuine strengths and real problems |
-| [`07-open-questions.md`](./07-open-questions.md) | what this pack could not determine, including a self-caught false finding from its own first-pass method |
+| [`01a-modules-catalog.md`](docs/appendix/research/ai-provider-layer/01a-modules-catalog.md) | `lib/ai/*`, `lib/types/provider.ts`, `lib/config/*` — catalog, capability, call path |
+| [`01b-modules-server.md`](docs/appendix/research/ai-provider-layer/01b-modules-server.md) | `lib/server/*`, `lib/usage/*`, the HTTP routes |
+| [`02-interfaces.md`](docs/appendix/research/ai-provider-layer/02-interfaces.md) | verbatim signatures, isomorphic half: the type graph, `ProviderConfig`/`ModelInfo`/`ThinkingCapability`, `providers.ts`, `llm.ts`, `thinking-config.ts` |
+| [`02b-interfaces-server-and-usage.md`](docs/appendix/research/ai-provider-layer/02b-interfaces-server-and-usage.md) | verbatim signatures, server half: `resolve-model`, `model-routes` (the 20 `LLM_STAGES`), `provider-config`, `agent-driver-model`, usage types, `model-fetch` |
+| [`03-flows.md`](docs/appendix/research/ai-provider-layer/03-flows.md) | four traced end-to-end flows |
+| [`04-dependencies-and-config.md`](docs/appendix/research/ai-provider-layer/04-dependencies-and-config.md) | npm deps, full env-var inventory |
+| [`05-failure-modes.md`](docs/appendix/research/ai-provider-layer/05-failure-modes.md) | error handling and failure states |
+| [`06-quality-and-metrics.md`](docs/appendix/research/ai-provider-layer/06-quality-and-metrics.md) | measured registry/model/test counts, `any`/`eslint-disable` density, genuine strengths and real problems |
+| [`07-open-questions.md`](docs/appendix/research/ai-provider-layer/07-open-questions.md) | what this pack could not determine, including a self-caught false finding from its own first-pass method |
 
 The measured registry counts (19 providers, 104 models, 20 stages) that
-[`../../../04-ai-provider-layer/index.md`](../../../04-ai-provider-layer/index.md) and
-[`../../../14-code-quality/index.md`](../../../14-code-quality/index.md) also cite are
+[`../../../04-ai-provider-layer/index.md`](docs/04-ai-provider-layer/index.md) and
+[`../../../14-code-quality/index.md`](docs/14-code-quality/index.md) also cite are
 re-derived independently in `06-quality-and-metrics.md` rather than only cross-referenced.
