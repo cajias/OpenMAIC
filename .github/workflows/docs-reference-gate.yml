@@ -1,0 +1,114 @@
+name: Docs Reference Gate
+
+# The 316-file architecture set under `docs/` is gated by
+# `scripts/check-docs-links.mjs`. Until this workflow existed the gate was
+# invoked by nothing — 0 of 5 workflows and 0 of 23 npm scripts — so every
+# relative link, heading anchor, `path:line` code citation and Mermaid block in
+# the set was unenforced and drifted only when someone ran the script by hand.
+#
+# Deliberately NOT wired through an npm script. 114 citations across 45 doc
+# files point at `package.json:<line>`, spanning lines 2-209 of a 211-line file;
+# inserting one line in the manifest's `"scripts"` block invalidates up to 100
+# of them. `node scripts/...` costs nothing and moves no line numbers. The same
+# reason is why this is a separate workflow rather than a job in `ci.yml`:
+# `paths:` filters are workflow-level in GitHub Actions, `ci.yml` has none (it
+# runs its 15-minute suite on every pull request to an allowlisted base), and
+# every job in it needs `pnpm install` first. This checker imports only
+# `node:*`, so it needs no install, no lockfile and no cache — `docs-build.yml`
+# is the in-repo precedent for a path-filtered docs workflow.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'scripts/check-docs-*'
+      - '.github/workflows/docs-reference-gate.yml'
+  # No base-branch allowlist, unlike ci.yml: this gate costs under a second, and
+  # a docs pull request into an integration branch is exactly the change that
+  # later reaches main without ever having been checked on its own.
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/check-docs-*'
+      - '.github/workflows/docs-reference-gate.yml'
+  schedule:
+    # The two slow jobs below only. Daily, off-peak.
+    - cron: '27 5 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: docs-reference-gate-${{ github.ref }}
+  # Same rule as ci.yml: never cancel a main or scheduled run. A superseded
+  # scheduled run takes an 11-minute Mermaid parse with it, and the replacement
+  # will not run until tomorrow.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  reference-gate:
+    name: Reference Gate (links, anchors, citations, Mermaid hygiene)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # `fetch-depth: 1` is enough: the checker reads the working tree and
+      # `git ls-files` at this commit, never history.
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No `pnpm install`, no cache: the script imports only node builtins.
+      # Measured 0.5 s over 316 files, 837 Mermaid blocks and ~20k citations, so
+      # the whole job is checkout-bound.
+      - name: Docs reference check
+        run: node scripts/check-docs-links.mjs
+
+  # ---------------------------------------------------------------------------
+  # Both jobs below are opt-in — the daily schedule, or `workflow_dispatch` from
+  # the Actions tab — for two different reasons. The Mermaid parse costs twelve
+  # minutes. The URL probe costs seven seconds but depends on twenty-odd
+  # third-party hosts being up, which is not something a merge should wait on.
+
+  mermaid-parse:
+    name: Mermaid full parse (837 blocks)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Pinned to the version the whole set is measured to parse under: 837/837
+      # blocks accepted, zero rejections. mermaid-cli brings its own Chromium and
+      # `--mermaid` launches one browser per block, serially — 717 s wall for the
+      # set, 0.86 s/block. That is the entire reason this is not a merge gate;
+      # the cheap structural subset in the job above catches the three syntax
+      # traps that have actually broken blocks here.
+      - name: Install mermaid-cli
+        run: npm install --global @mermaid-js/mermaid-cli@11.16.0
+
+      - name: Parse every Mermaid block with mmdc
+        run: node scripts/check-docs-links.mjs --mermaid
+
+  external-urls:
+    name: External URLs (network probe)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The documented provider endpoints answer 401/403/404 at their exact path —
+      # they are `baseURL` config literals, not clickable links — so only an
+      # unreachable host is a failure. Internal, templated and single-label hosts
+      # are never fetched at all.
+      - name: Probe external URLs
+        run: node scripts/check-docs-links.mjs --external
