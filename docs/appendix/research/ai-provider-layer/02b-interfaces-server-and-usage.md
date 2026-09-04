@@ -29,7 +29,7 @@ flowchart TD
   RM -->|"egress via?"| RPX["resolveProxy(providerId)<br/>:735"]
 
   RM --> RESOLVED["ResolvedModel<br/>modelString + providerId + modelId<br/>+ apiKey + baseUrl? + thinkingConfig?"]
-  RESOLVED --> ADM["resolveAgentDriverModel()<br/>agent-driver-model.ts:83"]
+  RESOLVED --> ADM["resolveAgentDriverModel()<br/>agent-driver-model.ts:92"]
   RESOLVED --> LLM["callLLM / streamLLM"]
   LLM --> USG["recordUsage / recordGenerationUsage<br/>usage-storage.ts:89,154"]
 ```
@@ -223,17 +223,19 @@ export const AGENT_DRIVER_STAGE = 'maic-agent-driver' as const;
 // :7
 export const UNKNOWN_MODEL_RESERVED_OUTPUT_TOKENS = 8_192;
 
-// :14
-export function assertAgentDriverRouteConfig(route: StageRoute | undefined): string;
+// :22
+export function assertAgentDriverRouteConfig(
+  route: StageRoute | undefined,
+): asserts route is StageRoute;
 
-// :48
+// :57
 export function buildPiDriverModel(
   connection: ResolvedModel,
   configuredApi?: string,
   routeContextWindow?: number,
 ): Model<Api>;
 
-// :83
+// :92
 export async function resolveAgentDriverModel(): Promise<{
   connection: ResolvedModel;
   piModel: Model<Api>;
@@ -242,7 +244,7 @@ export async function resolveAgentDriverModel(): Promise<{
 }>;
 ```
 
-`assertAgentDriverRouteConfig` throws on four distinct bad states (`:16,27,34,40`). Its
+`assertAgentDriverRouteConfig` throws on four distinct bad states (`:26,37,44,50`). Its
 boot-time caller downgrades the throw to a warning
 ([`lib/server/config-validation.ts:191-195`](lib/server/config-validation.ts#L191-L195)); a request-path caller does not.
 

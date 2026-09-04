@@ -134,7 +134,7 @@ sequenceDiagram
 
 The inverse choice is made where correctness matters more than uptime.
 `assertAgentDriverRouteConfig` throws on four distinct bad states
-([`lib/server/agent-runtime/agent-driver-model.ts:16,27,34,40`](lib/server/agent-runtime/agent-driver-model.ts#L16)) and only the *boot-time*
+([`lib/server/agent-runtime/agent-driver-model.ts:26,37,44,50`](lib/server/agent-runtime/agent-driver-model.ts#L26)) and only the *boot-time*
 caller downgrades that to a warning; a request-path caller gets the throw.
 
 Two more instances of the same discipline, both in the render path:

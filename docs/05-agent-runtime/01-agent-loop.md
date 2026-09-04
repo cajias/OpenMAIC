@@ -161,7 +161,7 @@ Everything the model will see is assembled between `session_start` and
 
 | Input | Function | Notes |
 | --- | --- | --- |
-| Driver model | `resolveAgentDriverModel()` ([`agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83)) | reads only `MODEL_ROUTES` stage `maic-agent-driver`; `DEFAULT_MODEL` is never consulted |
+| Driver model | `resolveAgentDriverModel()` ([`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92)) | reads only `MODEL_ROUTES` stage `maic-agent-driver`; `DEFAULT_MODEL` is never consulted |
 | Pending durable messages | `listAgentUserMessages` + filter `seq > deliveredThrough` → `toFollowUp` ([`runner.ts:1204-1222`](lib/server/agent-runtime/runner.ts#L1204-L1222), `:860`) | each `@`-named classroom is re-resolved to its **current** name by `resolveCourseRefsForContext` (`:704`) |
 | Selected slide/interactive elements | `resolveFollowUpElementContext` → `resolveElementRefsForContext` ([`runner.ts:1320`](lib/server/agent-runtime/runner.ts#L1320), `:412`) | five-status, six-variant result — `resolved` splits by `kind` (`:376-410`); every captured field is wrapped in `<untrusted-live-element-data>` by `untrustedElementDataBlock` (`:502`) |
 | Skill bodies | `buildSkillPreload` ([`skill-preload.ts:224`](lib/server/agent-runtime/skill-preload.ts#L224)) | synthesises an `assistant(toolCall read)` + `toolResult(SKILL.md)` pair — "a read that already happened" |

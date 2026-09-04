@@ -22,10 +22,10 @@ intentionally no hardcoded model fallback — if nothing resolves we fail loud
 rather than silently pick a vendor default."*).
 
 The single exception to "boot warns" is the agent driver:
-`assertAgentDriverRouteConfig` throws ([`agent-driver-model.ts:16`](lib/server/agent-runtime/agent-driver-model.ts#L16), [`:27`](lib/server/agent-runtime/agent-driver-model.ts#L27), [`:34`](lib/server/agent-runtime/agent-driver-model.ts#L34),
-`:41`), and boot validation catches that throw and downgrades it to a warning
+`assertAgentDriverRouteConfig` throws ([`agent-driver-model.ts:26`](lib/server/agent-runtime/agent-driver-model.ts#L26), [`:37`](lib/server/agent-runtime/agent-driver-model.ts#L37), [`:44`](lib/server/agent-runtime/agent-driver-model.ts#L44),
+`:51`), and boot validation catches that throw and downgrades it to a warning
 ([`config-validation.ts:191`](lib/server/config-validation.ts#L191)–[`:195`](lib/server/config-validation.ts#L195)). At runtime the same assertion is re-run and
-*not* caught ([`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92)), so a bad driver route fails the
+*not* caught ([`agent-driver-model.ts:101`](lib/server/agent-runtime/agent-driver-model.ts#L101)), so a bad driver route fails the
 request.
 
 ## Failure state machine — model resolution
@@ -63,10 +63,10 @@ Exact messages and lines:
 | unknown provider, no type hint | `Unknown provider: ${config.providerId}. Please provide providerType.` | [`lib/ai/providers.ts:2049`](lib/ai/providers.ts#L2049) |
 | missing key | `API key required for provider: ${config.providerId}` | [`lib/ai/providers.ts:2055`](lib/ai/providers.ts#L2055) |
 | unsupported type | `Unsupported provider type: ${providerType}` | [`lib/ai/providers.ts:2318`](lib/ai/providers.ts#L2318) |
-| driver route absent | `MODEL_ROUTES must explicitly configure stage "maic-agent-driver" …` | [`agent-driver-model.ts:17`](lib/server/agent-runtime/agent-driver-model.ts#L17) |
-| driver bare model id | `… must use a model id with an explicit provider prefix; received …` | [`agent-driver-model.ts:28`](lib/server/agent-runtime/agent-driver-model.ts#L28) |
-| driver thinking.effort set | `… must not set thinking.effort because ${modelId} cannot combine reasoning_effort with function tools on this transport.` | [`agent-driver-model.ts:35`](lib/server/agent-runtime/agent-driver-model.ts#L35) |
-| driver bad pi api | `… has unsupported pi api/dialect … for model id …` | [`agent-driver-model.ts:41`](lib/server/agent-runtime/agent-driver-model.ts#L41), repeated [`:55`](lib/server/agent-runtime/agent-driver-model.ts#L55) |
+| driver route absent | `MODEL_ROUTES must explicitly configure stage "maic-agent-driver" …` | [`agent-driver-model.ts:27`](lib/server/agent-runtime/agent-driver-model.ts#L27) |
+| driver bare model id | `… must use a model id with an explicit provider prefix; received …` | [`agent-driver-model.ts:38`](lib/server/agent-runtime/agent-driver-model.ts#L38) |
+| driver thinking.effort set | `… must not set thinking.effort because ${modelId} cannot combine reasoning_effort with function tools on this transport.` | [`agent-driver-model.ts:45`](lib/server/agent-runtime/agent-driver-model.ts#L45) |
+| driver bad pi api | `… has unsupported pi api/dialect … for model id …` | [`agent-driver-model.ts:51`](lib/server/agent-runtime/agent-driver-model.ts#L51), repeated [`:64`](lib/server/agent-runtime/agent-driver-model.ts#L64) |
 
 ## Upstream provider failures
 

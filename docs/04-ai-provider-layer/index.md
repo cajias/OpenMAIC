@@ -53,7 +53,7 @@ flowchart TD
     routes["lib/server/model-routes.ts:131<br/>MODEL_ROUTES, 20 stages"]
     resolve["lib/server/resolve-model.ts:41<br/>resolveModel()"]
     validate["lib/server/config-validation.ts:202<br/>validateServerConfig()"]
-    driver["agent-runtime/agent-driver-model.ts:14<br/>the one strict contract"]
+    driver["agent-runtime/agent-driver-model.ts:22<br/>the one strict contract"]
   end
 
   subgraph http["HTTP surface"]

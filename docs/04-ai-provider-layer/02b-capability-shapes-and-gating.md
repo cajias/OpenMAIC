@@ -251,7 +251,7 @@ flowchart TD
   visYes["hasVision = true<br/>build multimodal user content<br/>buildVisionUserContent(...)"]
   visNo["hasVision = false<br/>images dropped, text-only prompt"]
   owUse["maxOutputTokens = modelInfo.outputWindow<br/>7 route call sites"]
-  cwUse["pi compaction threshold<br/>chat/pi/route.ts:234, agent-driver-model.ts:73"]
+  cwUse["pi compaction threshold<br/>chat/pi/route.ts:234, agent-driver-model.ts:82"]
   thNative["buildThinkingProviderOptions<br/>llm.ts:140 — openai / anthropic / google only"]
   thCompat["getCompatThinkingBodyParams<br/>providers.ts:1599 — 12 vendor body shapes"]
   badge["settings badge row<br/>provider-config-panel.tsx:460-473"]
@@ -302,8 +302,8 @@ probed id, a
 ### `contextWindow` — compaction only
 
 Two consumers, both pi-based: [`app/api/chat/pi/route.ts:234`](app/api/chat/pi/route.ts#L234) and
-[`lib/server/agent-runtime/agent-driver-model.ts:73`](lib/server/agent-runtime/agent-driver-model.ts#L73), where the chain is
-`route.contextWindow ?? modelInfo.contextWindow ?? 128_000`. The comment at `:68`–`:72` is
+[`lib/server/agent-runtime/agent-driver-model.ts:82`](lib/server/agent-runtime/agent-driver-model.ts#L82), where the chain is
+`route.contextWindow ?? modelInfo.contextWindow ?? 128_000`. The comment at `:77`–`:81` is
 explicit that the value is an *internal* estimate for deciding when to compact and is never sent
 to the model API.
 

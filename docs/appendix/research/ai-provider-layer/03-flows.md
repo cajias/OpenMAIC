@@ -253,10 +253,10 @@ Included because it is the one caller that refuses to fall back.
 
 | # | Hop | Where |
 | --- | --- | --- |
-| 1 | `resolveAgentDriverModel()` | [`lib/server/agent-runtime/agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83) |
-| 2 | `getStageRoute('maic-agent-driver')` | [`agent-driver-model.ts:91`](lib/server/agent-runtime/agent-driver-model.ts#L91) |
-| 3 | `assertAgentDriverRouteConfig(route)` — throws on missing route, bare model id, `thinking.effort` set, or non-OpenAI pi api | [`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92), contract at [`:14`](lib/server/agent-runtime/agent-driver-model.ts#L14)–[`:45`](lib/server/agent-runtime/agent-driver-model.ts#L45) |
-| 4 | `resolveModel({stage: AGENT_DRIVER_STAGE})` — no `modelString`, so `DEFAULT_MODEL` is never consulted for this stage because the route always wins | [`agent-driver-model.ts:93`](lib/server/agent-runtime/agent-driver-model.ts#L93) |
-| 5 | `buildPiDriverModel(connection, route.api, route.contextWindow)` | [`agent-driver-model.ts:97`](lib/server/agent-runtime/agent-driver-model.ts#L97) → [`:48`](lib/server/agent-runtime/agent-driver-model.ts#L48) |
-| 6 | `contextWindow = route.contextWindow ?? modelInfo.contextWindow ?? 128_000` | [`agent-driver-model.ts:73`](lib/server/agent-runtime/agent-driver-model.ts#L73) |
-| 7 | `maxTokens = modelInfo.outputWindow ?? 8192`; `wireMaxOutputTokens` stays `undefined` when the catalog has no output window so 8192 never becomes an API cap | [`agent-driver-model.ts:78`](lib/server/agent-runtime/agent-driver-model.ts#L78), [`:94`](lib/server/agent-runtime/agent-driver-model.ts#L94), [`:99`](lib/server/agent-runtime/agent-driver-model.ts#L99) |
+| 1 | `resolveAgentDriverModel()` | [`lib/server/agent-runtime/agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92) |
+| 2 | `getStageRoute('maic-agent-driver')` | [`agent-driver-model.ts:100`](lib/server/agent-runtime/agent-driver-model.ts#L100) |
+| 3 | `assertAgentDriverRouteConfig(route)` — throws on missing route, bare model id, `thinking.effort` set, or non-OpenAI pi api | [`agent-driver-model.ts:101`](lib/server/agent-runtime/agent-driver-model.ts#L101), contract at [`:22`](lib/server/agent-runtime/agent-driver-model.ts#L22)–[`:55`](lib/server/agent-runtime/agent-driver-model.ts#L55) |
+| 4 | `resolveModel({stage: AGENT_DRIVER_STAGE})` — no `modelString`, so `DEFAULT_MODEL` is never consulted for this stage because the route always wins | [`agent-driver-model.ts:102`](lib/server/agent-runtime/agent-driver-model.ts#L102) |
+| 5 | `buildPiDriverModel(connection, route.api, route.contextWindow)` | [`agent-driver-model.ts:106`](lib/server/agent-runtime/agent-driver-model.ts#L106) → [`:57`](lib/server/agent-runtime/agent-driver-model.ts#L57) |
+| 6 | `contextWindow = route.contextWindow ?? modelInfo.contextWindow ?? 128_000` | [`agent-driver-model.ts:82`](lib/server/agent-runtime/agent-driver-model.ts#L82) |
+| 7 | `maxTokens = modelInfo.outputWindow ?? 8192`; `wireMaxOutputTokens` stays `undefined` when the catalog has no output window so 8192 never becomes an API cap | [`agent-driver-model.ts:87`](lib/server/agent-runtime/agent-driver-model.ts#L87), [`:103`](lib/server/agent-runtime/agent-driver-model.ts#L103), [`:108`](lib/server/agent-runtime/agent-driver-model.ts#L108) |

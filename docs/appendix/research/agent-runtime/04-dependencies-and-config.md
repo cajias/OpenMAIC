@@ -47,7 +47,7 @@ flowchart TD
   RUN["startAgentRunner()<br/>runner.ts:1861 (timer only)"]
   EXT["startMaterialExtractionRunner()"]
   LAZY["first scan: getAgentSessionStore()<br/>store.ts:91 + ensureAgentSessionSchema"]
-  DRV["per run: resolveAgentDriverModel()<br/>agent-driver-model.ts:83"]
+  DRV["per run: resolveAgentDriverModel()<br/>agent-driver-model.ts:92"]
   ROUTE{"MODEL_ROUTES has stage<br/>'maic-agent-driver'?"}
   THROW["throw: must configure the stage with a<br/>provider-prefixed model id and an api/dialect"]
   CHECKS["assertAgentDriverRouteConfig:<br/>provider prefix present, no thinking.effort,<br/>api in {openai-completions, openai-responses}"]
@@ -88,7 +88,7 @@ only a timer — store and schema construction stay behind the lazy promise so
 | --- | --- | --- | --- |
 | `OPENMAIC_AGENT_RUNTIME_ENABLED` | yes, to use the runtime at all | `'true'`/`'1'` enables the durable runtime; anything else disables it | [`lib/config/feature-flags.ts:19`](lib/config/feature-flags.ts#L19), [`.env.example:347`](.env.example#L347) |
 | `DATABASE_URL` | yes, with the flag | the store rejects with `Agent runtime requires DATABASE_URL` when unset | [`lib/server/agent-runtime/store.ts:92-94`](lib/server/agent-runtime/store.ts#L92-L94), [`feature-flags.ts:24`](lib/config/feature-flags.ts#L24) |
-| `MODEL_ROUTES` | yes, must contain stage `maic-agent-driver` | JSON route map; the driver route must carry a provider-prefixed model id and an OpenAI-compatible `api`, and must not set `thinking.effort` | [`lib/server/model-routes.ts:218`](lib/server/model-routes.ts#L218), [`agent-driver-model.ts:14-45`](lib/server/agent-runtime/agent-driver-model.ts#L14-L45), [`.env.example:355-365`](.env.example#L355-L365) |
+| `MODEL_ROUTES` | yes, must contain stage `maic-agent-driver` | JSON route map; the driver route must carry a provider-prefixed model id and an OpenAI-compatible `api`, and must not set `thinking.effort` | [`lib/server/model-routes.ts:218`](lib/server/model-routes.ts#L218), [`agent-driver-model.ts:22-55`](lib/server/agent-runtime/agent-driver-model.ts#L22-L55), [`.env.example:355-365`](.env.example#L355-L365) |
 | `OPENMAIC_AGENT_RUNTIME_SCAN_INTERVAL_MS` | no (1000) | claim-scan period | `config.ts:7` |
 | `OPENMAIC_AGENT_RUNTIME_HEARTBEAT_MS` | no (2000) | lease heartbeat period | `config.ts:9` |
 | `OPENMAIC_AGENT_RUNTIME_LEASE_TTL_MS` | no (10000) | after this, a running session is orphaned and reclaimable | `config.ts:15` |
@@ -151,7 +151,7 @@ The durable runtime's `wireMaxOutputTokens` distinction is load-bearing:
 8192 purely as an internal compaction reservation, while
 `resolveAgentDriverModel` returns an independent `wireMaxOutputTokens` that may
 be `undefined` so it never becomes an API cap
-([`agent-driver-model.ts:74-99`](lib/server/agent-runtime/agent-driver-model.ts#L74-L99)), and `createCallLlmStreamFn` honours
+([`agent-driver-model.ts:83-108`](lib/server/agent-runtime/agent-driver-model.ts#L83-L108)), and `createCallLlmStreamFn` honours
 `omitMaxOutputTokens` by never sending a cap even when pi supplies one
 ([`stream-fn.ts:143-149`](lib/agent/runtime/stream-fn.ts#L143-L149), [`:394-399`](lib/agent/runtime/stream-fn.ts#L394-L399)).
 

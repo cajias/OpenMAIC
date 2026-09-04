@@ -181,22 +181,22 @@ non-empty `DATABASE_URL` and is what [`instrumentation.ts:38`](instrumentation.t
 
 ## The one strict contract: the agent driver route
 
-`assertAgentDriverRouteConfig` ([`lib/server/agent-runtime/agent-driver-model.ts:14`](lib/server/agent-runtime/agent-driver-model.ts#L14)) is the only
-function in this layer that **throws** on bad configuration. It returns the bare model id on
-success.
+`assertAgentDriverRouteConfig` ([`lib/server/agent-runtime/agent-driver-model.ts:22`](lib/server/agent-runtime/agent-driver-model.ts#L22)) is the only
+function in this layer that **throws** on bad configuration. It is an assertion predicate: on
+success it narrows `route` to `StageRoute` for the caller and returns nothing.
 
 ```mermaid
 flowchart TD
-  entry["assertAgentDriverRouteConfig(route)<br/>agent-driver-model.ts:14"]
+  entry["assertAgentDriverRouteConfig(route)<br/>agent-driver-model.ts:22"]
   noroute{"route undefined?"}
-  t1["throw: MODEL_ROUTES must explicitly configure stage 'maic-agent-driver' with a provider-prefixed model id and an api/dialect.<br/>:16"]
+  t1["throw: MODEL_ROUTES must explicitly configure stage 'maic-agent-driver' with a provider-prefixed model id and an api/dialect.<br/>:26"]
   prefix{"route.model carries an explicit provider prefix?"}
-  t2["throw: must use a model id with an explicit provider prefix, received ...<br/>:27"]
+  t2["throw: must use a model id with an explicit provider prefix, received ...<br/>:37"]
   effort{"route.thinking?.effort !== undefined ?"}
-  t3["throw: must not set thinking.effort because the model id cannot combine reasoning_effort with function tools on this transport.<br/>:34"]
+  t3["throw: must not set thinking.effort because the model id cannot combine reasoning_effort with function tools on this transport.<br/>:44"]
   api{"route.api in OPENAI_PI_APIS<br/>('openai-completions', 'openai-responses')?"}
-  t4["throw: has unsupported pi api/dialect ... for model id ...<br/>:40"]
-  okk["return modelId<br/>:45"]
+  t4["throw: has unsupported pi api/dialect ... for model id ...<br/>:50"]
+  okk["route narrowed: asserts route is StageRoute<br/>:24"]
 
   entry --> noroute
   noroute -- yes --> t1
@@ -211,13 +211,13 @@ flowchart TD
 
 The reason each guard exists is written into the code:
 
-- **Provider prefix required** (`:21`–`:23`): `parseModelString` silently defaults a bare id to
+- **Provider prefix required** (`:31`–`:33`): `parseModelString` silently defaults a bare id to
   `openai`, so the driver must fail before `resolveModel` reaches that fallback and routes to the
   wrong provider.
-- **No `thinking.effort`** (`:35`–`:36`): the transport cannot combine `reasoning_effort` with
+- **No `thinking.effort`** (`:45`–`:46`): the transport cannot combine `reasoning_effort` with
   function tools.
 - **`api` must be an OpenAI pi dialect** (`OPENAI_PI_APIS`, `:12`). `buildPiDriverModel` re-checks
-  the same set at `:53` and throws its own copy of the message at `:55` — belt and braces, since
+  the same set at `:62` and throws its own copy of the message at `:64` — belt and braces, since
   `buildPiDriverModel` is exported and callable independently.
 
 ### Boot vs runtime: the same assertion, two fates
@@ -225,7 +225,7 @@ The reason each guard exists is written into the code:
 | Caller | Behaviour on a bad driver route |
 | --- | --- |
 | [`lib/server/config-validation.ts:192`](lib/server/config-validation.ts#L192) | wrapped in try/catch → downgraded to a `[config]` warning; the server boots and the runner starts |
-| [`lib/server/agent-runtime/agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92) | **not** caught → `resolveAgentDriverModel()` rejects, and `runSession` fails at [`lib/server/agent-runtime/runner.ts:1262`](lib/server/agent-runtime/runner.ts#L1262) |
+| [`lib/server/agent-runtime/agent-driver-model.ts:101`](lib/server/agent-runtime/agent-driver-model.ts#L101) | **not** caught → `resolveAgentDriverModel()` rejects, and `runSession` fails at [`lib/server/agent-runtime/runner.ts:1262`](lib/server/agent-runtime/runner.ts#L1262) |
 
 So a deployment with the runtime flag on, a database, and a malformed driver route starts cleanly,
 accepts sessions, and fails every session at run start. The boot warning is the only advance

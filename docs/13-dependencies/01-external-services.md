@@ -116,8 +116,8 @@ throws if all three are empty ([`lib/server/resolve-model.ts:65`](lib/server/res
 `MODEL_ROUTES` entry for the stage `maic-agent-driver`, with a provider-prefixed
 model id, no `thinking.effort`, and a pi api of `openai-completions` or
 `openai-responses` ([`lib/server/agent-runtime/agent-driver-model.ts:6`](lib/server/agent-runtime/agent-driver-model.ts#L6), [`:12`](lib/server/agent-runtime/agent-driver-model.ts#L12),
-`:14`-`:45`). That is checked because `parseModelString` silently defaults a bare
-model id to the `openai` provider (`:21`-`:23`).
+`:22`-`:55`). That is checked because `parseModelString` silently defaults a bare
+model id to the `openai` provider (`:31`-`:33`).
 
 The enforcement is split across two moments, and the boot one is *not* fatal.
 [`instrumentation.ts:28`](instrumentation.ts#L28)-[`:29`](instrumentation.ts#L29) calls `validateServerConfig()`, which is
@@ -129,7 +129,7 @@ from starting" ([`lib/server/config-validation.ts:199`](lib/server/config-valida
 ([`instrumentation.ts:46`](instrumentation.ts#L46)-[`:47`](instrumentation.ts#L47)), so the process comes up healthy. The throw
 lands per session, the first time the runner resolves the driver:
 [`runner.ts:1262`](lib/server/agent-runtime/runner.ts#L1262) awaits `resolveAgentDriverModel()`
-([`agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83)), which re-runs the same assertion. A misconfigured
+([`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92)), which re-runs the same assertion. A misconfigured
 route therefore produces a running server whose agent sessions all fail.
 
 ## Speech: TTS and ASR

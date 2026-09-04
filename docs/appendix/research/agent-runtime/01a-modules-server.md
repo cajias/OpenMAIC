@@ -23,7 +23,7 @@ flowchart TD
     TCI["tool-call-integrity.ts:109 repairOrphanedToolCalls"]
     ETS["entry-tree-storage.ts:163 AgentSessionEntryStorage"]
     CFG["config.ts:5 agentRuntimeConfig"]
-    DRV["agent-driver-model.ts:83 resolveAgentDriverModel"]
+    DRV["agent-driver-model.ts:92 resolveAgentDriverModel"]
     BUS["event-notify-bus.ts LISTEN/NOTIFY"]
     STORE["store.ts:91 getAgentSessionStore"]
   end
@@ -262,12 +262,12 @@ stateDiagram-v2
   lease TTL 10 000 ms, `maxConcurrent` 2, `maxAttempts` 5, compaction **opt-in**
   (`OPENMAIC_AGENT_COMPACTION_ENABLED`, deliberately inverted from the reference
   runtime, `:20-26`), `skillsDir` defaulting to `<cwd>/skills/agent-runtime`.
-- **[`agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83) `resolveAgentDriverModel()`** — the driver model
+- **[`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92) `resolveAgentDriverModel()`** — the driver model
   comes from a dedicated `MODEL_ROUTES` stage `maic-agent-driver` (`:6`);
-  `DEFAULT_MODEL` is never consulted. `assertAgentDriverRouteConfig` (`:14`)
+  `DEFAULT_MODEL` is never consulted. `assertAgentDriverRouteConfig` (`:22`)
   fails boot on a missing route, a bare model id with no provider prefix, a
   `thinking.effort` setting, or a non-OpenAI-compatible pi api. Context window
-  chain: route pin → catalog window → 128 000 fallback (`:69-73`).
+  chain: route pin → catalog window → 128 000 fallback (`:78-82`).
 - **`store.ts:91` `getAgentSessionStore()`** — process-wide lazy
   `PgAgentSessionStore` keyed on `DATABASE_URL`, with `ensureAgentSessionSchema`
   run once. Its hooks register observed URLs from prompt/message text in the

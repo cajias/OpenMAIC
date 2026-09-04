@@ -192,7 +192,7 @@ The one place the app *does* fail hard on config is
 `maic-agent-driver` stage must carry a provider-prefixed model id and an
 `openai-completions`/`openai-responses` api, and must **not** set
 `thinking.effort`; `DEFAULT_MODEL` is never consulted for the driver
-([`lib/server/agent-runtime/agent-driver-model.ts:14-45`](lib/server/agent-runtime/agent-driver-model.ts#L14-L45)). At boot the failure is
+([`lib/server/agent-runtime/agent-driver-model.ts:22-55`](lib/server/agent-runtime/agent-driver-model.ts#L22-L55)). At boot the failure is
 downgraded to a warning ([`config-validation.ts:191-195`](lib/server/config-validation.ts#L191-L195)).
 
 ## Misconfiguration behaviour, ranked by how confusing it is

@@ -29,7 +29,7 @@ order. Line anchors are the definition sites.
 | 20 | `createNativeSkillReadTool(installedSkills, onActivate)` when skills exist | [`skills.ts:592`](lib/server/agent-runtime/skills.ts#L592) |
 | 21 | `listAgentUserMessages(store, id)` → filter `seq > deliveredThrough` → `toFollowUp` → `resolveCourseRefsForContext` | `runner.ts:1204-1222`, `:704` |
 | 22 | `emit(session_start)` (or `session_resumed` when attaching to an existing course with pending) | `runner.ts:1241` / `:1252` |
-| 23 | `resolveAgentDriverModel()` → `createCallLlmStreamFn({languageModel, wireMaxOutputTokens, thinkingConfig, abortSignal})` | [`agent-driver-model.ts:83`](lib/server/agent-runtime/agent-driver-model.ts#L83), [`stream-fn.ts:250`](lib/agent/runtime/stream-fn.ts#L250) |
+| 23 | `resolveAgentDriverModel()` → `createCallLlmStreamFn({languageModel, wireMaxOutputTokens, thinkingConfig, abortSignal})` | [`agent-driver-model.ts:92`](lib/server/agent-runtime/agent-driver-model.ts#L92), [`stream-fn.ts:250`](lib/agent/runtime/stream-fn.ts#L250) |
 | 24 | `buildAskUserTool({onUserQuestion})`; `resolveWebSearchCapability()` | [`ask-user.ts:45`](lib/server/agent-runtime/ask-user.ts#L45), `web-search.ts:24` |
 | 25 | `getOwnerScopedDocumentStore(ownerId, leaseGuardedHook)` **and** a second lease-free store for detached media jobs | `runner.ts:1303`, `:1317` |
 | 26 | `resolveFollowUpElementContext` per pending message → `resolveElementRefsForContext` | `runner.ts:1320`, `:412` |

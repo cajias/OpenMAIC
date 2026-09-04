@@ -252,7 +252,7 @@ classroom director (`lib/chat/pi/director-loop.ts`). `STUB_MODEL` exists
 specifically so "the harness never tries to compact on its own"
 ([`build-agent.ts:25-27`](lib/agent/runtime/build-agent.ts#L25-L27)) — but the runner passes a *real* `driver.piModel`
 ([`runner.ts:1473`](lib/server/agent-runtime/runner.ts#L1473)), whose `contextWindow` is the route pin, then the catalog
-window, then 128 000 ([`agent-driver-model.ts:73`](lib/server/agent-runtime/agent-driver-model.ts#L73)). Whether pi's own compaction path
+window, then 128 000 ([`agent-driver-model.ts:82`](lib/server/agent-runtime/agent-driver-model.ts#L82)). Whether pi's own compaction path
 engages under that model is not determinable from this subsystem's code.
 
 ## The classroom director does fold
@@ -304,9 +304,9 @@ ceilings in this subsystem keyed to an *owner*.
 | Lease TTL / heartbeat / scan | 10 000 / 2 000 / 1 000 ms | [`config.ts:15`](lib/server/agent-runtime/config.ts#L15), `:9`, `:7` |
 | Default tool timeout | 10 min (15 for three tools) | [`tool-timeout.ts:31`](lib/agent/runtime/tool-timeout.ts#L31), [`:38-45`](lib/agent/runtime/tool-timeout.ts#L38-L45) |
 | `message_update` throttle | 150 ms | [`runner.ts:102`](lib/server/agent-runtime/runner.ts#L102) |
-| Driver context window | route pin → catalog → 128 000 | [`agent-driver-model.ts:73`](lib/server/agent-runtime/agent-driver-model.ts#L73) |
-| Driver internal output reservation | catalog `outputWindow` → 8 192 | [`agent-driver-model.ts:78`](lib/server/agent-runtime/agent-driver-model.ts#L78), [`:7`](lib/server/agent-runtime/agent-driver-model.ts#L7) |
-| Wire `max_tokens` | catalog `outputWindow`, **undefined means omit** | [`agent-driver-model.ts:94`](lib/server/agent-runtime/agent-driver-model.ts#L94), [`stream-fn.ts:395-399`](lib/agent/runtime/stream-fn.ts#L395-L399) |
+| Driver context window | route pin → catalog → 128 000 | [`agent-driver-model.ts:82`](lib/server/agent-runtime/agent-driver-model.ts#L82) |
+| Driver internal output reservation | catalog `outputWindow` → 8 192 | [`agent-driver-model.ts:87`](lib/server/agent-runtime/agent-driver-model.ts#L87), [`:7`](lib/server/agent-runtime/agent-driver-model.ts#L7) |
+| Wire `max_tokens` | catalog `outputWindow`, **undefined means omit** | [`agent-driver-model.ts:103`](lib/server/agent-runtime/agent-driver-model.ts#L103), [`stream-fn.ts:395-399`](lib/agent/runtime/stream-fn.ts#L395-L399) |
 | Classroom agent turns / actions per agent | 6 / 8, floored at 1, **cannot be raised by the request** | `clampPositiveInteger` ([`lib/chat/pi/config.ts:43-45`](lib/chat/pi/config.ts#L43-L45)) applies `Math.max(1, Math.min(max, …))`; `DEFAULT_ === MAX_` for both bounds ([`:5-8`](lib/chat/pi/config.ts#L5-L8)) is what makes a request-supplied value unable to raise them |
 | Classroom child wall clock / provider transports | 60 000 ms / 5 | [`call-agent.ts:796-797`](lib/chat/pi/tools/call-agent.ts#L796-L797) |
 
@@ -314,7 +314,7 @@ The `wireMaxOutputTokens` / `Model.maxTokens` split is load-bearing:
 `buildPiDriverModel` sets `maxTokens` purely as an internal compaction reservation,
 while `resolveAgentDriverModel` returns an independent `wireMaxOutputTokens` that
 may be `undefined` so it never becomes an API cap
-([`agent-driver-model.ts:74-79`](lib/server/agent-runtime/agent-driver-model.ts#L74-L79), [`:86-88`](lib/server/agent-runtime/agent-driver-model.ts#L86-L88)), and `createCallLlmStreamFn` honours
+([`agent-driver-model.ts:83-88`](lib/server/agent-runtime/agent-driver-model.ts#L83-L88), [`:95-97`](lib/server/agent-runtime/agent-driver-model.ts#L95-L97)), and `createCallLlmStreamFn` honours
 `omitMaxOutputTokens` by never sending a cap even when pi supplies one
 ([`stream-fn.ts:394-399`](lib/agent/runtime/stream-fn.ts#L394-L399)).
 

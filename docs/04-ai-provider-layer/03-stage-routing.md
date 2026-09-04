@@ -86,7 +86,7 @@ Traced by locating each `resolveModel*` call in `app/` and `lib/`.
 | `generate-classroom` | [`lib/server/classroom-generation.ts:199`](lib/server/classroom-generation.ts#L199) | `generate-classroom` |
 | `web-search-query-rewrite` | [`app/api/web-search/route.ts:127`](app/api/web-search/route.ts#L127); [`lib/server/classroom-generation.ts:427`](lib/server/classroom-generation.ts#L427) | — |
 | `maic-agent` | **none** | — |
-| `maic-agent-driver` | [`lib/server/agent-runtime/agent-driver-model.ts:93`](lib/server/agent-runtime/agent-driver-model.ts#L93) | `agent-runtime` |
+| `maic-agent-driver` | [`lib/server/agent-runtime/agent-driver-model.ts:102`](lib/server/agent-runtime/agent-driver-model.ts#L102) | `agent-runtime` |
 
 Two dead routing keys:
 
