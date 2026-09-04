@@ -11,7 +11,17 @@ export const UNKNOWN_MODEL_RESERVED_OUTPUT_TOKENS = 8_192;
 // lib/ai/providers.ts.
 const OPENAI_PI_APIS = new Set<Api>(['openai-completions', 'openai-responses']);
 
-export function assertAgentDriverRouteConfig(route: StageRoute | undefined): string {
+/**
+ * Reject a driver route this transport cannot honor, and narrow it for the caller.
+ *
+ * The predicate form is what makes the `!route` throw visible to the compiler.
+ * This used to return the parsed model id, which nothing ever consumed — both
+ * call sites discard it — so `route` stayed `StageRoute | undefined` downstream
+ * even though reaching that code proves it is defined.
+ */
+export function assertAgentDriverRouteConfig(
+  route: StageRoute | undefined,
+): asserts route is StageRoute {
   if (!route) {
     throw new Error(
       `MODEL_ROUTES must explicitly configure stage "${AGENT_DRIVER_STAGE}" ` +
@@ -42,7 +52,6 @@ export function assertAgentDriverRouteConfig(route: StageRoute | undefined): str
         `${JSON.stringify(route.api)} for model id ${modelId}.`,
     );
   }
-  return modelId;
 }
 
 export function buildPiDriverModel(
