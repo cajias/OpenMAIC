@@ -1,7 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 CLAUDE.local.md
-.claude
+# .claude/settings.local.json is per-developer local config and stays ignored;
+# these shared, committed paths are un-ignored so future additions aren't silently dropped.
+.claude/*
+!.claude/settings.json
+!.claude/agents/
+!.claude/skills/
 .superpowers
 
 # dependencies
