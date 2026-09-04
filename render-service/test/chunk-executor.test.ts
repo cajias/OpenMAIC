@@ -265,7 +265,11 @@ describe('local bounded chunk executor', () => {
   });
 
   it.each([
-    { writeAudio: true, description: 'present', expected: (planDir: string) => join(planDir, 'audio.aac') },
+    {
+      writeAudio: true,
+      description: 'present',
+      expected: (planDir: string) => join(planDir, 'audio.aac'),
+    },
     { writeAudio: false, description: 'absent', expected: () => null },
   ])(
     'passes the narration audio track to the assembler when audio.aac is $description',
