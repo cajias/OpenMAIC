@@ -189,7 +189,13 @@ function checkLinks(file, prose) {
         continue;
       }
       if (hash !== -1) {
-        anchorRefs.push({ file, line: i + 1, raw, target, frag: decodeURIComponent(raw.slice(hash + 1)) });
+        anchorRefs.push({
+          file,
+          line: i + 1,
+          raw,
+          target,
+          frag: decodeURIComponent(raw.slice(hash + 1)),
+        });
       }
       if (!target) continue; // a same-file `#fragment` has no path to resolve
       const resolved = path.join(REPO_ROOT, decodeURIComponent(target));
@@ -440,7 +446,9 @@ function checkAnchors(slugIndex) {
     // heading is wrong, and `sharedPrefix` scores that pair at 0, so the generic
     // near-miss hint below degrades to "no heading produces that slug" on exactly
     // the class of defect that is most common. Name the fix instead.
-    const edgeHyphen = slugs.find((h) => h.slug.replace(/^-+|-+$/g, '') === frag && h.slug !== frag);
+    const edgeHyphen = slugs.find(
+      (h) => h.slug.replace(/^-+|-+$/g, '') === frag && h.slug !== frag,
+    );
     if (edgeHyphen) {
       report(
         file,
@@ -903,7 +911,12 @@ function selftest() {
       '    [h](./nope-h.md)',
     ];
     const prose = maskNonProse(lines, scanBlocks(lines), { spans: true });
-    return prose.join('\n').match(/nope-[a-h]/g)?.join(',') ?? '';
+    return (
+      prose
+        .join('\n')
+        .match(/nope-[a-h]/g)
+        ?.join(',') ?? ''
+    );
   })();
   const cases = [
     // Punctuation is dropped in place, so each surviving space becomes its own hyphen.
@@ -962,7 +975,10 @@ function selftest() {
     ...['l412', 'l412-l420', 'l412-420'].map((f) => [LOWER_L_ANCHOR.test(f), true]),
     // ...and the anchors that must NOT be read as a lowercase line anchor: the
     // correct form, a heading slug that merely starts with `l`, and `lines-412`.
-    ...['L412', 'lines-412', 'logging-412', 'l', 'l412x'].map((f) => [LOWER_L_ANCHOR.test(f), false]),
+    ...['L412', 'lines-412', 'logging-412', 'l', 'l412x'].map((f) => [
+      LOWER_L_ANCHOR.test(f),
+      false,
+    ]),
     [
       'l412-l420'.replace(/l/g, 'L'), // the suggested fix the message prints
       'L412-L420',
@@ -995,16 +1011,26 @@ function selftest() {
     // set uses. Nobody counts `../../../../` correctly by eye, which is the whole
     // reason the message carries the answer.
     [rootRelative('docs/README.md', '../lib/x.ts#L12'), 'lib/x.ts#L12'],
-    [rootRelative('docs/11-data-flows/02-topic-to-classroom.md', '../../lib/x.ts#L12'), 'lib/x.ts#L12'],
     [
-      rootRelative('docs/appendix/research/agent-runtime/00-overview.md', '../../../../lib/x.ts#L12'),
+      rootRelative('docs/11-data-flows/02-topic-to-classroom.md', '../../lib/x.ts#L12'),
       'lib/x.ts#L12',
     ],
-    [rootRelative('docs/12-api-reference/index.md', './09-conventions.md#size-limits'),
-      'docs/12-api-reference/09-conventions.md#size-limits'],
+    [
+      rootRelative(
+        'docs/appendix/research/agent-runtime/00-overview.md',
+        '../../../../lib/x.ts#L12',
+      ),
+      'lib/x.ts#L12',
+    ],
+    [
+      rootRelative('docs/12-api-reference/index.md', './09-conventions.md#size-limits'),
+      'docs/12-api-reference/09-conventions.md#size-limits',
+    ],
     // A sibling directory, a leading slash, and a trailing slash on a directory.
-    [rootRelative('docs/11-data-flows/02-x.md', '../02-container-view/index.md'),
-      'docs/02-container-view/index.md'],
+    [
+      rootRelative('docs/11-data-flows/02-x.md', '../02-container-view/index.md'),
+      'docs/02-container-view/index.md',
+    ],
     [rootRelative('docs/README.md', '/lib/x.ts#L12'), 'lib/x.ts#L12'],
     [rootRelative('docs/README.md', './appendix/'), 'docs/appendix'],
     // The fragment is carried across byte for byte: uppercase `L`, a range, and a
@@ -1071,7 +1097,9 @@ async function slugtest(spec) {
       }
     }
   }
-  console.log(`slugtest: ${headings} headings in ${targets.length} files, ${mismatches.length} mismatches`);
+  console.log(
+    `slugtest: ${headings} headings in ${targets.length} files, ${mismatches.length} mismatches`,
+  );
   for (const m of mismatches.slice(0, 20)) console.log(`  ${m}`);
   if (mismatches.length > 20) console.log(`  ... and ${mismatches.length - 20} more`);
   if (mismatches.length) process.exit(1);
@@ -1090,7 +1118,9 @@ async function main() {
     })
       .split('\0')
       .filter(Boolean);
-    await slugtest(slugArg.includes('=') ? slugArg.slice(slugArg.indexOf('=') + 1) : 'github-slugger');
+    await slugtest(
+      slugArg.includes('=') ? slugArg.slice(slugArg.indexOf('=') + 1) : 'github-slugger',
+    );
     return;
   }
   if (!fs.existsSync(DOCS_DIR)) {

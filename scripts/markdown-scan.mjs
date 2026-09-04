@@ -132,7 +132,13 @@ export function scanBlocks(lines) {
     }
 
     if (marker) {
-      fence = { char: marker[2][0], len: marker[2].length, info: marker[3], start: i + 1, end: null };
+      fence = {
+        char: marker[2][0],
+        len: marker[2].length,
+        info: marker[3],
+        start: i + 1,
+        end: null,
+      };
       fences.push(fence);
       code[i] = true;
       prevBlank = false;

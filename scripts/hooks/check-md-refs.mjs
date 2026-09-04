@@ -70,9 +70,13 @@ const LINK = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 const CITE = /`\s*([A-Za-z0-9_@.\-/[\]]+\.[A-Za-z0-9]{1,8})(?::(\d+)(?:-(\d+))?)?\s*`/g;
 
 let trackedCache = null;
-const tracked = () => (trackedCache ??= execFileSync('git', ['-C', ROOT, 'ls-files'], {
-  maxBuffer: 1 << 28,
-}).toString().split('\n').filter(Boolean));
+const tracked = () =>
+  (trackedCache ??= execFileSync('git', ['-C', ROOT, 'ls-files'], {
+    maxBuffer: 1 << 28,
+  })
+    .toString()
+    .split('\n')
+    .filter(Boolean));
 
 const bodyCache = new Map();
 /** Real lines of a file (a trailing newline is a terminator, not an empty line). */
@@ -205,7 +209,8 @@ export function check(abs) {
         continue;
       }
       const n = (bodyOf(to) ?? []).length;
-      if (last > n) add(line, `#L anchor past end of ${path.relative(ROOT, to)} (${n} lines): ${raw}`);
+      if (last > n)
+        add(line, `#L anchor past end of ${path.relative(ROOT, to)} (${n} lines): ${raw}`);
     }
 
     // `path:line` citations.
@@ -358,7 +363,10 @@ function selftest() {
   try {
     const got = check(fixture);
     const has = (needle) => got.some((p) => p.includes(needle));
-    assert(got.length === 15, `15 problems in the broken fixture, got ${got.length}\n${got.join('\n')}`);
+    assert(
+      got.length === 15,
+      `15 problems in the broken fixture, got ${got.length}\n${got.join('\n')}`,
+    );
     assert(has(':4 — no heading in this file slugs to "heading-two"'), 'broken same-file anchor');
     assert(has(':6 — dead link'), 'dead relative link');
     assert(has(':7 — link resolves to a directory'), 'directory link');
@@ -369,30 +377,36 @@ function selftest() {
     assert(has(':14 — elided path in a citation'), 'elided citation path');
     assert(!has(':15'), 'bare-basename citation deliberately silent (hookify owns shape)');
     assert(!has(':16'), 'package.json:1 accepted (root-level file is repo-root-relative)');
-    assert(has(':17 — citation line numbers are 1-based'), 'cited line 0 is a finding, not a crash');
+    assert(
+      has(':17 — citation line numbers are 1-based'),
+      'cited line 0 is a finding, not a crash',
+    );
     assert(has(':18 — citation line range runs backwards'), 'backwards citation range');
     assert(has(':19 — #L anchor line numbers are 1-based'), '#L0 is a finding, not a crash');
     assert(!has(':20 ') && !has(':21 '), 'emoji-stripped and CRLF anchors resolve');
     // Fence body, indented block, HTML comment, nested fence, inline spans.
-    assert(
-      !got.some((p) => /:(?:24|25|28|30|34|38) —/.test(p)),
-      'non-prose defects are ignored',
-    );
+    assert(!got.some((p) => /:(?:24|25|28|30|34|38) —/.test(p)), 'non-prose defects are ignored');
     assert(has(':41 — dead link'), 'a four-space list continuation stays checked');
     assert(!has(':3 ') && !has(':5 ') && !has(':10 ') && !has(':12 '), 'the GOOD lines pass');
     // The old link forms, each rejected once, each carrying the corrected target.
     // A `../` target inside a fence (line 24) is still NOT a form error, which is
     // what keeps this rule from reporting illustrated syntax.
     assert(
-      has(':43 — link target is relative to this file — spell it from the repo root: ../README.md -> README.md'),
+      has(
+        ':43 — link target is relative to this file — spell it from the repo root: ../README.md -> README.md',
+      ),
       'a `../`-relative target is rejected with its fix',
     );
     assert(
-      has(':44 — link target is relative to this file — spell it from the repo root: ./README.md -> docs/README.md'),
+      has(
+        ':44 — link target is relative to this file — spell it from the repo root: ./README.md -> docs/README.md',
+      ),
       'a `./`-relative target is rejected with its fix',
     );
     assert(
-      has(':45 — link target is leading-slash absolute — spell it from the repo root: /README.md -> README.md'),
+      has(
+        ':45 — link target is leading-slash absolute — spell it from the repo root: /README.md -> README.md',
+      ),
       'a leading-slash target is rejected with its fix',
     );
   } finally {
@@ -403,7 +417,10 @@ function selftest() {
   // hook would flag every relative link in the repo's 132 non-docs pages the first
   // time anyone edited one.
   const outside = path.join(ROOT, '.check-md-refs-selftest-outside.md');
-  fs.writeFileSync(outside, ['# Outside', '', '[a](README.md)', '[b](./README.md)', '[c](docs/README.md)', ''].join('\n'));
+  fs.writeFileSync(
+    outside,
+    ['# Outside', '', '[a](README.md)', '[b](./README.md)', '[c](docs/README.md)', ''].join('\n'),
+  );
   try {
     const got = check(outside);
     assert(got.length === 0, `a non-docs page's relative links pass, got ${JSON.stringify(got)}`);
